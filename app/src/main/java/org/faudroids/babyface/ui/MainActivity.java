@@ -3,18 +3,18 @@ package org.faudroids.babyface.ui;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import org.faudroids.babyface.PhotoManager;
 import org.faudroids.babyface.R;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
+import javax.inject.Inject;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.ContentView;
@@ -30,6 +30,8 @@ public class MainActivity extends RoboActivity {
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
 
+	@Inject private PhotoManager photoManager;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -42,7 +44,7 @@ public class MainActivity extends RoboActivity {
 				if (intent.resolveActivity(getPackageManager()) != null) {
 					File imageFile;
 					try {
-						imageFile = createImageFile();
+						imageFile = photoManager.createImageFile();
 						Timber.d("storing image as " + imageFile.getAbsolutePath());
 					} catch (IOException ioe) {
 						Timber.e(ioe, "failed to create image file");
@@ -59,9 +61,8 @@ public class MainActivity extends RoboActivity {
 		photoCountButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BabyFace");
 				int photoCount = 0;
-				for (File file : storageDir.listFiles()) {
+				for (File file : photoManager.getRootStorageDir().listFiles()) {
 					if (file.getName().toLowerCase().endsWith(".jpg")) ++photoCount;
 				}
 				Toast.makeText(MainActivity.this, "Found " + photoCount + " photos", Toast.LENGTH_SHORT).show();
@@ -78,18 +79,6 @@ public class MainActivity extends RoboActivity {
 				Toast.makeText(this, "Image taking success", Toast.LENGTH_SHORT).show();
 				break;
 		}
-	}
-
-
-	private File createImageFile() throws IOException {
-		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-		String imageFileName = "JPEG_" + timeStamp + "_";
-		File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BabyFace");
-		if (!storageDir.exists()) {
-			boolean success = storageDir.mkdirs();
-			if (!success) Timber.e("failed to create dir " + storageDir.getAbsolutePath());
-		}
-		return File.createTempFile(imageFileName, ".jpg", storageDir);
 	}
 
 }
