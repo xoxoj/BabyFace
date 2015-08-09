@@ -49,7 +49,6 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
-	@InjectView(R.id.btn_start_service) private Button startServiceButton;
 
 	@Inject private PhotoManager photoManager;
 	private File imageFile;
@@ -122,11 +121,11 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				if (resultCode != RESULT_OK) return;
 				Timber.d("image taking success");
 
+				// start image uploading
 				subscriptions.add(Observable
 						.defer(new Func0<Observable<Object>>() {
 							@Override
 							public Observable<Object> call() {
-								Timber.d("about to process image");
 								GoogleApiClient googleApiClient = googleApiClientManager.getGoogleApiClient();
 
 								// create new drive content
@@ -146,7 +145,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 									InputStream photoInputStream = new FileInputStream(imageFile);
 									byte[] buffer = new byte[1024];
 									int bytesRead;
-									while ((bytesRead = photoInputStream.read()) != -1) {
+									while ((bytesRead = photoInputStream.read(buffer)) != -1) {
 										driveOutputStream.write(buffer, 0, bytesRead);
 									}
 									Timber.d("done copying stream");
@@ -177,10 +176,9 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 						.subscribe(new Action1<Object>() {
 							@Override
 							public void call(Object nothing) {
-								Toast.makeText(MainActivity.this, "Drive upload success", Toast.LENGTH_SHORT).show();
+								Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
 							}
 						}));
-
 				break;
 		}
 	}
