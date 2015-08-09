@@ -12,24 +12,36 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.MetadataChangeSet;
 
-import org.faudroids.babyface.PhotoManager;
 import org.faudroids.babyface.R;
+import org.faudroids.babyface.google.ConnectionListener;
+import org.faudroids.babyface.google.GoogleApiClientManager;
+import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.inject.Inject;
 
-import roboguice.activity.RoboActivity;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func0;
 import timber.log.Timber;
 
 
 @ContentView(R.layout.activity_main)
-public class MainActivity extends RoboActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class MainActivity extends AbstractActivity implements ConnectionListener {
 
 	private static final int
 			REQUEST_CAPTURE_IMAGE = 42,
@@ -37,22 +49,16 @@ public class MainActivity extends RoboActivity implements GoogleApiClient.OnConn
 
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
+	@InjectView(R.id.btn_start_service) private Button startServiceButton;
 
 	@Inject private PhotoManager photoManager;
-	private GoogleApiClient googleApiClient;
+	private File imageFile;
+
+	@Inject private GoogleApiClientManager googleApiClientManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// setup google api client
-		googleApiClient = new GoogleApiClient.Builder(this)
-				.addApi(Drive.API)
-				.addScope(Drive.SCOPE_APPFOLDER)
-				.addConnectionCallbacks(this)
-				.addOnConnectionFailedListener(this)
-				.build();
-
 
 		// setup camera button
 		cameraButton.setOnClickListener(new View.OnClickListener() {
@@ -60,7 +66,6 @@ public class MainActivity extends RoboActivity implements GoogleApiClient.OnConn
 			public void onClick(View v) {
 				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 				if (intent.resolveActivity(getPackageManager()) != null) {
-					File imageFile;
 					try {
 						imageFile = photoManager.createImageFile();
 						Timber.d("storing image as " + imageFile.getAbsolutePath());
@@ -85,56 +90,124 @@ public class MainActivity extends RoboActivity implements GoogleApiClient.OnConn
 				}
 				Toast.makeText(MainActivity.this, "Found " + photoCount + " photos", Toast.LENGTH_SHORT).show();
 			}
+
 		});
 	}
 
 
 	@Override
 	public void onStart() {
+		Timber.d("onStart");
+		googleApiClientManager.connectToClient();
 		super.onStart();
-		googleApiClient.connect();
+	}
+
+
+	@Override
+	public void onStop() {
+		Timber.d("onStop");
+		googleApiClientManager.disconnectFromClient();
+		super.onStop();
 	}
 
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
-			case REQUEST_CAPTURE_IMAGE:
-				if (resultCode != RESULT_OK) return;
-				Toast.makeText(this, "Image taking success", Toast.LENGTH_SHORT).show();
+			case REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION:
+				googleApiClientManager.getGoogleApiClient().connect();
 				break;
 
-			case REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION:
+			case REQUEST_CAPTURE_IMAGE:
 				if (resultCode != RESULT_OK) return;
-				googleApiClient.connect();
+				Timber.d("image taking success");
+
+				subscriptions.add(Observable
+						.defer(new Func0<Observable<Object>>() {
+							@Override
+							public Observable<Object> call() {
+								Timber.d("about to process image");
+								GoogleApiClient googleApiClient = googleApiClientManager.getGoogleApiClient();
+
+								// create new drive content
+								DriveApi.DriveContentsResult driveContentsResult = Drive.DriveApi
+										.newDriveContents(googleApiClient)
+										.await();
+								Status status = driveContentsResult.getStatus();
+								if (!status.isSuccess()) {
+									Timber.e("failed to create new drive contents (" + status.getStatusMessage() + ")");
+									return Observable.error(new Exception(status.getStatusMessage()));
+								}
+
+								// copy image to drive contents
+								Timber.d("about to copy " + imageFile.length() + " bytes");
+								try {
+									OutputStream driveOutputStream = driveContentsResult.getDriveContents().getOutputStream();
+									InputStream photoInputStream = new FileInputStream(imageFile);
+									byte[] buffer = new byte[1024];
+									int bytesRead;
+									while ((bytesRead = photoInputStream.read()) != -1) {
+										driveOutputStream.write(buffer, 0, bytesRead);
+									}
+									Timber.d("done copying stream");
+
+								} catch (IOException e) {
+									Timber.e(e, "failed to read image");
+									return Observable.error(e);
+								}
+
+								// create drive file
+								MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
+										.setTitle(imageFile.getName())
+										.setMimeType("image/jpeg")
+										.build();
+								DriveFolder.DriveFileResult driveFileResult = Drive.DriveApi
+										.getAppFolder(googleApiClient)
+										.createFile(googleApiClient, metadatachangeset, driveContentsResult.getDriveContents())
+										.await();
+								status = driveFileResult.getStatus();
+								if (!status.isSuccess()) {
+									return Observable.error(new Exception(status.getStatusMessage()));
+								}
+
+								return Observable.just(null);
+							}
+						})
+						.compose(new DefaultTransformer<>())
+						.subscribe(new Action1<Object>() {
+							@Override
+							public void call(Object nothing) {
+								Toast.makeText(MainActivity.this, "Drive upload success", Toast.LENGTH_SHORT).show();
+							}
+						}));
+
 				break;
 		}
 	}
 
-
 	@Override
 	public void onConnected(Bundle bundle) {
-		Timber.d("GoogleApiClient connected");
+		// nothing to do for now
 	}
-
 
 	@Override
 	public void onConnectionSuspended(int i) {
-		Timber.d("GoogleApiClient connection suspended");
+		// nothing to do for now
 	}
-
 
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
-		Timber.d("GoogleApiClient connection failed");
-		if (connectionResult.hasResolution()) {
-			try {
-				connectionResult.startResolutionForResult(this, REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION);
-			} catch (IntentSender.SendIntentException e) {
-				Timber.e(e, "failed to resolve connection error");
-			}
-		} else {
-			GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this, 0).show();
+		// missing play services etc.
+		if (!connectionResult.hasResolution()) {
+			GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), MainActivity.this, 0).show();
+			return;
+		}
+
+		// try resolving error
+		try {
+			connectionResult.startResolutionForResult(MainActivity.this, REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION);
+		} catch (IntentSender.SendIntentException e) {
+			Timber.e(e, "failed to resolve connection error");
 		}
 	}
 

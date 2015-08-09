@@ -1,4 +1,4 @@
-package org.faudroids.babyface;
+package org.faudroids.babyface.photo;
 
 
 import android.os.Environment;
