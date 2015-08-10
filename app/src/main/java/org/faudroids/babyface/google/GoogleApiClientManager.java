@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.plus.Plus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class GoogleApiClientManager {
 		this.connectionListener = new CompositeConnectionListener();
 		this.googleApiClient = new GoogleApiClient.Builder(context)
 				.addApi(Drive.API)
+				.addApi(Plus.API)
 				.addScope(Drive.SCOPE_APPFOLDER)
 				.addConnectionCallbacks(connectionListener)
 				.addOnConnectionFailedListener(connectionListener)

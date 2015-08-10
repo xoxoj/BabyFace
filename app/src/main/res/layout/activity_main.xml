@@ -23,4 +23,11 @@
         android:text="How many photos have I taken?"
         />
 
+    <Button
+        android:id="@+id/btn_get_token"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Google OAUTH2 token"
+        />
+
 </LinearLayout>

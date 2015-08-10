@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -17,6 +18,7 @@ import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.ConnectionListener;
@@ -49,6 +51,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
+	@InjectView(R.id.btn_get_token) private Button getTokenButton;
 
 	@Inject private PhotoManager photoManager;
 	private File imageFile;
@@ -89,7 +92,43 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				}
 				Toast.makeText(MainActivity.this, "Found " + photoCount + " photos", Toast.LENGTH_SHORT).show();
 			}
+		});
 
+		// setup oauth2 token example button
+		getTokenButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Observable
+						.defer(new Func0<Observable<String>>() {
+							@Override
+							public Observable<String> call() {
+								try {
+									// String scope = "oauth2:server:client_id:"
+									/*
+									String scope = "audience:server:client_id:"
+											+ getString(R.string.google_web_oauth_client_id);
+											// + ":api_scope:" + Drive.SCOPE_APPFOLDER.toString();
+											*/
+									String scope = "oauth2:" + Drive.SCOPE_APPFOLDER.toString();
+									Timber.d("scope is " + scope);
+									String token = GoogleAuthUtil.getToken(
+											MainActivity.this,
+											Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()),
+											scope);
+									return Observable.just(token);
+								} catch (Exception e) {
+									return Observable.error(e);
+								}
+							}
+						})
+						.compose(new DefaultTransformer<String>())
+						.subscribe(new Action1<String>() {
+							@Override
+							public void call(String token) {
+								Timber.d("token is " + token);
+							}
+						});
+			}
 		});
 	}
 
