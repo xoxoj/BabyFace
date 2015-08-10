@@ -5,6 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import org.faudroids.babyface.server.rest.TestResource;
+import org.faudroids.babyface.server.rest.VideoResource;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -21,6 +22,7 @@ public class BabyFaceApplication extends Application<BabyFaceConfig> {
 		Injector injector = Guice.createInjector();
 
 		environment.jersey().register(injector.getInstance(TestResource.class));
+		environment.jersey().register(injector.getInstance(VideoResource.class));
 	}
 
 }
