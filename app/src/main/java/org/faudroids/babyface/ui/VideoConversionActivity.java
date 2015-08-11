@@ -1,5 +1,7 @@
 package org.faudroids.babyface.ui;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -83,10 +85,12 @@ public class VideoConversionActivity extends AbstractActivity {
 							@Override
 							public Observable<File> call(Response response) {
 								// create dir file
-								File rootDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "babyface");
-								if (!rootDir.mkdirs()) {
-									Timber.e("failed to create dir " + rootDir.getAbsolutePath());
-									return Observable.error(new IOException("error creating dir"));
+								File rootDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), getString(R.string.app_name));
+								if (!rootDir.exists()) {
+									if (!rootDir.mkdirs()) {
+										Timber.e("failed to create dir " + rootDir.getAbsolutePath());
+										return Observable.error(new IOException("error creating dir"));
+									}
 								}
 
 								// create video file
@@ -121,9 +125,12 @@ public class VideoConversionActivity extends AbstractActivity {
 						.compose(new DefaultTransformer<File>())
 						.subscribe(new Action1<File>() {
 							@Override
-							public void call(File file) {
-								Timber.d("written video to " + file.getAbsolutePath());
-								Toast.makeText(VideoConversionActivity.this, "success", Toast.LENGTH_SHORT).show();
+							public void call(File videoFile) {
+								Timber.d("written video to " + videoFile.getAbsolutePath());
+								Uri videoUri = Uri.parse("file:///" + videoFile.getAbsolutePath());
+								Intent intent = new Intent(Intent.ACTION_VIEW);
+								intent.setDataAndType(videoUri, "video/mp4");
+								startActivity(intent);
 							}
 						});
 			}
