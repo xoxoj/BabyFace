@@ -32,8 +32,8 @@ public class VideoResource {
 
 	@POST
 	public void listPhotos(@Auth User user) throws IOException {
-		File targetDirectory = new File(UUID.randomUUID().toString());
-		if (!targetDirectory.mkdir()) {
+		File targetDirectory = new File("data/" + UUID.randomUUID().toString());
+		if (!targetDirectory.mkdirs()) {
 			Log.e("failed to create dir " + targetDirectory.getAbsolutePath());
 			throw new IOException("error creating output dir");
 		}

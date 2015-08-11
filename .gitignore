@@ -6,11 +6,13 @@ build
 *.iml
 *.swp
 
-# config files
+# android specific files
 config.xml
+
+# server specific files
 configuration.yml
+data
 
 # various
 /local.properties
 .gradle
-
