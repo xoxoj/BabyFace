@@ -1,24 +1,30 @@
 package org.faudroids.babyface.server.rest;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.api.services.drive.Drive;
+import com.google.common.base.Optional;
 
 import org.faudroids.babyface.server.auth.User;
 import org.faudroids.babyface.server.photo.DriveApiFactory;
-import org.faudroids.babyface.server.utils.Log;
+import org.faudroids.babyface.server.video.VideoConversionStatus;
 import org.faudroids.babyface.server.video.VideoManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 import io.dropwizard.auth.Auth;
 
 @Path("/video")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class VideoResource {
 
 	private final DriveApiFactory driveApiFactory;
@@ -31,15 +37,48 @@ public class VideoResource {
 	}
 
 	@POST
-	public void listPhotos(@Auth User user) throws Exception {
-		File targetDirectory = new File("data/" + UUID.randomUUID().toString());
-		if (!targetDirectory.mkdirs()) {
-			Log.e("failed to create dir " + targetDirectory.getAbsolutePath());
-			throw new IOException("error creating output dir");
+	public Status listPhotos(@Auth User user) throws Exception {
+		Drive drive = driveApiFactory.createDriveApi(user.getToken());
+		VideoConversionStatus status = videoManager.createVideo(drive);
+		return new Status(status);
+	}
+
+	@GET
+	@Path("/{videoId}/status")
+	public Status getStatus(@Auth User user, @PathParam("videoId") String videoId) {
+		// TODO check user access rights
+		Optional<VideoConversionStatus> statusOptional = videoManager.getStatusForVideo(videoId);
+		if (!statusOptional.isPresent()) throw new NotFoundException();
+		return new Status(statusOptional.get());
+	}
+
+
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public static class Status {
+
+		private final String videoId;
+		private final boolean isComplete;
+		private final Boolean isConversionSuccessful;
+
+		public Status(VideoConversionStatus status) {
+			this.videoId = status.getVideoId();
+			this.isComplete = status.isComplete();
+			if (!isComplete) this.isConversionSuccessful = null;
+			else this.isConversionSuccessful = status.isConversionSuccessful();
 		}
 
-		Drive drive = driveApiFactory.createDriveApi(user.getToken());
-		videoManager.createVideo(drive, targetDirectory);
+		public String getVideoId() {
+			return videoId;
+		}
+
+		public boolean isComplete() {
+			return isComplete;
+		}
+
+		public Boolean isConversionSuccessful() {
+			return isConversionSuccessful;
+		}
+
 	}
 
 }

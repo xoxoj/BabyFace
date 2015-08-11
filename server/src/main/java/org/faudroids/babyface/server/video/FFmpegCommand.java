@@ -37,6 +37,7 @@ public class FFmpegCommand {
 		new StreamGobbler("STDOUT", process.getInputStream(), logFileStream).start();
 		new StreamGobbler("STDERR", process.getErrorStream(), logFileStream).start();
 		int resultCode = process.waitFor();
+
 		Log.i("done");
 		return resultCode == 0;
 	}
