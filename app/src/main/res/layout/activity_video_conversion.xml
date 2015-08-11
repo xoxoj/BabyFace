@@ -10,31 +10,36 @@
     >
 
     <Button
-        android:id="@+id/btn_camera"
+        android:id="@+id/btn_start_conversion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start camera"
+        android:text="Start conversion"
         />
 
     <Button
-        android:id="@+id/btn_photo_count"
+        android:id="@+id/btn_show_video"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="How many photos have I taken?"
+        android:text="Show video"
+        android:enabled="false"
         />
 
     <Button
-        android:id="@+id/btn_get_token"
+        android:id="@+id/btn_reset"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Get Google OAUTH2 token"
+        android:text="Reset"
         />
 
-    <Button
-        android:id="@+id/btn_video_conversion"
+    <TextView
+        android:id="@+id/txt_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Video conversion"
+        android:textSize="26sp"
+        android:text="Hello world"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:padding="16dp"
         />
 
 </LinearLayout>

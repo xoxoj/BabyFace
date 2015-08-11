@@ -52,6 +52,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
 	@InjectView(R.id.btn_get_token) private Button getTokenButton;
+	@InjectView(R.id.btn_video_conversion) private Button videoConversionButton;
 
 	@Inject private PhotoManager photoManager;
 	private File imageFile;
@@ -128,6 +129,14 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 								Timber.d("token is " + token);
 							}
 						});
+			}
+		});
+
+		// setup forwarding to conversion activity
+		videoConversionButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivity(new Intent(MainActivity.this, VideoConversionActivity.class));
 			}
 		});
 	}

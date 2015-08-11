@@ -4,6 +4,7 @@ package org.faudroids.babyface.app;
 import android.app.Application;
 
 import org.faudroids.babyface.BuildConfig;
+import org.faudroids.babyface.videos.VideosModule;
 
 import roboguice.RoboGuice;
 import timber.log.Timber;
@@ -18,7 +19,8 @@ public class BabyFaceApp extends Application {
 		RoboGuice.getOrCreateBaseApplicationInjector(
 				this,
 				RoboGuice.DEFAULT_STAGE,
-				RoboGuice.newDefaultRoboModule(this));
+				RoboGuice.newDefaultRoboModule(this),
+				new VideosModule());
 
 		// setup logging
 		if (BuildConfig.DEBUG) {

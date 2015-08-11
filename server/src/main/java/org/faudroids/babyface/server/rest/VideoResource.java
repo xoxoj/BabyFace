@@ -39,7 +39,7 @@ public class VideoResource {
 	}
 
 	@POST
-	public Status listPhotos(@Auth User user) throws Exception {
+	public Status createVideo(@Auth User user) throws Exception {
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
 		VideoConversionStatus status = videoManager.createVideo(drive);
 		return new Status(status);
@@ -99,11 +99,11 @@ public class VideoResource {
 			return videoId;
 		}
 
-		public boolean isComplete() {
+		public boolean getIsComplete() {
 			return isComplete;
 		}
 
-		public Boolean isConversionSuccessful() {
+		public Boolean getIsConversionSuccessful() {
 			return isConversionSuccessful;
 		}
 
