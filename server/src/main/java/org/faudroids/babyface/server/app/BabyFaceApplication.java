@@ -8,6 +8,7 @@ import org.faudroids.babyface.server.auth.AuthModule;
 import org.faudroids.babyface.server.auth.GoogleOAuth2Authenticator;
 import org.faudroids.babyface.server.auth.GoogleTokenInfoService;
 import org.faudroids.babyface.server.auth.User;
+import org.faudroids.babyface.server.rest.PhotoResource;
 import org.faudroids.babyface.server.rest.TestResource;
 import org.faudroids.babyface.server.rest.VideoResource;
 
@@ -30,6 +31,7 @@ public class BabyFaceApplication extends Application<BabyFaceConfig> {
 		// setup resources
 		environment.jersey().register(injector.getInstance(TestResource.class));
 		environment.jersey().register(injector.getInstance(VideoResource.class));
+		environment.jersey().register(injector.getInstance(PhotoResource.class));
 
 		// setup google oauth
 		environment.jersey().register(AuthFactory.binder(new OAuthFactory<User>(
