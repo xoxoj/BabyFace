@@ -8,16 +8,22 @@ import io.dropwizard.Configuration;
 
 public class BabyFaceConfig extends Configuration {
 
-	private final int dummy;
+	private final String googleOAuth2WebClientId, googleOAuth2AndroidClientId;
 
 	@JsonCreator
-	public BabyFaceConfig(@JsonProperty("dummy") int dummy) {
-		this.dummy = dummy;
-		// nothing to do for now
+	public BabyFaceConfig(
+			@JsonProperty("googleOAuth2WebClientId") String googleOAuth2WebClientId,
+			@JsonProperty("googleOAuth2AndroidClientId") String googleOAuth2AndroidClientId) {
+
+		this.googleOAuth2WebClientId = googleOAuth2WebClientId;
+		this.googleOAuth2AndroidClientId = googleOAuth2AndroidClientId;
 	}
 
-	public int getDummy() {
-		return dummy;
+	public String getGoogleOAuth2WebClientId() {
+		return googleOAuth2WebClientId;
 	}
 
+	public String getGoogleOAuth2AndroidClientId() {
+		return googleOAuth2AndroidClientId;
+	}
 }

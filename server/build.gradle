@@ -11,9 +11,11 @@ run() {
 
 dependencies {
     compile 'io.dropwizard:dropwizard-core:0.8.2'
+    compile 'io.dropwizard:dropwizard-auth:0.8.2'
     compile 'com.google.inject:guice:4.0'
     compile 'com.google.inject.extensions:guice-assistedinject:4.0'
     compile 'com.google.apis:google-api-services-drive:v2-rev180-1.20.0'
-
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
+    compile 'com.squareup.retrofit:converter-jackson:1.9.0'
     testCompile 'junit:junit:4.11'
 }

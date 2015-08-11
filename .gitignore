@@ -6,7 +6,11 @@ build
 *.iml
 *.swp
 
+# config files
+config.xml
+configuration.yml
+
 # various
 /local.properties
 .gradle
-config.xml
+
