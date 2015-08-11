@@ -28,6 +28,7 @@ public class PhotoDownloadManager {
 	public List<java.io.File> downloadAllPhotos(final Drive drive, final java.io.File targetDirectory) throws Exception {
 		// get files to download
 		List<File> photoFiles = drive.files().list().execute().getItems();
+		Log.i("downloading " + photoFiles.size() + " photos");
 
 		// setup threads + tasks
 		final ExecutorService threadPool = Executors.newFixedThreadPool(DOWNLOAD_THREAD_COUNT);
@@ -60,7 +61,6 @@ public class PhotoDownloadManager {
 
 		@Override
 		public java.io.File call() throws Exception {
-			Log.i("downloading on thread " + Thread.currentThread().getId());
 			java.io.File targetFile = new java.io.File(targetDirectory, photoFile.getOriginalFilename());
 			OutputStream outputStream = new FileOutputStream(targetFile);
 			Drive.Files.Get downloadRequest = drive.files().get(photoFile.getId());

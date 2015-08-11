@@ -5,8 +5,8 @@ import com.google.api.services.drive.Drive;
 
 import org.faudroids.babyface.server.auth.User;
 import org.faudroids.babyface.server.photo.DriveApiFactory;
-import org.faudroids.babyface.server.photo.PhotoDownloadManager;
 import org.faudroids.babyface.server.utils.Log;
+import org.faudroids.babyface.server.video.VideoManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,12 +22,12 @@ import io.dropwizard.auth.Auth;
 public class VideoResource {
 
 	private final DriveApiFactory driveApiFactory;
-	private final PhotoDownloadManager photoDownloadManager;
+	private final VideoManager videoManager;
 
 	@Inject
-	VideoResource(DriveApiFactory driveApiFactory, PhotoDownloadManager photoDownloadManager) {
+	VideoResource(DriveApiFactory driveApiFactory, VideoManager videoManager) {
 		this.driveApiFactory = driveApiFactory;
-		this.photoDownloadManager = photoDownloadManager;
+		this.videoManager = videoManager;
 	}
 
 	@POST
@@ -39,7 +39,7 @@ public class VideoResource {
 		}
 
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
-		photoDownloadManager.downloadAllPhotos(drive, targetDirectory);
+		videoManager.createVideo(drive, targetDirectory);
 	}
 
 }
