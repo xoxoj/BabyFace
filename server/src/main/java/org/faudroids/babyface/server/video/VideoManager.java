@@ -5,6 +5,7 @@ import com.google.api.services.drive.Drive;
 import com.google.common.base.Optional;
 
 import org.faudroids.babyface.server.photo.PhotoDownloadManager;
+import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
 import java.io.File;
@@ -21,21 +22,23 @@ import javax.inject.Inject;
 public class VideoManager {
 
 	private static final int
-			IMAGE_LENGTH_IN_SECONDS = 2,
-			FRAMERATE = 30;
+			IMAGE_LENGTH_IN_SECONDS = 1,
+			FRAMERATE = 25;
 
 	private static final int
 			CONVERSION_THREAD_COUNT = 10;
 
 
 	private final PhotoDownloadManager photoDownloadManager;
+	private final PhotoResizeManager photoResizeManager;
 	private final ExecutorService threadPool;
 	private final Map<String, VideoConversionStatus> videoConversionStatusMap;
 
 
 	@Inject
-	VideoManager(PhotoDownloadManager photoDownloadManager) {
+	VideoManager(PhotoDownloadManager photoDownloadManager, PhotoResizeManager photoResizeManager) {
 		this.photoDownloadManager = photoDownloadManager;
+		this.photoResizeManager = photoResizeManager;
 		this.threadPool = Executors.newFixedThreadPool(CONVERSION_THREAD_COUNT);
 		this.videoConversionStatusMap = new HashMap<>();
 	}
@@ -84,6 +87,9 @@ public class VideoManager {
 			try {
 				// download photos
 				List<File> photoFiles = photoDownloadManager.downloadAllPhotos(drive, targetDirectory);
+
+				// resize images
+				photoResizeManager.resizeAndCropPhotos(photoFiles);
 
 				// rename photos to img0000.jpg
 				Collections.sort(photoFiles);
