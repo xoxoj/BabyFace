@@ -103,13 +103,17 @@ public class VideoManager {
 				}
 
 				// execute video conversion
-				String photoFileNameTemplate = targetDirectory.getAbsolutePath() + "/img%03d.jpg";
-				File logFile = new File(targetDirectory, "logs");
-				File videoFile = new File(targetDirectory, "out.mp4");
-				boolean success = new FFmpegCommand(photoFileNameTemplate, IMAGE_LENGTH_IN_SECONDS, FRAMERATE, videoFile.getAbsolutePath()).execute(logFile);
+				String photoFileNameTemplate = "img%03d.jpg";
+				String videoFileName = "out.mp4";
+				boolean success = new FFmpegCommand.Builder(targetDirectory, photoFileNameTemplate)
+						.setOutputFileName(videoFileName)
+						.setFramerate(FRAMERATE)
+						.setImageDuration(IMAGE_LENGTH_IN_SECONDS)
+						.build()
+						.execute();
 
 				// update status
-				status.setStatus(true, videoFile, success);
+				status.setStatus(true, new File(targetDirectory, videoFileName), success);
 
 			} catch (Exception e) {
 				Log.e("failed to create video", e);

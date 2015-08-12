@@ -12,22 +12,33 @@ public class FFmpegCommand {
 	private final String imageTemplate;
 	private final int imageDuration;
 	private final int framerate;
-	private final String outputFileName;
+	private final File outputFile, logFile, progressFile;
 
-	public FFmpegCommand(String imageTemplate, int imageDuration, int framerate, String outputFileName) {
-		this.imageTemplate = imageTemplate;
+	public FFmpegCommand(
+			File rootDirectory,
+			String imageTemplate,
+			int imageDuration,
+			int framerate,
+			String outputFileName,
+			String logFileName,
+			String progressFileName) {
+
+		this.imageTemplate = rootDirectory.getAbsolutePath() + "/" + imageTemplate;
 		this.imageDuration = imageDuration;
 		this.framerate = framerate;
-		this.outputFileName = outputFileName;
+		this.outputFile = new File(rootDirectory.getAbsolutePath(), outputFileName);
+		this.logFile = new File(rootDirectory, logFileName);
+		this.progressFile = new File(rootDirectory, progressFileName);
 	}
 
-	public boolean execute(File logFile) throws Exception {
+	public boolean execute() throws Exception {
 		String command = String.format(
-				"ffmpeg -framerate 1/%d -i %s -c:v libx264 -r %d -pix_fmt yuv420p %s",
+				"ffmpeg -progress %s -framerate 1/%d -i %s -c:v libx264 -r %d -pix_fmt yuv420p %s",
+				progressFile.getAbsolutePath(),
 				imageDuration,
 				imageTemplate,
 				framerate,
-				outputFileName);
+				outputFile.getAbsolutePath());
 
 		Log.i("executing " + command);
 
@@ -40,6 +51,54 @@ public class FFmpegCommand {
 
 		Log.i("done");
 		return resultCode == 0;
+	}
+
+
+	public static class Builder {
+
+		private final File rootDirectory;
+		private final String imageTemplate;
+		private int imageDuration = 1;
+		private int framerate = 25;
+		private String
+				outputFileName = "out.mp4",
+				logFileName = "logs",
+				progressFileName = "progress";
+
+		public Builder(File rootDirectory, String imageTemplate) {
+			this.rootDirectory = rootDirectory;
+			this.imageTemplate = imageTemplate;
+		}
+
+		public Builder setImageDuration(int imageDuration) {
+			this.imageDuration = imageDuration;
+			return this;
+		}
+
+		public Builder setFramerate(int framerate) {
+			this.framerate = framerate;
+			return this;
+		}
+
+		public Builder setOutputFileName(String outputFileName) {
+			this.outputFileName = outputFileName;
+			return this;
+		}
+
+		public Builder setLogFileName(String logFileName) {
+			this.logFileName = logFileName;
+			return this;
+		}
+
+		public Builder setProgressFileName(String progressFileName) {
+			this.progressFileName = progressFileName;
+			return this;
+		}
+
+		public FFmpegCommand build() {
+			return new FFmpegCommand(rootDirectory, imageTemplate, imageDuration, framerate, outputFileName, logFileName, progressFileName);
+		}
+
 	}
 
 }
