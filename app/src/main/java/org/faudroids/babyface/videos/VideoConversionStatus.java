@@ -16,16 +16,19 @@ public class VideoConversionStatus implements Parcelable {
 	private final String videoId;
 	private final boolean isComplete;
 	private final Boolean isConversionSuccessful;
+	private final float progress;
 
 	@JsonCreator
 	public VideoConversionStatus(
 			@JsonProperty("videoId") String videoId,
 			@JsonProperty("isComplete") boolean isComplete,
-			@JsonProperty("isConversionSuccessful") Boolean isConversionSuccessful) {
+			@JsonProperty("isConversionSuccessful") Boolean isConversionSuccessful,
+			@JsonProperty("progress") float progress) {
 
 		this.videoId = videoId;
 		this.isComplete = isComplete;
 		this.isConversionSuccessful = isConversionSuccessful;
+		this.progress = progress;
 	}
 
 	public String getVideoId() {
@@ -40,6 +43,10 @@ public class VideoConversionStatus implements Parcelable {
 		return isConversionSuccessful;
 	}
 
+	public float getProgress() {
+		return progress;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -47,12 +54,13 @@ public class VideoConversionStatus implements Parcelable {
 		VideoConversionStatus that = (VideoConversionStatus) o;
 		return Objects.equal(isComplete, that.isComplete) &&
 				Objects.equal(videoId, that.videoId) &&
-				Objects.equal(isConversionSuccessful, that.isConversionSuccessful);
+				Objects.equal(isConversionSuccessful, that.isConversionSuccessful) &&
+				Objects.equal(progress, that.progress);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(videoId, isComplete, isConversionSuccessful);
+		return Objects.hashCode(videoId, isComplete, isConversionSuccessful, progress);
 	}
 
 
@@ -61,6 +69,7 @@ public class VideoConversionStatus implements Parcelable {
 		isComplete = in.readByte() != 0x00;
 		byte isConversionSuccessfulVal = in.readByte();
 		isConversionSuccessful = isConversionSuccessfulVal == 0x02 ? null : isConversionSuccessfulVal != 0x00;
+		progress = in.readFloat();
 	}
 
 	@Override
@@ -77,6 +86,7 @@ public class VideoConversionStatus implements Parcelable {
 		} else {
 			dest.writeByte((byte) (isConversionSuccessful ? 0x01 : 0x00));
 		}
+		dest.writeFloat(progress);
 	}
 
 	@SuppressWarnings("unused")

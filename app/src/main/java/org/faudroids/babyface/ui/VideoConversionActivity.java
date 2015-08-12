@@ -205,7 +205,7 @@ public class VideoConversionActivity extends AbstractActivity {
 
 		// conversion running
 		if (!status.isComplete()) {
-			statusTextView.setText("converting ...");
+			statusTextView.setText("converting ( " + status.getProgress() * 100 + "% )");
 			showVideoButton.setEnabled(false);
 			if (statusUpdateTask == null) {
 				statusUpdateTask = new StatusUpdateTask();
