@@ -7,10 +7,15 @@ import com.google.api.services.drive.model.File;
 import org.faudroids.babyface.server.utils.Log;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,6 +30,10 @@ public class PhotoDownloadManager {
 	PhotoDownloadManager() { }
 
 
+	/**
+	 * Downloads all photos from Google Drive belonging to one user asynchronously.
+	 * @return the list of downloaded photos
+	 */
 	public List<java.io.File> downloadAllPhotos(final Drive drive, final java.io.File targetDirectory) throws Exception {
 		// get files to download
 		List<File> photoFiles = drive.files().list().execute().getItems();
@@ -37,13 +46,36 @@ public class PhotoDownloadManager {
 			tasks.add(new DownloadTask(drive, targetDirectory, photoFile));
 		}
 
-		// start download and block
-		List<Future<java.io.File>> downloadedFileFutures = threadPool.invokeAll(tasks);
+		// start download
+		List<Future<java.io.File>> fileFutureList = threadPool.invokeAll(tasks);
+
+		// map drive files to future
+		Map<File, Future<java.io.File>> fileFutureMap = new HashMap<>();
+		Iterator<Future<java.io.File>> futureIterator = fileFutureList.iterator();
+		Iterator<File> fileIterator = photoFiles.iterator();
+		while (futureIterator.hasNext()) {
+			fileFutureMap.put(fileIterator.next(), futureIterator.next());
+		}
+
+		// wait for download completion and collect results
 		List<java.io.File> downloadedFiles = new ArrayList<>();
-		for (Future<java.io.File> future : downloadedFileFutures) {
-			downloadedFiles.add(future.get());
+		for (Map.Entry<File, Future<java.io.File>> entry : fileFutureMap.entrySet()) {
+			try {
+				downloadedFiles.add(entry.getValue().get());
+			} catch (ExecutionException e) {
+				Log.e("failed to download photo " + entry.getKey().getOriginalFilename());
+			}
 		}
 		return downloadedFiles;
+	}
+
+
+	/**
+	 * Downloads one photo from Google Drive synchronously.
+	 * @return the downloaded file
+	 */
+	public java.io.File downloadPhoto(final Drive drive, final java.io.File targetDirectory, File photoFile) throws IOException {
+		return new DownloadTask(drive, targetDirectory, photoFile).call();
 	}
 
 
@@ -60,7 +92,8 @@ public class PhotoDownloadManager {
 		}
 
 		@Override
-		public java.io.File call() throws Exception {
+		public java.io.File call() throws IOException {
+			Log.i("downloading " + photoFile.getOriginalFilename());
 			java.io.File targetFile = new java.io.File(targetDirectory, photoFile.getOriginalFilename());
 			OutputStream outputStream = new FileOutputStream(targetFile);
 			Drive.Files.Get downloadRequest = drive.files().get(photoFile.getId());

@@ -3,9 +3,12 @@ package org.faudroids.babyface.server.rest;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
+import com.google.common.collect.Lists;
 
 import org.faudroids.babyface.server.auth.User;
 import org.faudroids.babyface.server.photo.DriveApiFactory;
+import org.faudroids.babyface.server.photo.PhotoDownloadManager;
+import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
 import java.io.IOException;
@@ -16,6 +19,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -31,10 +35,14 @@ import io.dropwizard.auth.Auth;
 public class PhotoResource {
 
 	private final DriveApiFactory driveApiFactory;
+	private final PhotoDownloadManager photoDownloadManager;
+	private final PhotoResizeManager photoResizeManager;
 
 	@Inject
-	PhotoResource(DriveApiFactory driveApiFactory) {
+	PhotoResource(DriveApiFactory driveApiFactory, PhotoDownloadManager photoDownloadManager, PhotoResizeManager photoResizeManager) {
 		this.driveApiFactory = driveApiFactory;
+		this.photoDownloadManager = photoDownloadManager;
+		this.photoResizeManager = photoResizeManager;
 	}
 
 	@GET
@@ -61,8 +69,21 @@ public class PhotoResource {
 	public void deletePhotos(@Auth User user) throws IOException {
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
 		for (File photoFile : drive.files().list().execute().getItems()) {
+			Log.i("deleting file " + photoFile.getId());
 			drive.files().delete(photoFile.getId()).execute();
 		}
+	}
+
+	@POST
+	@Path("/{photoId}/resize")
+	public void resizePhoto(@Auth User user, @PathParam("photoId") String photoId) throws IOException {
+		// download photo
+		Drive drive = driveApiFactory.createDriveApi(user.getToken());
+		File photoDriveFile = drive.files().get(photoId).execute();
+		java.io.File photoFile = photoDownloadManager.downloadPhoto(drive, new java.io.File("data/"), photoDriveFile);
+
+		// resize photo
+		photoResizeManager.resizeAndCropPhotos(Lists.newArrayList(photoFile));
 	}
 
 }
