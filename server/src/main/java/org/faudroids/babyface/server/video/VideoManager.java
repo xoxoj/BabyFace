@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -75,18 +78,20 @@ public class VideoManager {
 		private final Drive drive;
 		private final File targetDirectory;
 		private final VideoConversionStatus status;
+		private final ScheduledExecutorService executorService;
 
 		public VideoCreationTask(Drive drive, File targetDirectory, VideoConversionStatus status) {
 			this.drive = drive;
 			this.targetDirectory = targetDirectory;
 			this.status = status;
+			this.executorService = Executors.newSingleThreadScheduledExecutor();
 		}
 
 		@Override
 		public void run() {
 			try {
 				// download photos
-				List<File> photoFiles = photoDownloadManager.downloadAllPhotos(drive, targetDirectory);
+				final List<File> photoFiles = photoDownloadManager.downloadAllPhotos(drive, targetDirectory);
 
 				// resize images
 				photoResizeManager.resizeAndCropPhotos(photoFiles);
@@ -102,24 +107,43 @@ public class VideoManager {
 						Log.e("failed to rename file " + oldFile.getName() + " to " + newFile.getName());
 				}
 
-				// execute video conversion
+				// create conversion command
 				String photoFileNameTemplate = "img%03d.jpg";
 				String videoFileName = "out.mp4";
-				boolean success = new FFmpegCommand.Builder(targetDirectory, photoFileNameTemplate)
+				final FFmpegCommand conversionCommand = new FFmpegCommand.Builder(targetDirectory, photoFileNameTemplate)
 						.setOutputFileName(videoFileName)
 						.setFramerate(FRAMERATE)
 						.setImageDuration(IMAGE_LENGTH_IN_SECONDS)
-						.build()
-						.execute();
+						.build();
 
-				// update status
-				status.setStatus(true, new File(targetDirectory, videoFileName), success);
+				// start reading conversion progress
+				ScheduledFuture<?> conversionProgressFuture = executorService.scheduleAtFixedRate(new Runnable() {
+					@Override
+					public void run() {
+						float conversionProgress = conversionCommand.getProgress(photoFiles.size());
+						synchronized (status) {
+							status.setConversionProgress(conversionProgress);
+						}
+					}
+				}, 0, 1, TimeUnit.SECONDS);
+
+				// run conversion
+				boolean success = conversionCommand.execute();
+				conversionProgressFuture.cancel(true);
+
+				// cleanup + update status
+				synchronized (status) {
+					status.setStatus(true, new File(targetDirectory, videoFileName), success);
+				}
+				executorService.shutdown();
 
 			} catch (Exception e) {
 				Log.e("failed to create video", e);
 				status.setStatus(true, null, false);
 			}
 		}
+
+
 
 	}
 

@@ -87,12 +87,14 @@ public class VideoResource {
 		private final String videoId;
 		private final boolean isComplete;
 		private final Boolean isConversionSuccessful;
+		private final float progress;
 
 		public Status(VideoConversionStatus status) {
 			this.videoId = status.getVideoId();
 			this.isComplete = status.isComplete();
 			if (!isComplete) this.isConversionSuccessful = null;
 			else this.isConversionSuccessful = status.isConversionSuccessful();
+			this.progress = status.getConversionProgress() * 0.5f;
 		}
 
 		public String getVideoId() {
@@ -105,6 +107,10 @@ public class VideoResource {
 
 		public Boolean getIsConversionSuccessful() {
 			return isConversionSuccessful;
+		}
+
+		public float getProgress() {
+			return progress;
 		}
 
 	}

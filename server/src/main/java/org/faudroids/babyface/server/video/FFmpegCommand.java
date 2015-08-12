@@ -3,8 +3,11 @@ package org.faudroids.babyface.server.video;
 import org.faudroids.babyface.server.utils.Log;
 import org.faudroids.babyface.server.utils.StreamGobbler;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.OutputStream;
 
 public class FFmpegCommand {
@@ -51,6 +54,42 @@ public class FFmpegCommand {
 
 		Log.i("done");
 		return resultCode == 0;
+	}
+
+	/**
+	 * @param totalImageCount the number of images being converted to video
+	 * @return the progress as a percentage (0% - 100%)
+	 */
+	public float getProgress(int totalImageCount) {
+		if (!progressFile.exists()) return 0;
+
+		// amount of frames in this video
+		int totalFrames = totalImageCount * framerate * imageDuration;
+
+		// read progress file
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(progressFile));
+			long currentFrame = 0;
+			String line;
+			while ((line = reader.readLine()) != null) {
+				currentFrame = Integer.valueOf(line.substring(6)); // reads first line "frame=<number>"
+				for (int i = 0; i < 9; ++i) reader.readLine(); // reads the 9 additional progress lines
+			}
+			return ((float) currentFrame) / totalFrames;
+
+		} catch (IOException e) {
+			Log.e("failed to read progress", e);
+			return 0;
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					Log.e("failed to close reader", e);
+				}
+			}
+		}
 	}
 
 

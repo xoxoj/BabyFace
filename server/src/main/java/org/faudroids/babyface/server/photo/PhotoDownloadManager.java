@@ -36,7 +36,7 @@ public class PhotoDownloadManager {
 	 */
 	public List<java.io.File> downloadAllPhotos(final Drive drive, final java.io.File targetDirectory) throws Exception {
 		// get files to download
-		List<File> photoFiles = drive.files().list().execute().getItems();
+		List<File> photoFiles = drive.files().list().setMaxResults(20).execute().getItems();
 		Log.i("downloading " + photoFiles.size() + " photos");
 
 		// setup threads + tasks
