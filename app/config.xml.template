@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="google_web_oauth_client_id">web client id here</string>
+    <string name="video_service_base_url">video server base url here</string>
+</resources>
