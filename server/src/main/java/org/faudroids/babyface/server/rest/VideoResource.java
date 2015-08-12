@@ -94,7 +94,7 @@ public class VideoResource {
 			this.isComplete = status.isComplete();
 			if (!isComplete) this.isConversionSuccessful = null;
 			else this.isConversionSuccessful = status.isConversionSuccessful();
-			this.progress = status.getConversionProgress() * 0.5f;
+			this.progress = (status.getDownloadProgress() + status.getConversionProgress()) * 0.5f;
 		}
 
 		public String getVideoId() {

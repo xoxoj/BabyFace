@@ -4,7 +4,7 @@ package org.faudroids.babyface.server.video;
 import com.google.api.services.drive.Drive;
 import com.google.common.base.Optional;
 
-import org.faudroids.babyface.server.photo.PhotoDownloadManager;
+import org.faudroids.babyface.server.photo.PhotoDownloadCommand;
 import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
@@ -32,15 +32,13 @@ public class VideoManager {
 			CONVERSION_THREAD_COUNT = 10;
 
 
-	private final PhotoDownloadManager photoDownloadManager;
 	private final PhotoResizeManager photoResizeManager;
 	private final ExecutorService threadPool;
 	private final Map<String, VideoConversionStatus> videoConversionStatusMap;
 
 
 	@Inject
-	VideoManager(PhotoDownloadManager photoDownloadManager, PhotoResizeManager photoResizeManager) {
-		this.photoDownloadManager = photoDownloadManager;
+	VideoManager(PhotoResizeManager photoResizeManager) {
 		this.photoResizeManager = photoResizeManager;
 		this.threadPool = Executors.newFixedThreadPool(CONVERSION_THREAD_COUNT);
 		this.videoConversionStatusMap = new HashMap<>();
@@ -90,8 +88,23 @@ public class VideoManager {
 		@Override
 		public void run() {
 			try {
-				// download photos
-				final List<File> photoFiles = photoDownloadManager.downloadAllPhotos(drive, targetDirectory);
+				// create download command
+				final PhotoDownloadCommand downloadCommand = new PhotoDownloadCommand.Builder(drive, targetDirectory).build();
+
+				// start reading download progress
+				ScheduledFuture<?> downloadProgressFuture = executorService.scheduleAtFixedRate(new Runnable() {
+					@Override
+					public void run() {
+						synchronized (status) {
+							status.setDownloadProgress(downloadCommand.getProgress());
+						}
+					}
+				}, 0, 1, TimeUnit.SECONDS);
+
+				// start download
+				final List<File> photoFiles = downloadCommand.execute();
+				downloadProgressFuture.cancel(true);
+				status.setDownloadProgress(1);
 
 				// resize images
 				photoResizeManager.resizeAndCropPhotos(photoFiles);
@@ -130,6 +143,7 @@ public class VideoManager {
 				// run conversion
 				boolean success = conversionCommand.execute();
 				conversionProgressFuture.cancel(true);
+				status.setConversionProgress(1);
 
 				// cleanup + update status
 				synchronized (status) {

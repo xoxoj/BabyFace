@@ -10,11 +10,12 @@ public class VideoConversionStatus {
 	private boolean isComplete;
 	private File videoFile;
 	private boolean isConversionSuccessful;
-	private float conversionProgress;
+	private float downloadProgress, conversionProgress;
 
 	public VideoConversionStatus(String videoId) {
 		this.videoId = videoId;
 		this.isComplete = false;
+		this.downloadProgress = 0f;
 		this.conversionProgress = 0f;
 	}
 
@@ -32,6 +33,14 @@ public class VideoConversionStatus {
 
 	public boolean isConversionSuccessful() {
 		return isConversionSuccessful;
+	}
+
+	public float getDownloadProgress() {
+		return downloadProgress;
+	}
+
+	public void setDownloadProgress(float downloadProgress) {
+		this.downloadProgress = downloadProgress;
 	}
 
 	public float getConversionProgress() {

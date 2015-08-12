@@ -7,7 +7,7 @@ import com.google.common.collect.Lists;
 
 import org.faudroids.babyface.server.auth.User;
 import org.faudroids.babyface.server.photo.DriveApiFactory;
-import org.faudroids.babyface.server.photo.PhotoDownloadManager;
+import org.faudroids.babyface.server.photo.PhotoDownloadCommand;
 import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
@@ -35,13 +35,11 @@ import io.dropwizard.auth.Auth;
 public class PhotoResource {
 
 	private final DriveApiFactory driveApiFactory;
-	private final PhotoDownloadManager photoDownloadManager;
 	private final PhotoResizeManager photoResizeManager;
 
 	@Inject
-	PhotoResource(DriveApiFactory driveApiFactory, PhotoDownloadManager photoDownloadManager, PhotoResizeManager photoResizeManager) {
+	PhotoResource(DriveApiFactory driveApiFactory, PhotoResizeManager photoResizeManager) {
 		this.driveApiFactory = driveApiFactory;
-		this.photoDownloadManager = photoDownloadManager;
 		this.photoResizeManager = photoResizeManager;
 	}
 
@@ -76,14 +74,14 @@ public class PhotoResource {
 
 	@POST
 	@Path("/{photoId}/resize")
-	public void resizePhoto(@Auth User user, @PathParam("photoId") String photoId) throws IOException {
+	public void resizePhoto(@Auth User user, @PathParam("photoId") String photoId) throws Exception {
 		// download photo
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
 		File photoDriveFile = drive.files().get(photoId).execute();
-		java.io.File photoFile = photoDownloadManager.downloadPhoto(drive, new java.io.File("data/"), photoDriveFile);
+		List<java.io.File> photoFiles = new PhotoDownloadCommand.Builder(drive, new java.io.File("data/")).setPhotoFileToDownload(photoDriveFile).build().execute();
 
 		// resize photo
-		photoResizeManager.resizeAndCropPhotos(Lists.newArrayList(photoFile));
+		photoResizeManager.resizeAndCropPhotos(Lists.newArrayList(photoFiles.get(0)));
 	}
 
 }
