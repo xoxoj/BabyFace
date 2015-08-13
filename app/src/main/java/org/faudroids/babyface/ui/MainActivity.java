@@ -12,25 +12,21 @@ import android.widget.Toast;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleApiClientManager;
+import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.inject.Inject;
 
@@ -58,6 +54,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 	private File imageFile;
 
 	@Inject private GoogleApiClientManager googleApiClientManager;
+	@Inject private GoogleDriveManager googleDriveManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -170,63 +167,20 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				Timber.d("image taking success");
 
 				// start image uploading
-				subscriptions.add(Observable
-						.defer(new Func0<Observable<Object>>() {
-							@Override
-							public Observable<Object> call() {
-								GoogleApiClient googleApiClient = googleApiClientManager.getGoogleApiClient();
-
-								// create new drive content
-								DriveApi.DriveContentsResult driveContentsResult = Drive.DriveApi
-										.newDriveContents(googleApiClient)
-										.await();
-								Status status = driveContentsResult.getStatus();
-								if (!status.isSuccess()) {
-									Timber.e("failed to create new drive contents (" + status.getStatusMessage() + ")");
-									return Observable.error(new Exception(status.getStatusMessage()));
+				try {
+					subscriptions.add(googleDriveManager.createNewFile(new FileInputStream(imageFile), imageFile.getName(), "image/jpeg")
+							.compose(new DefaultTransformer<Status>())
+							.subscribe(new Action1<Status>() {
+								@Override
+								public void call(Status status) {
+									Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+									Timber.d("photo saving success");
 								}
-
-								// copy image to drive contents
-								Timber.d("about to copy " + imageFile.length() + " bytes");
-								try {
-									OutputStream driveOutputStream = driveContentsResult.getDriveContents().getOutputStream();
-									InputStream photoInputStream = new FileInputStream(imageFile);
-									byte[] buffer = new byte[1024];
-									int bytesRead;
-									while ((bytesRead = photoInputStream.read(buffer)) != -1) {
-										driveOutputStream.write(buffer, 0, bytesRead);
-									}
-									Timber.d("done copying stream");
-
-								} catch (IOException e) {
-									Timber.e(e, "failed to read image");
-									return Observable.error(e);
-								}
-
-								// create drive file
-								MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
-										.setTitle(imageFile.getName())
-										.setMimeType("image/jpeg")
-										.build();
-								DriveFolder.DriveFileResult driveFileResult = Drive.DriveApi
-										.getAppFolder(googleApiClient)
-										.createFile(googleApiClient, metadatachangeset, driveContentsResult.getDriveContents())
-										.await();
-								status = driveFileResult.getStatus();
-								if (!status.isSuccess()) {
-									return Observable.error(new Exception(status.getStatusMessage()));
-								}
-
-								return Observable.just(null);
-							}
-						})
-						.compose(new DefaultTransformer<>())
-						.subscribe(new Action1<Object>() {
-							@Override
-							public void call(Object nothing) {
-								Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
-							}
-						}));
+							}));
+				} catch (FileNotFoundException e) {
+					Timber.e(e, "failed to read file");
+					Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+				}
 				break;
 		}
 	}
