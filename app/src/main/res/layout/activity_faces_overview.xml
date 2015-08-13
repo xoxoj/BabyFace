@@ -32,14 +32,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/txt_header"
-        android:clipToPadding="false"
-        android:paddingBottom="60dp"
+        android:fillViewport="true"
         >
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="30dp"
+            android:orientation="vertical"
             >
 
             <GridLayout
@@ -47,10 +47,32 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:columnCount="2"
-                android:layout_centerHorizontal="true"
+                android:layout_gravity="center_horizontal"
                 />
 
-        </RelativeLayout>
+            <!-- pushes clouds image to bottom of scrollview -->
+            <LinearLayout
+                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scaleType="fitEnd"
+                android:src="@drawable/background_clouds"
+                android:layout_alignParentBottom="true"
+                android:gravity="bottom"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:background="@color/primary"
+                />
+
+        </LinearLayout>
 
     </ScrollView>
 

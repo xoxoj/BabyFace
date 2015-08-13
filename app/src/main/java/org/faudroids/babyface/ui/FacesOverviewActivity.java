@@ -85,6 +85,12 @@ public class FacesOverviewActivity extends AbstractActivity {
 							} else {
 								Picasso.with(FacesOverviewActivity.this).load(face.getMostRecentPhotoFile().get()).transform(new CircleTransformation()).into(imageView);
 							}
+							imageView.setOnClickListener(new View.OnClickListener() {
+								@Override
+								public void onClick(View v) {
+									startActivity(new Intent(FacesOverviewActivity.this, FaceOverviewActivity.class));
+								}
+							});
 
 							// add to grid view
 							int row = i / 2;
