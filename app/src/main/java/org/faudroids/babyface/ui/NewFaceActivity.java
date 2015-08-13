@@ -31,10 +31,15 @@ public class NewFaceActivity extends AbstractActivity {
 
 	@Inject private FacesManager facesManager;
 
+	public NewFaceActivity() {
+		super(true);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		setTitle(R.string.add_new_baby);
 		nameInputLayout.setErrorEnabled(true);
 
 		// setup add button

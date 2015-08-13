@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">BabyFace</string>
-
-    <string name="hello_world">Hello world!</string>
+    <string name="add_new_baby">Add new baby</string>
 </resources>
