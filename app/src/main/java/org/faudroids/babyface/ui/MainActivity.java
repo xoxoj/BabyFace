@@ -12,13 +12,11 @@ import android.widget.Toast;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.ConnectionListener;
-import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
@@ -53,7 +51,6 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 	@Inject private PhotoManager photoManager;
 	private File imageFile;
 
-	@Inject private GoogleApiClientManager googleApiClientManager;
 	@Inject private GoogleDriveManager googleDriveManager;
 
 	@Override
@@ -84,11 +81,16 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 		photoCountButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				// TODO
+				startActivity(new Intent(MainActivity.this, FacesOverviewActivity.class));
+
+				/*
 				int photoCount = 0;
 				for (File file : photoManager.getRootStorageDir().listFiles()) {
 					if (file.getName().toLowerCase().endsWith(".jpg")) ++photoCount;
 				}
 				Toast.makeText(MainActivity.this, "Found " + photoCount + " photos", Toast.LENGTH_SHORT).show();
+				*/
 			}
 		});
 
@@ -140,22 +142,6 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 
 
 	@Override
-	public void onStart() {
-		Timber.d("onStart");
-		googleApiClientManager.connectToClient();
-		super.onStart();
-	}
-
-
-	@Override
-	public void onStop() {
-		Timber.d("onStop");
-		googleApiClientManager.disconnectFromClient();
-		super.onStop();
-	}
-
-
-	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 			case REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION:
@@ -169,10 +155,10 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				// start image uploading
 				try {
 					subscriptions.add(googleDriveManager.createNewFile(new FileInputStream(imageFile), imageFile.getName(), "image/jpeg")
-							.compose(new DefaultTransformer<Status>())
-							.subscribe(new Action1<Status>() {
+							.compose(new DefaultTransformer<Void>())
+							.subscribe(new Action1<Void>() {
 								@Override
-								public void call(Status status) {
+								public void call(Void nothing) {
 									Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
 									Timber.d("photo saving success");
 								}
@@ -184,6 +170,21 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				break;
 		}
 	}
+
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		googleApiClientManager.registerListener(this);
+	}
+
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		googleApiClientManager.unregisterListener(this);
+	}
+
 
 	@Override
 	public void onConnected(Bundle bundle) {

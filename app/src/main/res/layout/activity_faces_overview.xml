@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        android:id="@+id/txt_header"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/primary"
+        android:gravity="center_vertical"
+        android:padding="15dp"
+        android:text="@string/app_name"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        />
+
+    <com.getbase.floatingactionbutton.AddFloatingActionButton
+        android:id="@+id/btn_add_session"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="66dp"
+        android:layout_marginRight="10dp"
+        app:fab_colorNormal="@color/accent"
+        app:fab_colorPressed="@android:color/white"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/txt_header"
+        android:layout_marginTop="40dp"
+        android:orientation="vertical"
+        >
+
+        <Button
+            android:id="@+id/btn_add_face"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add face"
+            />
+
+        <Button
+            android:id="@+id/btn_get_faces"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Get faces"
+            />
+
+        <!--
+        <GridLayout
+            android:id="@+id/layout_profile_images"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:layout_centerInParent="true"
+            />
+            -->
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -4,8 +4,17 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+
+import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,14 +39,14 @@ public class GoogleDriveManager {
 	}
 
 
-	public Observable<Status> createNewFile(
+	public Observable<Void> createNewFile(
 			final InputStream inputStream,
 			final String fileName,
 			final String mimeType) {
 
-		return Observable.defer(new Func0<Observable<Status>>() {
+		return Observable.defer(new Func0<Observable<Void>>() {
 			@Override
-			public Observable<Status> call() {
+			public Observable<Void> call() {
 				GoogleApiClient apiClient = googleApiClientManager.getGoogleApiClient();
 
 				// create new drive content
@@ -52,13 +61,7 @@ public class GoogleDriveManager {
 
 				// copy image to drive contents
 				try {
-					OutputStream driveOutputStream = driveContentsResult.getDriveContents().getOutputStream();
-					byte[] buffer = new byte[1024];
-					int bytesRead;
-					while ((bytesRead = inputStream.read(buffer)) != -1) {
-						driveOutputStream.write(buffer, 0, bytesRead);
-					}
-
+					copyStream(inputStream, driveContentsResult.getDriveContents().getOutputStream());
 				} catch (IOException e) {
 					Timber.e(e, "failed to read image");
 					return Observable.error(e);
@@ -78,8 +81,78 @@ public class GoogleDriveManager {
 					return Observable.error(new Exception(status.getStatusMessage()));
 				}
 
-				return Observable.just(status);
+				return Observable.just(null);
 			}
 		});
+	}
+
+
+	public Observable<Void> writeFile(final DriveId driveId, final InputStream inputStream) {
+		return Observable.defer(new Func0<Observable<Void>>() {
+			@Override
+			public Observable<Void> call() {
+				// OutputStream outputStream = Drive.DriveApi.getFile(googleApiClientManager.getGoogleApiClient(), driveId)
+				DriveContents driveContents = Drive.DriveApi.getFile(googleApiClientManager.getGoogleApiClient(), driveId)
+						.open(googleApiClientManager.getGoogleApiClient(), DriveFile.MODE_WRITE_ONLY, null)
+						.await()
+						.getDriveContents();
+
+				// copy file to drive contents
+				try {
+					copyStream(inputStream, driveContents.getOutputStream());
+				} catch (IOException e) {
+					Timber.e(e, "failed to read image");
+					return Observable.error(e);
+				}
+
+				// commit changes
+				driveContents.commit(googleApiClientManager.getGoogleApiClient(), new MetadataChangeSet.Builder().build()).await();
+				return Observable.just(null);
+			}
+		});
+	}
+
+
+	public Observable<InputStream> readFile(final DriveId driveId) {
+		return Observable.defer(new Func0<Observable<InputStream>>() {
+			@Override
+			public Observable<InputStream> call() {
+				return Observable.just(Drive.DriveApi
+						.getFile(googleApiClientManager.getGoogleApiClient(), driveId)
+						.open(googleApiClientManager.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
+						.await()
+						.getDriveContents()
+						.getInputStream());
+			}
+		});
+	}
+
+
+	public Observable<Optional<DriveId>> queryForFile(final String fileName) {
+		return Observable.defer(new Func0<Observable<Optional<DriveId>>>() {
+			@Override
+			public Observable<Optional<DriveId>> call() {
+				DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getAppFolder(googleApiClientManager.getGoogleApiClient())
+						.queryChildren(googleApiClientManager.getGoogleApiClient(), new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, fileName)).build())
+						.await();
+				MetadataBuffer buffer = queryResult.getMetadataBuffer();
+				Optional<DriveId> result;
+				if (buffer.getCount() > 0) {
+					result = Optional.of(buffer.get(0).getDriveId());
+				} else {
+					result = Optional.absent();
+				}
+				return Observable.just(result);
+			}
+		});
+	}
+
+
+	private void copyStream(InputStream inputStream, OutputStream outputStream) throws IOException {
+		byte[] buffer = new byte[1024];
+		int bytesRead;
+		while ((bytesRead = inputStream.read(buffer)) != -1) {
+			outputStream.write(buffer, 0, bytesRead);
+		}
 	}
 }
