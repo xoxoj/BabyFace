@@ -42,7 +42,8 @@ public class GoogleDriveManager {
 	public Observable<Void> createNewFile(
 			final InputStream inputStream,
 			final String fileName,
-			final String mimeType) {
+			final String mimeType,
+			final boolean pinned) {
 
 		return Observable.defer(new Func0<Observable<Void>>() {
 			@Override
@@ -71,6 +72,7 @@ public class GoogleDriveManager {
 				MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
 						.setTitle(fileName)
 						.setMimeType(mimeType)
+						.setPinned(pinned)
 						.build();
 				DriveFolder.DriveFileResult driveFileResult = Drive.DriveApi
 						.getAppFolder(apiClient)
@@ -143,6 +145,19 @@ public class GoogleDriveManager {
 					result = Optional.absent();
 				}
 				return Observable.just(result);
+			}
+		});
+	}
+
+
+	public Observable<Void> deleteFile(final DriveId driveId) {
+		return Observable.defer(new Func0<Observable<Void>>() {
+			@Override
+			public Observable<Void> call() {
+				Drive.DriveApi
+						.getFile(googleApiClientManager.getGoogleApiClient(), driveId)
+						.delete(googleApiClientManager.getGoogleApiClient()).await();
+				return Observable.just(null);
 			}
 		});
 	}

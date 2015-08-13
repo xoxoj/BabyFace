@@ -52,6 +52,13 @@
             android:text="Get faces"
             />
 
+        <Button
+            android:id="@+id/btn_delete_faces"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete all faces"
+            />
+
         <!--
         <GridLayout
             android:id="@+id/layout_profile_images"

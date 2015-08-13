@@ -26,6 +26,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	@InjectView(R.id.btn_add_face) private Button addFaceButton;
 	@InjectView(R.id.btn_get_faces) private Button getFacesButton;
+	@InjectView(R.id.btn_delete_faces) private Button deleteFacesButton;
 
 	@Inject private FacesManager facesManager;
 
@@ -59,6 +60,20 @@ public class FacesOverviewActivity extends AbstractActivity {
 								for (Face face : faces) {
 									Timber.d(face.getId());
 								}
+							}
+						});
+			}
+		});
+
+		deleteFacesButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				facesManager.deleteAllFaces()
+						.compose(new DefaultTransformer<Void>())
+						.subscribe(new Action1<Void>() {
+							@Override
+							public void call(Void aVoid) {
+								Timber.d("deleted all faces");
 							}
 						});
 			}

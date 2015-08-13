@@ -154,7 +154,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 
 				// start image uploading
 				try {
-					subscriptions.add(googleDriveManager.createNewFile(new FileInputStream(imageFile), imageFile.getName(), "image/jpeg")
+					subscriptions.add(googleDriveManager.createNewFile(new FileInputStream(imageFile), imageFile.getName(), "image/jpeg", false)
 							.compose(new DefaultTransformer<Void>())
 							.subscribe(new Action1<Void>() {
 								@Override
