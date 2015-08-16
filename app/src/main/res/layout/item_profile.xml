@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="15dp"
+    android:background="@color/primary_dark"
     >
 
     <ImageView
@@ -20,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="hello world"
-        android:textColor="@color/secondary_text"
+        android:textColor="@android:color/white"
         android:textStyle="italic"
         android:layout_marginTop="15dp"
         android:textSize="18sp"

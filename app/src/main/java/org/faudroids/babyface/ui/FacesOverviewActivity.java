@@ -2,7 +2,6 @@ package org.faudroids.babyface.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.GridLayout;
@@ -30,23 +29,17 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	private static final int REQUEST_ADD_FACE = 42;
 
-	@InjectView(R.id.btn_add_face) private FloatingActionButton addFaceButton;
 	@InjectView(R.id.layout_profiles) private GridLayout facesLayout;
 
 	@Inject private FacesManager facesManager;
 
+	public FacesOverviewActivity() {
+		super(true);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// setup add face button
-		addFaceButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				startActivityForResult(new Intent(FacesOverviewActivity.this, NewFaceActivity.class), REQUEST_ADD_FACE);
-			}
-		});
-
 		setupFaces();
 	}
 
@@ -71,6 +64,8 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 						facesLayout.removeAllViews();
 						LayoutInflater inflater = LayoutInflater.from(FacesOverviewActivity.this);
+
+						// add profile layouts
 						for (int i = 0; i < faces.size(); ++i) {
 							// get view
 							View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
@@ -81,9 +76,9 @@ public class FacesOverviewActivity extends AbstractActivity {
 							Face face = faces.get(i);
 							nameView.setText(face.getName());
 							if (!face.getMostRecentPhotoFile().isPresent()) {
-								Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person).transform(new CircleTransformation()).into(imageView);
+								Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person).transform(new CircleTransformation(getResources().getColor(R.color.primary))).into(imageView);
 							} else {
-								Picasso.with(FacesOverviewActivity.this).load(face.getMostRecentPhotoFile().get()).transform(new CircleTransformation()).into(imageView);
+								Picasso.with(FacesOverviewActivity.this).load(face.getMostRecentPhotoFile().get()).transform(new CircleTransformation(getResources().getColor(R.color.primary))).into(imageView);
 							}
 							imageView.setOnClickListener(new View.OnClickListener() {
 								@Override
@@ -95,13 +90,33 @@ public class FacesOverviewActivity extends AbstractActivity {
 							// add to grid view
 							int row = i / 2;
 							int column = i - (row * 2);
-							GridLayout.Spec rowSpec = GridLayout.spec(row);
-							GridLayout.Spec columnSpec = GridLayout.spec(column);
-							GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, columnSpec);
+							GridLayout.LayoutParams params = createLayoutParams(row, column);
 							facesLayout.addView(profileView, params);
 						}
+
+						// add "add profile" layout
+						View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
+						int row = faces.size() / 2;
+						int column = faces.size() - (row * 2);
+						GridLayout.LayoutParams params = createLayoutParams(row, column);
+						facesLayout.addView(addProfileView, params);
+						addProfileView.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								startActivityForResult(new Intent(FacesOverviewActivity.this, NewFaceActivity.class), REQUEST_ADD_FACE);
+							}
+						});
+
 					}
 				}));
+	}
+
+
+	private GridLayout.LayoutParams createLayoutParams(int row, int column) {
+		GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(row), GridLayout.spec(column));
+		params.width = (int) getResources().getDimension(R.dimen.profile_width);
+		params.height = (int) getResources().getDimension(R.dimen.profile_height);
+		return params;
 	}
 
 }

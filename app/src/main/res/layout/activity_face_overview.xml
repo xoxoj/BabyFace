@@ -6,20 +6,21 @@
     android:orientation="vertical"
     >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        />
-
     <ImageView
         android:id="@+id/img_profile"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_person"
+        android:background="@color/primary"
+        />
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         />
 
     <ImageView
@@ -35,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/img_clouds"
-        android:background="@color/primary"
+        android:background="@android:color/white"
         />
 
     <TextView
@@ -46,7 +47,7 @@
         android:layout_marginTop="220dp"
         android:layout_marginLeft="30dp"
         android:textSize="30sp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         />
 
     <LinearLayout
