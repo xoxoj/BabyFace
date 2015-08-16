@@ -4,48 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/primary_dark"
     >
-
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar"
-        />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="15dp"
-        android:layout_below="@id/toolbar"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:orientation="vertical"
         >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:fontFamily="sans-serif-light"
+            android:text="Enter your baby's name"
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
+            android:layout_marginTop="50dp"
+            />
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/layout_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
             >
 
             <EditText
                 android:id="@+id/edit_name"
+                style="@style/TextInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Baby name"
-                style="@style/TextInput"
                 />
 
         </android.support.design.widget.TextInputLayout>
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_add"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="15dp"
-        android:text="Add Baby"
-        android:textColor="@android:color/white"
-        android:background="@drawable/selector_primary"
-        />
+    <include layout="@layout/layout_progress" />
 
 </RelativeLayout>

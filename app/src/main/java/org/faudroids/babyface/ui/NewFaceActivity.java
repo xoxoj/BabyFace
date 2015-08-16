@@ -3,8 +3,8 @@ package org.faudroids.babyface.ui;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
@@ -27,20 +27,20 @@ public class NewFaceActivity extends AbstractActivity {
 
 	@InjectView(R.id.edit_name) private EditText nameEditText;
 	@InjectView(R.id.layout_name) private TextInputLayout nameInputLayout;
-	@InjectView(R.id.btn_add) private Button addButton;
+	@InjectView(R.id.btn_add) private ImageButton addButton;
+	@InjectView(R.id.layout_progress) private View progressView;
 
 	@Inject private FacesManager facesManager;
-
-	public NewFaceActivity() {
-		super(true);
-	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setTitle(R.string.add_new_baby);
+		// setup input
 		nameInputLayout.setErrorEnabled(true);
+
+		// set progress
+		new ProgressBarUtils(progressView).setProgress(ProgressBarUtils.Progress.STATUS_1);
 
 		// setup add button
 		addButton.setOnClickListener(new View.OnClickListener() {

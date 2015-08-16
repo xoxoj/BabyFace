@@ -10,7 +10,7 @@
     </style>
 
     <style name="TextInput">
-        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textColor">@android:color/white</item>
         <item name="android:textColorHint">@color/light_text</item>
     </style>
 

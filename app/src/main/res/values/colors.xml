@@ -4,8 +4,8 @@
     <color name="primary_dark">#42A4DB</color>
     <color name="primary_very_dark">#276080</color>
     <color name="primary_light">#C5CAE9</color>
-    <color name="accent">#FF5722</color>
-    <color name="light_text">#c1c1c1</color>
+    <color name="accent">#8BC34A</color>
+    <color name="light_text">#dcdcdc</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 </resources>
