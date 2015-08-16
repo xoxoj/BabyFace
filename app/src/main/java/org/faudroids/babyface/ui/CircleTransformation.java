@@ -12,10 +12,11 @@ import com.squareup.picasso.Transformation;
 
 public class CircleTransformation implements Transformation {
 
-	private final int backgroundColor;
+	private final int backgroundColor, borderColor;
 
-	public CircleTransformation(int backgroundColor) {
+	public CircleTransformation(int backgroundColor, int borderColor) {
 		this.backgroundColor = backgroundColor;
+		this.borderColor = borderColor;
 	}
 
 	@Override
@@ -38,11 +39,21 @@ public class CircleTransformation implements Transformation {
 		paint.setShader(shader);
 		paint.setAntiAlias(true);
 
+		// color transparent background if present
 		PorterDuff.Mode mMode = PorterDuff.Mode.OVERLAY;
 		paint.setColorFilter(new PorterDuffColorFilter(backgroundColor, mMode));
 
+		// apply circle transformation
 		float radius = size / 2f;
 		canvas.drawCircle(radius, radius, radius, paint);
+
+		// add border
+		Paint borderPaint = new Paint();
+		borderPaint.setColor(borderColor);
+		borderPaint.setStyle(Paint.Style.STROKE);
+		borderPaint.setAntiAlias(true);
+		borderPaint.setStrokeWidth(20);
+		canvas.drawCircle(radius, radius, radius - 10, borderPaint);
 
 		squaredBitmap.recycle();
 		return bitmap;

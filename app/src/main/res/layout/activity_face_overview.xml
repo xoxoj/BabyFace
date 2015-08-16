@@ -4,16 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/primary_dark"
     >
-
-    <ImageView
-        android:id="@+id/img_profile"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_person"
-        android:background="@color/primary"
-        />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -21,13 +13,14 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/transparent"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:transitionGroup="false"
         />
 
     <ImageView
         android:id="@+id/img_clouds"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="120dp"
         android:src="@drawable/background_clouds"
         android:scaleType="fitEnd"
         />
@@ -37,6 +30,17 @@
         android:layout_height="match_parent"
         android:layout_below="@id/img_clouds"
         android:background="@android:color/white"
+        />
+
+    <ImageView
+        android:id="@+id/img_profile"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_person"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:transitionName="@string/transition_profile_image"
         />
 
     <TextView
