@@ -5,17 +5,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 
 import com.squareup.picasso.Transformation;
 
 public class CircleTransformation implements Transformation {
 
-	private final int backgroundColor, borderColor;
+	private final int borderColor;
 
-	public CircleTransformation(int backgroundColor, int borderColor) {
-		this.backgroundColor = backgroundColor;
+	public CircleTransformation(int borderColor) {
 		this.borderColor = borderColor;
 	}
 
@@ -38,10 +35,6 @@ public class CircleTransformation implements Transformation {
 		BitmapShader shader = new BitmapShader(squaredBitmap, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
 		paint.setShader(shader);
 		paint.setAntiAlias(true);
-
-		// color transparent background if present
-		PorterDuff.Mode mMode = PorterDuff.Mode.OVERLAY;
-		paint.setColorFilter(new PorterDuffColorFilter(backgroundColor, mMode));
 
 		// apply circle transformation
 		float radius = size / 2f;

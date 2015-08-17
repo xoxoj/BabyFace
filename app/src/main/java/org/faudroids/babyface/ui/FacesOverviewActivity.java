@@ -178,9 +178,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 		requestCreator
 				.resizeDimen(R.dimen.profile_image_size_large, R.dimen.profile_image_size_large)
 				.centerCrop()
-				.transform(new CircleTransformation(
-						getResources().getColor(R.color.primary),
-						getResources().getColor(R.color.primary_very_dark)))
+				.transform(new CircleTransformation(getResources().getColor(R.color.primary_very_dark)))
 				.into(view);
 
 	}
