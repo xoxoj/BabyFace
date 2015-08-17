@@ -20,10 +20,6 @@ public class FaceOverviewActivity extends AbstractActivity {
 
 	@InjectView(R.id.img_profile) private ImageView profileImageView;
 
-	public FaceOverviewActivity() {
-		super(true);
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// set enter / exit animations (before setting content!)

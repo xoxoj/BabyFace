@@ -38,10 +38,6 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	@Inject private FacesManager facesManager;
 
-	public FacesOverviewActivity() {
-		super(true);
-	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
