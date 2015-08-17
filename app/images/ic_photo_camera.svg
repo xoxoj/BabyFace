@@ -39,14 +39,14 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:window-width="1916"
-     inkscape:window-height="1143"
+     inkscape:window-height="1125"
      id="namedview10"
      showgrid="false"
      inkscape:zoom="6.5555556"
-     inkscape:cx="-49.728814"
-     inkscape:cy="18"
+     inkscape:cx="-30.355933"
+     inkscape:cy="18.762712"
      inkscape:window-x="1680"
-     inkscape:window-y="36"
+     inkscape:window-y="54"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg2" />
   <circle
@@ -54,11 +54,11 @@
      cy="12"
      r="3.2"
      id="circle4"
-     style="fill:#000000;fill-opacity:1" />
+     style="fill:#ffffff;fill-opacity:1" />
   <path
      d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
      id="path6"
-     style="fill:#000000;fill-opacity:1" />
+     style="fill:#ffffff;fill-opacity:1" />
   <path
      d="M0 0h24v24H0z"
      fill="none"

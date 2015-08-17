@@ -1,51 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/primary_dark"
+    style="@style/LayoutIntroContainer"
     >
 
+    <RelativeLayout
+        android:id="@+id/layout_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        >
+
+    </RelativeLayout>
+
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_alignParentBottom="true"
         android:orientation="vertical"
         >
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:fontFamily="sans-serif-light"
-            android:text="Enter your baby's name"
-            android:textColor="@android:color/white"
-            android:textSize="26sp"
-            android:layout_marginTop="50dp"
-            />
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/layout_name"
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            >
+            android:layout_alignParentBottom="true"
+            android:gravity="bottom"
+            android:scaleType="fitEnd"
+            android:src="@drawable/background_clouds"
+            />
 
-            <EditText
-                android:id="@+id/edit_name"
-                style="@style/TextInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Baby name"
-                />
-
-        </android.support.design.widget.TextInputLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="@android:color/white"
+            />
 
     </LinearLayout>
 
-    <include layout="@layout/layout_progress" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        >
+
+        <LinearLayout
+            android:id="@+id/layout_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@android:color/white"
+            android:layout_centerInParent="true"
+            >
+
+            <ImageView
+                android:id="@+id/img_dot1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/circle_not_selected"
+                android:layout_margin="3dp"
+                />
+
+            <ImageView
+                android:id="@+id/img_dot2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/circle_not_selected"
+                android:layout_margin="3dp"
+                />
+
+            <ImageView
+                android:id="@+id/img_dot3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/circle_selected"
+                android:layout_margin="3dp"
+                />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_continue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_arrow_forward_with_background"
+            android:background="@android:color/transparent"
+            android:layout_marginRight="20dp"
+            />
+
+    </RelativeLayout>
+
 
 </RelativeLayout>
