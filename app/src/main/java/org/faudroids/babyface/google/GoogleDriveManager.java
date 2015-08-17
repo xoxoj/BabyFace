@@ -24,6 +24,7 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -131,22 +132,46 @@ public class GoogleDriveManager {
 
 
 	public Observable<Optional<DriveId>> queryForFile(final String fileName) {
-		return Observable.defer(new Func0<Observable<Optional<DriveId>>>() {
-			@Override
-			public Observable<Optional<DriveId>> call() {
-				DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getAppFolder(googleApiClientManager.getGoogleApiClient())
-						.queryChildren(googleApiClientManager.getGoogleApiClient(), new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, fileName)).build())
-						.await();
-				MetadataBuffer buffer = queryResult.getMetadataBuffer();
-				Optional<DriveId> result;
-				if (buffer.getCount() > 0) {
-					result = Optional.of(buffer.get(0).getDriveId());
-				} else {
-					result = Optional.absent();
-				}
-				return Observable.just(result);
-			}
-		});
+		final GoogleApiClient googleApiClient = googleApiClientManager.getGoogleApiClient();
+		return Observable
+				.defer(new Func0<Observable<Optional<DriveId>>>() {
+					@Override
+					public Observable<Optional<DriveId>> call() {
+						DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getAppFolder(googleApiClient)
+								.queryChildren(
+										googleApiClientManager.getGoogleApiClient(),
+										new Query.Builder()
+												.addFilter(Filters.eq(SearchableField.TITLE, fileName))
+												.addFilter(Filters.eq(SearchableField.TRASHED, false))
+												.build())
+								.await();
+						MetadataBuffer buffer = queryResult.getMetadataBuffer();
+						Optional<DriveId> result;
+						if (buffer.getCount() > 0) {
+							result = Optional.of(buffer.get(0).getDriveId());
+						} else {
+							result = Optional.absent();
+						}
+						return Observable.just(result);
+					}
+				})
+				.flatMap(new Func1<Optional<DriveId>, Observable<Optional<DriveId>>>() {
+					@Override
+					public Observable<Optional<DriveId>> call(Optional<DriveId> driveIdOptional) {
+						if (driveIdOptional.isPresent()) {
+							// HACK: query sometimes returns files which are not (!) present
+							// Hence try downloading file and check for errors
+							DriveApi.DriveContentsResult result = Drive.DriveApi
+									.getFile(googleApiClient, driveIdOptional.get())
+									.open(googleApiClient, DriveFile.MODE_READ_ONLY, null)
+									.await();
+							if (!result.getStatus().isSuccess()) {
+								return Observable.just(Optional.<DriveId>absent());
+							}
+						}
+						return Observable.just(driveIdOptional);
+					}
+				});
 	}
 
 

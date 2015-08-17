@@ -56,6 +56,7 @@ public class FacesManager {
 								}
 
 								// read faces config file
+								Timber.d("config id " + driveIdOptional.get());
 								return readDriveFacesConfig(driveIdOptional.get())
 										.flatMap(new Func1<List<Face>, Observable<List<Face>>>() {
 											@Override
