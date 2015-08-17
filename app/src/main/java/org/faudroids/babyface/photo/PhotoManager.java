@@ -8,6 +8,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 
 import org.faudroids.babyface.google.GoogleDriveManager;
+import org.roboguice.shaded.goole.common.base.Optional;
+import org.roboguice.shaded.goole.common.collect.Lists;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +19,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -56,11 +60,7 @@ public class PhotoManager {
 
 	public File onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
 		// copy image to internal storage
-		File faceDir = new File(context.getFilesDir(), photoCreationResult.faceId);
-		if (!faceDir.exists() && !faceDir.mkdirs()) {
-			Timber.e("failed to create dir " + faceDir.getAbsolutePath());
-		}
-
+		File faceDir = getFaceDir(photoCreationResult.faceId);
 		File internalImageFile = new File(faceDir, photoCreationResult.tmpImageFile.getName());
 
 		InputStream inStream = new FileInputStream(photoCreationResult.tmpImageFile);
@@ -84,6 +84,32 @@ public class PhotoManager {
 	}
 
 
+	public Optional<File> getRecentPhoto(String faceId) {
+		File faceDir = getFaceDir(faceId);
+		List<File> files = Lists.newArrayList(faceDir.listFiles());
+		if (files.isEmpty()) return Optional.absent();
+
+		// sort and get last (newest) photo file
+		Collections.sort(files);
+		return Optional.of(files.get(files.size() - 1));
+	}
+
+
+	/**
+	 * Returns the internal (!) root directory for one face.
+	 */
+	private File getFaceDir(String faceId) {
+		File faceDir = new File(context.getFilesDir(), faceId);
+		if (!faceDir.exists() && !faceDir.mkdirs()) {
+			Timber.e("failed to create dir " + faceDir.getAbsolutePath());
+		}
+		return faceDir;
+	}
+
+
+	/**
+	 * Returns the public (!) root directory for this app.
+	 */
 	private File getRootStorageDir() {
 		File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), ROOT_DIR_NAME);
 		if (!storageDir.exists()) {

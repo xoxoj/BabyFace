@@ -2,10 +2,8 @@ package org.faudroids.babyface.faces;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.File;
 import java.util.UUID;
 
 /**
@@ -15,27 +13,16 @@ public class Face {
 
 	private final String id;
 	private final String name;
-	@JsonIgnore
-	private final File mostRecentPhotoFile;
 	private final long reminderPeriodInSeconds;
-
-	private Face(String id, String name, File mostRecentPhotoFile, long reminderPeriodInSeconds) {
-		this.id = id;
-		this.name = name;
-		this.mostRecentPhotoFile = mostRecentPhotoFile;
-		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
-	}
 
 	@JsonCreator
 	public Face(
 			@JsonProperty("id") String id,
 			@JsonProperty("name") String name,
-			@JsonProperty("mostRecentPhotoFileName") String mostRecentPhotoFileName,
 			@JsonProperty("reminderPeriodInSeconds") long reminderPeriodInSeconds) {
 
 		this.id = id;
 		this.name = name;
-		this.mostRecentPhotoFile = new File(mostRecentPhotoFileName);
 		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
 	}
 
@@ -47,22 +34,13 @@ public class Face {
 		return name;
 	}
 
-	@JsonIgnore
-	public File getMostRecentPhotoFile() {
-		return mostRecentPhotoFile;
-	}
-
-	public String getMostRecentPhotoFileName() {
-		return mostRecentPhotoFile.getAbsolutePath();
-	}
-
 	public long getReminderPeriodInSeconds() {
 		return reminderPeriodInSeconds;
 	}
 
 	@Override
 	public String toString() {
-		return "[id = " + id + ", name = " + name + ", mostRecentPhotoFileName = " + mostRecentPhotoFile.getAbsolutePath() + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
+		return "[id = " + id + ", name = " + name + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
 	}
 
 
@@ -70,7 +48,6 @@ public class Face {
 
 		private final String id;
 		private String name;
-		private File mostRecentPhotoFile;
 		private long reminderPeriodInSeconds;
 
 		public Builder() {
@@ -79,11 +56,6 @@ public class Face {
 
 		public Builder setName(String name) {
 			this.name = name;
-			return this;
-		}
-
-		public Builder setMostRecentPhotoFile(File mostRecentPhotoFile) {
-			this.mostRecentPhotoFile = mostRecentPhotoFile;
 			return this;
 		}
 
@@ -100,16 +72,12 @@ public class Face {
 			return name;
 		}
 
-		public File getMostRecentPhotoFile() {
-			return mostRecentPhotoFile;
-		}
-
 		public long getReminderPeriodInSeconds() {
 			return reminderPeriodInSeconds;
 		}
 
 		public Face build() {
-			return new Face(id, name, mostRecentPhotoFile, reminderPeriodInSeconds);
+			return new Face(id, name, reminderPeriodInSeconds);
 		}
 
 	}

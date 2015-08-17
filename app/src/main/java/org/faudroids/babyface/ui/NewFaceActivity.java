@@ -20,7 +20,6 @@ import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Inject;
@@ -80,7 +79,7 @@ public class NewFaceActivity extends AbstractActivity {
 							@Override
 							public Observable<Void> call(Void aVoid) {
 								try {
-									return photoManager.uploadPhoto(face.getMostRecentPhotoFile());
+									return photoManager.uploadPhoto(photoManager.getRecentPhoto(face.getId()).get());
 								} catch (IOException e) {
 									return Observable.error(e);
 								}
@@ -209,7 +208,7 @@ public class NewFaceActivity extends AbstractActivity {
 
 			@Override
 			public boolean onTryComplete() {
-				return faceBuilder.getMostRecentPhotoFile() != null;
+				return photoManager.getRecentPhoto(faceBuilder.getId()).isPresent();
 			}
 
 			@Override
@@ -242,18 +241,17 @@ public class NewFaceActivity extends AbstractActivity {
 			@Override
 			public void onDataUpdated(Intent data) {
 				try {
-					File photoFile = photoManager.onPhotoResult(photoCreationResult);
-					faceBuilder.setMostRecentPhotoFile(photoFile);
+					photoManager.onPhotoResult(photoCreationResult);
 				} catch(IOException e) {
 					Timber.e(e, "failed to take photo");
 					// TODO
 				}
 
 				// toggle preview of photo
-				if (faceBuilder.getMostRecentPhotoFile() != null) {
+				if (photoManager.getRecentPhoto(faceBuilder.getId()).isPresent()) {
 					cameraView.setVisibility(View.GONE);
 					photoView.setVisibility(View.VISIBLE);
-					Picasso.with(NewFaceActivity.this).load(faceBuilder.getMostRecentPhotoFile()).into(photoView);
+					Picasso.with(NewFaceActivity.this).load(photoManager.getRecentPhoto(faceBuilder.getId()).get()).into(photoView);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoView.setVisibility(View.GONE);

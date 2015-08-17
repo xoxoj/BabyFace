@@ -10,11 +10,8 @@ import org.faudroids.babyface.google.GoogleDriveManager;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,55 +62,7 @@ public class FacesManager {
 									}
 								});
 					}
-				})
-				.flatMap(new Func1<List<Face>, Observable<Face>>() {
-					@Override
-					public Observable<Face> call(List<Face> faces) {
-						return Observable.from(faces);
-					}
-				})
-				.flatMap(new Func1<Face, Observable<Face>>() {
-					@Override
-					public Observable<Face> call(final Face face) {
-						final File photoFile = face.getMostRecentPhotoFile();
-						if (photoFile.exists()) return Observable.just(face);
-						photoFile.getParentFile().mkdirs();
-
-						// download photo
-						Timber.d("missing recent photo of " + face.getId());
-						return googleDriveManager.queryForFile(photoFile.getName())
-								.flatMap(new Func1<Optional<DriveId>, Observable<Face>>() {
-									@Override
-									public Observable<Face> call(Optional<DriveId> driveIdOptional) {
-										if (!driveIdOptional.isPresent()) {
-											Timber.w("failed to download most recent photo for face " + face.getId());
-											return Observable.just(face);
-										}
-
-										Timber.d("downloading photo " + photoFile.getName());
-										return googleDriveManager.readFile(driveIdOptional.get())
-												.flatMap(new Func1<InputStream, Observable<Face>>() {
-													@Override
-													public Observable<Face> call(InputStream inStream) {
-														try {
-															OutputStream outStream  = new FileOutputStream(photoFile);
-															byte[] buffer = new byte[1024];
-															while ((inStream.read(buffer)) != -1) {
-																outStream.write(buffer);
-															}
-															inStream.close();
-															outStream.close();
-														} catch (IOException e) {
-															Timber.e(e, "failed to download recent photo");
-														}
-														return Observable.just(face);
-													}
-												});
-									}
-								});
-					}
-				})
-				.toList();
+				});
 	}
 
 

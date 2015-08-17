@@ -10,12 +10,16 @@ import android.widget.TextView;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
+import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.roboguice.shaded.goole.common.base.Optional;
 
+import java.io.File;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -34,6 +38,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 	@InjectView(R.id.layout_profiles) private GridLayout facesLayout;
 
 	@Inject private FacesManager facesManager;
+	@Inject private PhotoManager photoManager;
 
 	@InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
@@ -129,9 +134,15 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 
 	private void loadImage(Face face, ImageView view) {
-		Picasso.with(FacesOverviewActivity.this)
-				.load(face.getMostRecentPhotoFile())
-				.error(R.drawable.ic_person)
+		Optional<File> photoFile = photoManager.getRecentPhoto(face.getId());
+
+		RequestCreator requestCreator;
+		if (photoFile.isPresent()) {
+			requestCreator = Picasso.with(FacesOverviewActivity.this).load(photoFile.get());
+		} else {
+			requestCreator = Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person);
+		}
+		requestCreator
 				.resizeDimen(R.dimen.profile_image_size_large, R.dimen.profile_image_size_large)
 				.centerCrop()
 				.transform(new CircleTransformation(
