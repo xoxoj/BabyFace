@@ -32,7 +32,6 @@ public class PhotoManager {
 	private final Context context;
 	private final GoogleDriveManager googleDriveManager;
 
-	private File tmpImageFile;
 
 	@Inject
 	PhotoManager(Context context, GoogleDriveManager googleDriveManager) {
@@ -41,25 +40,30 @@ public class PhotoManager {
 	}
 
 
-	public Intent createPhotoIntent(String faceId) throws IOException {
+	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
 		String timeStamp = PHOTO_DATE_FORMAT.format(new Date());
 		String imageFileName = "face_" + faceId + "_" + timeStamp + ".jpg";
-		tmpImageFile = new File(getRootStorageDir(), imageFileName);
+
+		File tmpImageFile = new File(getRootStorageDir(), imageFileName);
 		Timber.d("storing image as " + tmpImageFile.getAbsolutePath());
 
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpImageFile));
-		return intent;
+
+		return new PhotoCreationResult(intent, faceId, tmpImageFile);
 	}
 
 
-	public File onPhotoResult(Intent data) throws IOException {
-		if (tmpImageFile == null) throw new IllegalStateException("tmpImageFile cannot be null");
-
+	public File onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
 		// copy image to internal storage
-		File internalImageFile = new File(context.getFilesDir(), tmpImageFile.getName());
+		File faceDir = new File(context.getFilesDir(), photoCreationResult.faceId);
+		if (!faceDir.exists() && !faceDir.mkdirs()) {
+			Timber.e("failed to create dir " + faceDir.getAbsolutePath());
+		}
 
-		InputStream inStream = new FileInputStream(tmpImageFile);
+		File internalImageFile = new File(faceDir, photoCreationResult.tmpImageFile.getName());
+
+		InputStream inStream = new FileInputStream(photoCreationResult.tmpImageFile);
 		OutputStream outStream = new FileOutputStream(internalImageFile);
 		byte[] buffer = new byte[1024];
 		int bytesRead;
@@ -69,7 +73,7 @@ public class PhotoManager {
 		inStream.close();
 		outStream.close();
 
-		if (!tmpImageFile.delete()) Timber.w("failed to delete file " + tmpImageFile.getAbsolutePath());
+		if (!photoCreationResult.tmpImageFile.delete()) Timber.w("failed to delete file " + photoCreationResult.tmpImageFile.getAbsolutePath());
 
 		return internalImageFile;
 	}
@@ -87,5 +91,24 @@ public class PhotoManager {
 			if (!success) Timber.e("failed to create dir " + storageDir.getAbsolutePath());
 		}
 		return storageDir;
+	}
+
+
+	public static class PhotoCreationResult {
+
+		private final Intent photoCaptureIntent;
+		private final String faceId;
+		private final File tmpImageFile;
+
+		private PhotoCreationResult(Intent photoCaptureIntent, String faceId, File tmpImageFile) {
+			this.photoCaptureIntent = photoCaptureIntent;
+			this.faceId = faceId;
+			this.tmpImageFile = tmpImageFile;
+		}
+
+		public Intent getPhotoCaptureIntent() {
+			return photoCaptureIntent;
+		}
+
 	}
 }

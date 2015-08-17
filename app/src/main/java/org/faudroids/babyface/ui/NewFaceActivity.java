@@ -205,6 +205,7 @@ public class NewFaceActivity extends AbstractActivity {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
 
 			private ImageView cameraView, photoView;
+			private PhotoManager.PhotoCreationResult photoCreationResult;
 
 			@Override
 			public boolean onTryComplete() {
@@ -227,8 +228,8 @@ public class NewFaceActivity extends AbstractActivity {
 					@Override
 					public void onClick(View v) {
 						try {
-							Intent intent = photoManager.createPhotoIntent(faceBuilder.getId());
-							startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
+							photoCreationResult = photoManager.createPhotoIntent(faceBuilder.getId());
+							startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_CAPTURE_IMAGE);
 						} catch (IOException e) {
 							Timber.e(e, "failed to start camera");
 							// TODO
@@ -241,7 +242,7 @@ public class NewFaceActivity extends AbstractActivity {
 			@Override
 			public void onDataUpdated(Intent data) {
 				try {
-					File photoFile = photoManager.onPhotoResult(data);
+					File photoFile = photoManager.onPhotoResult(photoCreationResult);
 					faceBuilder.setMostRecentPhotoFile(photoFile);
 				} catch(IOException e) {
 					Timber.e(e, "failed to take photo");
