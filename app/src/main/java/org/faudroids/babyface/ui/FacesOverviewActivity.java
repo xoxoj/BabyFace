@@ -2,15 +2,13 @@ package org.faudroids.babyface.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
@@ -32,14 +30,21 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	private static final int REQUEST_ADD_FACE = 42;
 
+	@InjectView(R.id.layout_sliding_panel) private SlidingUpPanelLayout slidingLayout;
 	@InjectView(R.id.layout_profiles) private GridLayout facesLayout;
 
 	@Inject private FacesManager facesManager;
+
+	@InjectView(R.id.img_profile) private ImageView profileView;
+	@InjectView(R.id.txt_name) private TextView nameView;
+	private Face selectedFace;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setupFaces();
+
+		slidingLayout.setPanelHeight(0);
 	}
 
 
@@ -72,20 +77,14 @@ public class FacesOverviewActivity extends AbstractActivity {
 							TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
 
 							// fill face details
-							Face face = faces.get(i);
+							final Face face = faces.get(i);
 							nameView.setText(face.getName());
-							Picasso.with(FacesOverviewActivity.this)
-									.load(face.getMostRecentPhotoFile())
-									.error(R.drawable.ic_person)
-									.transform(new CircleTransformation(
-											getResources().getColor(R.color.primary),
-											getResources().getColor(R.color.primary_very_dark)))
-									.into(imageView);
+							loadImage(face, imageView);
 							imageView.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
-									ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(FacesOverviewActivity.this, Pair.create((View) imageView, getString(R.string.transition_profile_image)));
-									ActivityCompat.startActivity(FacesOverviewActivity.this, new Intent(FacesOverviewActivity.this, FaceOverviewActivity.class), options.toBundle());
+									slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+									setupSelectedFace(face);
 								}
 							});
 
@@ -114,6 +113,13 @@ public class FacesOverviewActivity extends AbstractActivity {
 	}
 
 
+	private void setupSelectedFace(Face face) {
+		this.selectedFace = face;
+		nameView.setText(face.getName());
+		loadImage(face, profileView);
+	}
+
+
 	private GridLayout.LayoutParams createLayoutParams(int row, int column) {
 		GridLayout.LayoutParams params = new GridLayout.LayoutParams(GridLayout.spec(row), GridLayout.spec(column));
 		params.width = (int) getResources().getDimension(R.dimen.profile_width);
@@ -121,4 +127,17 @@ public class FacesOverviewActivity extends AbstractActivity {
 		return params;
 	}
 
+
+	private void loadImage(Face face, ImageView view) {
+		Picasso.with(FacesOverviewActivity.this)
+				.load(face.getMostRecentPhotoFile())
+				.error(R.drawable.ic_person)
+				.resizeDimen(R.dimen.profile_image_size_large, R.dimen.profile_image_size_large)
+				.centerCrop()
+				.transform(new CircleTransformation(
+						getResources().getColor(R.color.primary),
+						getResources().getColor(R.color.primary_very_dark)))
+				.into(view);
+
+	}
 }

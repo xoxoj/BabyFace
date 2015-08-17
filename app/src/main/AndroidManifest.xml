@@ -25,7 +25,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.FacesOverviewActivity" />
-        <activity android:name=".ui.FaceOverviewActivity" />
         <activity android:name=".ui.VideoConversionActivity" />
         <activity android:name=".ui.NewFaceActivity" />
 
