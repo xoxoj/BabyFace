@@ -28,6 +28,27 @@
         <item name="android:layout_marginBottom">30dp</item>
     </style>
 
+    <style name="TextIntroReminder">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/reminder_height</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="ImageIntroReminder">
+        <item name="android:layout_width">32dp</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:src">@drawable/ic_check_accent</item>
+        <item name="android:layout_gravity">right</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="RowReminder">
+        <item name="android:paddingBottom">@dimen/reminder_vertical_padding</item>
+        <item name="android:paddingTop">@dimen/reminder_vertical_padding</item>
+    </style>
+
     <style name="TextInput">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textColorHint">@color/light_text</item>
