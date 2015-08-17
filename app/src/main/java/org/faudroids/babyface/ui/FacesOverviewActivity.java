@@ -1,7 +1,6 @@
 package org.faudroids.babyface.ui;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -13,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
@@ -76,13 +74,9 @@ public class FacesOverviewActivity extends AbstractActivity {
 							// fill face details
 							Face face = faces.get(i);
 							nameView.setText(face.getName());
-							RequestCreator imageRequest;
-							if (!face.getMostRecentPhotoFile().isPresent()) {
-								imageRequest = Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person);
-							} else {
-								imageRequest = Picasso.with(FacesOverviewActivity.this).load(face.getMostRecentPhotoFile().get());
-							}
-							imageRequest
+							Picasso.with(FacesOverviewActivity.this)
+									.load(face.getMostRecentPhotoFile())
+									.error(R.drawable.ic_person)
 									.transform(new CircleTransformation(
 											getResources().getColor(R.color.primary),
 											getResources().getColor(R.color.primary_very_dark)))
@@ -90,10 +84,6 @@ public class FacesOverviewActivity extends AbstractActivity {
 							imageView.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
-									if (Build.VERSION.SDK_INT >= 21) {
-										// TODO
-									}
-
 									ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(FacesOverviewActivity.this, Pair.create((View) imageView, getString(R.string.transition_profile_image)));
 									ActivityCompat.startActivity(FacesOverviewActivity.this, new Intent(FacesOverviewActivity.this, FaceOverviewActivity.class), options.toBundle());
 								}

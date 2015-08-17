@@ -80,7 +80,7 @@ public class NewFaceActivity extends AbstractActivity {
 							@Override
 							public Observable<Void> call(Void aVoid) {
 								try {
-									return photoManager.uploadPhoto(face.getMostRecentPhotoFile().get());
+									return photoManager.uploadPhoto(face.getMostRecentPhotoFile());
 								} catch (IOException e) {
 									return Observable.error(e);
 								}
@@ -208,7 +208,7 @@ public class NewFaceActivity extends AbstractActivity {
 
 			@Override
 			public boolean onTryComplete() {
-				return faceBuilder.getMostRecentPhotoFile().isPresent();
+				return faceBuilder.getMostRecentPhotoFile() != null;
 			}
 
 			@Override
@@ -249,10 +249,10 @@ public class NewFaceActivity extends AbstractActivity {
 				}
 
 				// toggle preview of photo
-				if (faceBuilder.getMostRecentPhotoFile().isPresent()) {
+				if (faceBuilder.getMostRecentPhotoFile() != null) {
 					cameraView.setVisibility(View.GONE);
 					photoView.setVisibility(View.VISIBLE);
-					Picasso.with(NewFaceActivity.this).load(faceBuilder.getMostRecentPhotoFile().get()).into(photoView);
+					Picasso.with(NewFaceActivity.this).load(faceBuilder.getMostRecentPhotoFile()).into(photoView);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoView.setVisibility(View.GONE);

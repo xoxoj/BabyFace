@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.roboguice.shaded.goole.common.base.Optional;
-
 import java.io.File;
 import java.util.UUID;
 
@@ -18,10 +16,10 @@ public class Face {
 	private final String id;
 	private final String name;
 	@JsonIgnore
-	private final Optional<File> mostRecentPhotoFile;
+	private final File mostRecentPhotoFile;
 	private final long reminderPeriodInSeconds;
 
-	private Face(String id, String name, Optional<File> mostRecentPhotoFile, long reminderPeriodInSeconds) {
+	private Face(String id, String name, File mostRecentPhotoFile, long reminderPeriodInSeconds) {
 		this.id = id;
 		this.name = name;
 		this.mostRecentPhotoFile = mostRecentPhotoFile;
@@ -37,8 +35,7 @@ public class Face {
 
 		this.id = id;
 		this.name = name;
-		if (mostRecentPhotoFileName == null) this.mostRecentPhotoFile = Optional.absent();
-		else this.mostRecentPhotoFile = Optional.of(new File(mostRecentPhotoFileName));
+		this.mostRecentPhotoFile = new File(mostRecentPhotoFileName);
 		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
 	}
 
@@ -51,13 +48,12 @@ public class Face {
 	}
 
 	@JsonIgnore
-	public Optional<File> getMostRecentPhotoFile() {
+	public File getMostRecentPhotoFile() {
 		return mostRecentPhotoFile;
 	}
 
 	public String getMostRecentPhotoFileName() {
-		if (mostRecentPhotoFile.isPresent()) return mostRecentPhotoFile.get().getAbsolutePath();
-		return null;
+		return mostRecentPhotoFile.getAbsolutePath();
 	}
 
 	public long getReminderPeriodInSeconds() {
@@ -66,10 +62,7 @@ public class Face {
 
 	@Override
 	public String toString() {
-		String s = "[id = " + id + ", name = " + name + ", mostRecentPhotoFileName = ";
-		if (mostRecentPhotoFile.isPresent()) s += mostRecentPhotoFile.get().getAbsolutePath();
-		else s += "null";
-		return s + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
+		return "[id = " + id + ", name = " + name + ", mostRecentPhotoFileName = " + mostRecentPhotoFile.getAbsolutePath() + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
 	}
 
 
@@ -77,7 +70,7 @@ public class Face {
 
 		private final String id;
 		private String name;
-		private Optional<File> mostRecentPhotoFile = Optional.absent();
+		private File mostRecentPhotoFile;
 		private long reminderPeriodInSeconds;
 
 		public Builder() {
@@ -90,7 +83,7 @@ public class Face {
 		}
 
 		public Builder setMostRecentPhotoFile(File mostRecentPhotoFile) {
-			this.mostRecentPhotoFile = Optional.of(mostRecentPhotoFile);
+			this.mostRecentPhotoFile = mostRecentPhotoFile;
 			return this;
 		}
 
@@ -107,7 +100,7 @@ public class Face {
 			return name;
 		}
 
-		public Optional<File> getMostRecentPhotoFile() {
+		public File getMostRecentPhotoFile() {
 			return mostRecentPhotoFile;
 		}
 

@@ -10,15 +10,17 @@ import org.faudroids.babyface.google.GoogleDriveManager;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import timber.log.Timber;
@@ -41,33 +43,77 @@ public class FacesManager {
 
 
 	public Observable<List<Face>> getFaces() {
-		return Observable.defer(new Func0<Observable<List<Face>>>() {
-			@Override
-			public Observable<List<Face>> call() {
-				return googleDriveManager.queryForFile(DRIVE_FACES_CONFIG_FILE_NAME)
-						.flatMap(new Func1<Optional<DriveId>, Observable<List<Face>>>() {
-							@Override
-							public Observable<List<Face>> call(Optional<DriveId> driveIdOptional) {
-								// if empty return no faces
-								if (!driveIdOptional.isPresent()) {
-									Timber.d("no drive config file");
-									List<Face> faces = new ArrayList<>();
-									return Observable.just(faces);
-								}
+		return googleDriveManager
+				.queryForFile(DRIVE_FACES_CONFIG_FILE_NAME)
+				.flatMap(new Func1<Optional<DriveId>, Observable<List<Face>>>() {
+					@Override
+					public Observable<List<Face>> call(Optional<DriveId> driveIdOptional) {
+						// if empty return no faces
+						if (!driveIdOptional.isPresent()) {
+							Timber.d("no drive config file");
+							List<Face> faces = new ArrayList<>();
+							return Observable.just(faces);
+						}
 
-								// read faces config file
-								Timber.d("config id " + driveIdOptional.get());
-								return readDriveFacesConfig(driveIdOptional.get())
-										.flatMap(new Func1<List<Face>, Observable<List<Face>>>() {
-											@Override
-											public Observable<List<Face>> call(List<Face> faces) {
-												return Observable.just(faces);
-											}
-										});
-							}
-						});
-			}
-		});
+						// read faces config file
+						Timber.d("config id " + driveIdOptional.get());
+						return readDriveFacesConfig(driveIdOptional.get())
+								.flatMap(new Func1<List<Face>, Observable<List<Face>>>() {
+									@Override
+									public Observable<List<Face>> call(List<Face> faces) {
+										return Observable.just(faces);
+									}
+								});
+					}
+				})
+				.flatMap(new Func1<List<Face>, Observable<Face>>() {
+					@Override
+					public Observable<Face> call(List<Face> faces) {
+						return Observable.from(faces);
+					}
+				})
+				.flatMap(new Func1<Face, Observable<Face>>() {
+					@Override
+					public Observable<Face> call(final Face face) {
+						final File photoFile = face.getMostRecentPhotoFile();
+						if (photoFile.exists()) return Observable.just(face);
+						photoFile.getParentFile().mkdirs();
+
+						// download photo
+						Timber.d("missing recent photo of " + face.getId());
+						return googleDriveManager.queryForFile(photoFile.getName())
+								.flatMap(new Func1<Optional<DriveId>, Observable<Face>>() {
+									@Override
+									public Observable<Face> call(Optional<DriveId> driveIdOptional) {
+										if (!driveIdOptional.isPresent()) {
+											Timber.w("failed to download most recent photo for face " + face.getId());
+											return Observable.just(face);
+										}
+
+										Timber.d("downloading photo " + photoFile.getName());
+										return googleDriveManager.readFile(driveIdOptional.get())
+												.flatMap(new Func1<InputStream, Observable<Face>>() {
+													@Override
+													public Observable<Face> call(InputStream inStream) {
+														try {
+															OutputStream outStream  = new FileOutputStream(photoFile);
+															byte[] buffer = new byte[1024];
+															while ((inStream.read(buffer)) != -1) {
+																outStream.write(buffer);
+															}
+															inStream.close();
+															outStream.close();
+														} catch (IOException e) {
+															Timber.e(e, "failed to download recent photo");
+														}
+														return Observable.just(face);
+													}
+												});
+									}
+								});
+					}
+				})
+				.toList();
 	}
 
 
