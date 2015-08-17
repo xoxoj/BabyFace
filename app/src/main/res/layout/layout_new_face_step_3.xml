@@ -10,7 +10,6 @@
     <TextView
         android:id="@+id/txt_title"
         android:text="How often would you like to take a photo?"
-        android:gravity="center_horizontal"
         style="@style/TextIntroTitle"
         />
 
@@ -27,7 +26,7 @@
             android:layout_marginRight="30dp"
             android:layout_centerInParent="true"
             android:stretchColumns="1"
-            android:visibility="gone"
+            android:visibility="visible"
             >
 
             <TableRow
@@ -88,7 +87,7 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:orientation="vertical"
-            android:visibility="visible"
+            android:visibility="gone"
             >
 
             <LinearLayout

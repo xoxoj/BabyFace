@@ -20,6 +20,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import rx.functions.Action1;
 import timber.log.Timber;
 
 
@@ -40,7 +42,7 @@ public class NewFaceActivity extends AbstractActivity {
 	@InjectView(R.id.btn_continue) private ImageButton continueButton;
 
 	private NewFaceView newFaceView;
-	private ImageView[] dotViews = new ImageView[3];
+	private ImageView[] dotViews;
 	private Progress currentProgress;
 
 	private Face.Builder faceBuilder = new Face.Builder();
@@ -54,18 +56,31 @@ public class NewFaceActivity extends AbstractActivity {
 		super.onCreate(savedInstanceState);
 
 		// setup progress
-		this.dotViews = new ImageView[3];
+		this.dotViews = new ImageView[4];
 		this.dotViews[0] = (ImageView) findViewById(R.id.img_dot1);
 		this.dotViews[1] = (ImageView) findViewById(R.id.img_dot2);
 		this.dotViews[2] = (ImageView) findViewById(R.id.img_dot3);
+		this.dotViews[3] = (ImageView) findViewById(R.id.img_dot4);
 
 		// setup next button
 		continueButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (newFaceView.onTryComplete()) {
-					newFaceView.onComplete();
+				if (!currentProgress.equals(Progress.STATUS_4)) {
+					if (newFaceView.onTryComplete()) {
+						newFaceView.onComplete();
+					}
+					return;
 				}
+				facesManager.addFace(faceBuilder.build())
+						.compose(new DefaultTransformer<Void>())
+						.subscribe(new Action1<Void>() {
+							@Override
+							public void call(Void aVoid) {
+								Timber.d("adding face success");
+								finish();
+							}
+						});
 			}
 		});
 
@@ -95,12 +110,22 @@ public class NewFaceActivity extends AbstractActivity {
 			case STATUS_3:
 				newFaceView = createReminderView();
 				break;
+			case STATUS_4:
+				newFaceView = createFinishView();
+				break;
 		}
 
 		// show layout
 		LayoutInflater inflater = LayoutInflater.from(this);
 		View contentView = newFaceView.createView(inflater);
 		containerLayout.addView(contentView);
+
+		// toggle next button
+		if (progress.equals(Progress.STATUS_4)) {
+			continueButton.setImageResource(R.drawable.ic_check_with_background);
+		} else {
+			continueButton.setImageResource(R.drawable.ic_arrow_forward_with_background);
+		}
 	}
 
 
@@ -117,7 +142,7 @@ public class NewFaceActivity extends AbstractActivity {
 
 	public enum Progress {
 
-		STATUS_1(0), STATUS_2(1), STATUS_3(2);
+		STATUS_1(0), STATUS_2(1), STATUS_3(2), STATUS_4(3);
 
 		private final int idx;
 		Progress(int idx) {
@@ -277,6 +302,7 @@ public class NewFaceActivity extends AbstractActivity {
 				}
 				Timber.d("setting reminder period to " + updatePeriod);
 				faceBuilder.setReminderPeriodInSeconds(updatePeriod);
+				setProgress(Progress.STATUS_4);
 			}
 
 			@Override
@@ -339,6 +365,27 @@ public class NewFaceActivity extends AbstractActivity {
 				}
 			}
 		};
+	}
+
+
+	/** Configures the reminder period */
+	private NewFaceView createFinishView() {
+		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
+
+			@Override
+			public boolean onTryComplete() {
+				return true;
+			}
+
+			@Override
+			protected void doOnComplete() { }
+
+			@Override
+			protected View doCreateView(LayoutInflater inflater) {
+				return inflater.inflate(R.layout.layout_new_face_step_4, containerLayout, false);
+			}
+		};
+
 	}
 
 }
