@@ -1,6 +1,9 @@
 package org.faudroids.babyface.ui;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.TextInputLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,19 +13,27 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.FacesManager;
+import org.faudroids.babyface.photo.PhotoManager;
+
+import java.io.File;
+import java.io.IOException;
 
 import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import timber.log.Timber;
 
 
 @ContentView(R.layout.activity_new_face)
 public class NewFaceActivity extends AbstractActivity {
+
+	private static final int REQUEST_CAPTURE_IMAGE = 42;
 
 	@InjectView(R.id.layout_container) private RelativeLayout containerLayout;
 	@InjectView(R.id.btn_continue) private ImageButton continueButton;
@@ -31,9 +42,13 @@ public class NewFaceActivity extends AbstractActivity {
 	private ImageView[] dotViews = new ImageView[3];
 	private Progress currentProgress;
 
+	// values needed to create a new face
 	private String newName;
+	private File photoFile;
+
 
 	@Inject private FacesManager facesManager;
+	@Inject private PhotoManager photoManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -107,6 +122,9 @@ public class NewFaceActivity extends AbstractActivity {
 				break;
 			case STATUS_2:
 				progressView = new ProgressView() {
+
+					private ImageView cameraView, photoView;
+
 					@Override
 					public boolean onTryComplete() {
 						// TODO
@@ -121,14 +139,42 @@ public class NewFaceActivity extends AbstractActivity {
 					@Override
 					protected View doCreateView(LayoutInflater inflater) {
 						View view = inflater.inflate(R.layout.layout_new_face_step_2, containerLayout, false);
-						View cameraView = view.findViewById(R.id.img_camera);
+						cameraView = (ImageView) view.findViewById(R.id.img_camera);
+						photoView = (ImageView) view.findViewById(R.id.img_photo);
+
+						// click to start camera
 						cameraView.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View v) {
-								Toast.makeText(NewFaceActivity.this, "hello", Toast.LENGTH_SHORT).show();
+								Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+								if (intent.resolveActivity(getPackageManager()) != null) {
+									try {
+										photoFile = photoManager.createImageFile();
+										Timber.d("storing image as " + photoFile.getAbsolutePath());
+									} catch (IOException ioe) {
+										Timber.e(ioe, "failed to create image file");
+										return;
+									}
+
+									intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+									startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
+								}
 							}
 						});
 						return view;
+					}
+
+					@Override
+					public void onDataUpdated() {
+						// toggle preview of photo
+						if (photoFile != null) {
+							cameraView.setVisibility(View.GONE);
+							photoView.setVisibility(View.VISIBLE);
+							Picasso.with(NewFaceActivity.this).load(photoFile).into(photoView);
+						} else {
+							cameraView.setVisibility(View.VISIBLE);
+							photoView.setVisibility(View.GONE);
+						}
 					}
 				};
 				break;
@@ -140,6 +186,20 @@ public class NewFaceActivity extends AbstractActivity {
 		LayoutInflater inflater = LayoutInflater.from(this);
 		View contentView = progressView.createView(inflater);
 		containerLayout.addView(contentView);
+	}
+
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case REQUEST_CAPTURE_IMAGE:
+				if (resultCode != RESULT_OK) {
+					photoFile = null;
+					return;
+				}
+				progressView.onDataUpdated();
+				break;
+		}
 	}
 
 
@@ -192,6 +252,9 @@ public class NewFaceActivity extends AbstractActivity {
 		}
 
 		public abstract boolean onTryComplete();
+		public void onDataUpdated() {
+			// default is empty
+		}
 		protected abstract void doOnComplete();
 		protected abstract View doCreateView(LayoutInflater inflater);
 
