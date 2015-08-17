@@ -1,9 +1,7 @@
 package org.faudroids.babyface.ui;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.design.widget.TextInputLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +27,9 @@ import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 
@@ -72,7 +72,20 @@ public class NewFaceActivity extends AbstractActivity {
 					}
 					return;
 				}
+
+				// create final face and upload first photo
+				final Face face = faceBuilder.build();
 				facesManager.addFace(faceBuilder.build())
+						.flatMap(new Func1<Void, Observable<Void>>() {
+							@Override
+							public Observable<Void> call(Void aVoid) {
+								try {
+									return photoManager.uploadPhoto(face.getMostRecentPhotoFile().get());
+								} catch (IOException e) {
+									return Observable.error(e);
+								}
+							}
+						})
 						.compose(new DefaultTransformer<Void>())
 						.subscribe(new Action1<Void>() {
 							@Override
@@ -134,7 +147,7 @@ public class NewFaceActivity extends AbstractActivity {
 		switch (requestCode) {
 			case REQUEST_CAPTURE_IMAGE:
 				if (resultCode != RESULT_OK) return;
-				newFaceView.onDataUpdated();
+				newFaceView.onDataUpdated(data);
 				break;
 		}
 	}
@@ -192,16 +205,14 @@ public class NewFaceActivity extends AbstractActivity {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
 
 			private ImageView cameraView, photoView;
-			private File photoFile;
 
 			@Override
 			public boolean onTryComplete() {
-				return photoFile != null;
+				return faceBuilder.getMostRecentPhotoFile().isPresent();
 			}
 
 			@Override
 			protected void doOnComplete() {
-				faceBuilder.setMostRecentPhotoFile(photoFile);
 				setProgress(Progress.STATUS_3);
 			}
 
@@ -215,18 +226,12 @@ public class NewFaceActivity extends AbstractActivity {
 				cameraView.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-						if (intent.resolveActivity(getPackageManager()) != null) {
-							try {
-								photoFile = photoManager.createImageFile();
-								Timber.d("storing image as " + photoFile.getAbsolutePath());
-							} catch (IOException ioe) {
-								Timber.e(ioe, "failed to create image file");
-								return;
-							}
-
-							intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+						try {
+							Intent intent = photoManager.createPhotoIntent(faceBuilder.getId());
 							startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
+						} catch (IOException e) {
+							Timber.e(e, "failed to start camera");
+							// TODO
 						}
 					}
 				});
@@ -234,12 +239,20 @@ public class NewFaceActivity extends AbstractActivity {
 			}
 
 			@Override
-			public void onDataUpdated() {
+			public void onDataUpdated(Intent data) {
+				try {
+					File photoFile = photoManager.onPhotoResult(data);
+					faceBuilder.setMostRecentPhotoFile(photoFile);
+				} catch(IOException e) {
+					Timber.e(e, "failed to take photo");
+					// TODO
+				}
+
 				// toggle preview of photo
-				if (photoFile != null) {
+				if (faceBuilder.getMostRecentPhotoFile().isPresent()) {
 					cameraView.setVisibility(View.GONE);
 					photoView.setVisibility(View.VISIBLE);
-					Picasso.with(NewFaceActivity.this).load(photoFile).into(photoView);
+					Picasso.with(NewFaceActivity.this).load(faceBuilder.getMostRecentPhotoFile().get()).into(photoView);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoView.setVisibility(View.GONE);

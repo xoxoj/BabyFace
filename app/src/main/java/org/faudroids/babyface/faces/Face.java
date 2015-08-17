@@ -99,6 +99,22 @@ public class Face {
 			return this;
 		}
 
+		public String getId() {
+			return id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public Optional<File> getMostRecentPhotoFile() {
+			return mostRecentPhotoFile;
+		}
+
+		public long getReminderPeriodInSeconds() {
+			return reminderPeriodInSeconds;
+		}
+
 		public Face build() {
 			return new Face(id, name, mostRecentPhotoFile, reminderPeriodInSeconds);
 		}

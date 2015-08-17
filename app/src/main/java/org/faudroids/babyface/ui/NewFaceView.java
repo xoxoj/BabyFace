@@ -1,6 +1,7 @@
 package org.faudroids.babyface.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,7 +78,7 @@ abstract class NewFaceView {
 	/**
 	 * Called when this view should update itself (e.g. on external events).
 	 */
-	public void onDataUpdated() {
+	public void onDataUpdated(Intent data) {
 		// default is empty
 	}
 

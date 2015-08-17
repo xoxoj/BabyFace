@@ -2,9 +2,7 @@ package org.faudroids.babyface.ui;
 
 import android.content.Intent;
 import android.content.IntentSender;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -24,7 +22,6 @@ import org.faudroids.babyface.utils.DefaultTransformer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -61,6 +58,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 		cameraButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				/*
 				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 				if (intent.resolveActivity(getPackageManager()) != null) {
 					try {
@@ -74,6 +72,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 					intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
 					startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
 				}
+				*/
 			}
 		});
 
