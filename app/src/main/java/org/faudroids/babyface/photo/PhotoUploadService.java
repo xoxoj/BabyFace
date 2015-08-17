@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
+import android.os.PowerManager;
 
+import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import javax.inject.Inject;
@@ -21,7 +23,11 @@ import timber.log.Timber;
 public class PhotoUploadService extends RoboService {
 
 	@Inject private PhotoManager photoManager;
+	@Inject private GoogleApiClientManager googleApiClientManager;
 	@Inject private ConnectivityManager connectivityManager;
+	@Inject private PowerManager powerManager;
+
+	private PowerManager.WakeLock wakeLock;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -32,6 +38,9 @@ public class PhotoUploadService extends RoboService {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Timber.d("starting upload service");
+		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PhotoUploadService.class.getSimpleName());
+		wakeLock.acquire();
+		googleApiClientManager.connectToClient();
 
 		// check for wifi connection
 		NetworkInfo info = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -60,6 +69,14 @@ public class PhotoUploadService extends RoboService {
 				});
 
 		return START_STICKY;
+	}
+
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		googleApiClientManager.disconnectFromClient();
+		wakeLock.release();
 	}
 
 }
