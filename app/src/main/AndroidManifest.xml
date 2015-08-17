@@ -27,6 +27,7 @@
         <activity android:name=".ui.FacesOverviewActivity" />
         <activity android:name=".ui.VideoConversionActivity" />
         <activity android:name=".ui.NewFaceActivity" />
+        <service android:name=".photo.PhotoUploadService" />
 
         <meta-data
             android:name="com.google.android.gms.version"

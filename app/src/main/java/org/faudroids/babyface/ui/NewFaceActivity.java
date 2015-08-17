@@ -18,6 +18,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.PhotoUploadService;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.IOException;
@@ -26,9 +27,7 @@ import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
-import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 
@@ -72,19 +71,8 @@ public class NewFaceActivity extends AbstractActivity {
 					return;
 				}
 
-				// create final face and upload first photo
-				final Face face = faceBuilder.build();
+				// create final face
 				facesManager.addFace(faceBuilder.build())
-						.flatMap(new Func1<Void, Observable<Void>>() {
-							@Override
-							public Observable<Void> call(Void aVoid) {
-								try {
-									return photoManager.uploadPhoto(photoManager.getRecentPhoto(face.getId()).get());
-								} catch (IOException e) {
-									return Observable.error(e);
-								}
-							}
-						})
 						.compose(new DefaultTransformer<Void>())
 						.subscribe(new Action1<Void>() {
 							@Override
@@ -93,6 +81,9 @@ public class NewFaceActivity extends AbstractActivity {
 								finish();
 							}
 						});
+
+				// start photo uploading
+				startService(new Intent(NewFaceActivity.this, PhotoUploadService.class));
 			}
 		});
 

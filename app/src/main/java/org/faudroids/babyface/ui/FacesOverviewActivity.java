@@ -16,10 +16,12 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.PhotoUploadService;
 import org.faudroids.babyface.utils.DefaultTransformer;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -32,7 +34,9 @@ import timber.log.Timber;
 @ContentView(R.layout.activity_faces_overview)
 public class FacesOverviewActivity extends AbstractActivity {
 
-	private static final int REQUEST_ADD_FACE = 42;
+	private static final int
+			REQUEST_ADD_FACE = 42,
+			REQUEST_TAKE_PHOTO = 43;
 
 	@InjectView(R.id.layout_sliding_panel) private SlidingUpPanelLayout slidingLayout;
 	@InjectView(R.id.layout_profiles) private GridLayout facesLayout;
@@ -42,7 +46,12 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	@InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
+	@InjectView(R.id.layout_take_photo) private View takePhotoView;
+	@InjectView(R.id.layout_create_movie) private View createMovieView;
+	@InjectView(R.id.layout_view_photos) private View viewPhotosView;
+	@InjectView(R.id.layout_settings) private View settingsView;
 	private Face selectedFace;
+	private PhotoManager.PhotoCreationResult photoCreationResult;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,6 +68,17 @@ public class FacesOverviewActivity extends AbstractActivity {
 			case REQUEST_ADD_FACE:
 				if (resultCode != RESULT_OK) return;
 				setupFaces();
+				break;
+
+			case REQUEST_TAKE_PHOTO:
+				if (resultCode != RESULT_OK) return;
+				try {
+					photoManager.onPhotoResult(photoCreationResult);
+					loadImage(selectedFace, profileView);
+					startService(new Intent(FacesOverviewActivity.this, PhotoUploadService.class));
+				} catch (IOException e) {
+					Timber.e(e, "failed to process photo");
+				}
 		}
 	}
 
@@ -118,10 +138,22 @@ public class FacesOverviewActivity extends AbstractActivity {
 	}
 
 
-	private void setupSelectedFace(Face face) {
+	private void setupSelectedFace(final Face face) {
 		this.selectedFace = face;
 		nameView.setText(face.getName());
 		loadImage(face, profileView);
+
+		takePhotoView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				try {
+					photoCreationResult = photoManager.createPhotoIntent(face.getId());
+					startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_TAKE_PHOTO);
+				} catch (IOException e) {
+					Timber.e(e, "failed to take photo");
+				}
+			}
+		});
 	}
 
 
@@ -138,6 +170,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 		RequestCreator requestCreator;
 		if (photoFile.isPresent()) {
+			Timber.d("loading image " + photoFile.get().getAbsolutePath());
 			requestCreator = Picasso.with(FacesOverviewActivity.this).load(photoFile.get());
 		} else {
 			requestCreator = Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person);

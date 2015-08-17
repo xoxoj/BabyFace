@@ -120,6 +120,7 @@
             >
 
             <LinearLayout
+                android:id="@+id/layout_take_photo"
                 style="@style/LayoutAction"
                 >
 
@@ -136,6 +137,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/layout_create_movie"
                 style="@style/LayoutAction"
                 >
 
@@ -152,6 +154,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/layout_view_photos"
                 style="@style/LayoutAction"
                 >
 
@@ -168,6 +171,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/layout_settings"
                 style="@style/LayoutAction"
                 >
 
