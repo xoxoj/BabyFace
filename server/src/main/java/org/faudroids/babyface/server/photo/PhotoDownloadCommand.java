@@ -28,14 +28,16 @@ public class PhotoDownloadCommand {
 	private static final int DOWNLOAD_THREAD_COUNT = 10;
 
 	private final Drive drive;
+	private final String faceId;
 	private final java.io.File targetDirectory;
 	private final List<File> photoFilesToDownload = new ArrayList<>();
 
 	final AtomicInteger downloadedPhotos = new AtomicInteger(0);
 	final ExecutorService threadPool = Executors.newFixedThreadPool(DOWNLOAD_THREAD_COUNT);
 
-	private PhotoDownloadCommand(Drive drive, java.io.File targetDirectory, Optional<File> photoFile) {
+	private PhotoDownloadCommand(Drive drive, String faceId, java.io.File targetDirectory, Optional<File> photoFile) {
 		this.drive = drive;
+		this.faceId = faceId;
 		this.targetDirectory = targetDirectory;
 		if (photoFile.isPresent()) photoFilesToDownload.add(photoFile.get());
 	}
@@ -51,8 +53,19 @@ public class PhotoDownloadCommand {
 			return Lists.newArrayList(new DownloadTask(drive, targetDirectory, photoFilesToDownload.get(0), downloadedPhotos).call());
 		}
 
+		// find face folder
+		List<File> folders = drive.files().list().execute().getItems();
+		File faceFolder = null;
+		for (File folder : folders) {
+			if (folder.getTitle().equals(faceId)) {
+				faceFolder = folder;
+				break;
+			}
+		}
+		if (faceFolder == null) throw new IllegalStateException("failed to find face folder " + faceId);
+
 		// get all files to download
-		photoFilesToDownload.addAll(drive.files().list().setMaxResults(100).execute().getItems());
+		photoFilesToDownload.addAll(drive.files().list().setQ("\"" + faceFolder.getId() + "\" in parents").setMaxResults(100).execute().getItems());
 		Log.i("downloading " + photoFilesToDownload.size() + " photos");
 
 		// setup threads + tasks
@@ -97,11 +110,13 @@ public class PhotoDownloadCommand {
 	public static class Builder {
 
 		private final Drive drive;
+		private final String faceId;
 		private final java.io.File targetDirectory;
 		private Optional<File> photoFileToDownload = Optional.absent();
 
-		public Builder(Drive drive, java.io.File targetDirectory) {
+		public Builder(Drive drive, String faceId, java.io.File targetDirectory) {
 			this.drive = drive;
+			this.faceId = faceId;
 			this.targetDirectory = targetDirectory;
 		}
 
@@ -111,7 +126,7 @@ public class PhotoDownloadCommand {
 		}
 
 		public PhotoDownloadCommand build() {
-			return new PhotoDownloadCommand(drive, targetDirectory, photoFileToDownload);
+			return new PhotoDownloadCommand(drive, faceId, targetDirectory, photoFileToDownload);
 		}
 
 	}

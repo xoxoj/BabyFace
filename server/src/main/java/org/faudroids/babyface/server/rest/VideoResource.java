@@ -1,7 +1,9 @@
 package org.faudroids.babyface.server.rest;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.api.services.drive.Drive;
 import com.google.common.base.Optional;
 
@@ -39,9 +41,9 @@ public class VideoResource {
 	}
 
 	@POST
-	public Status createVideo(@Auth User user) throws Exception {
+	public Status createVideo(@Auth User user, FaceInfo faceInfo) throws Exception {
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
-		VideoConversionStatus status = videoManager.createVideo(drive);
+		VideoConversionStatus status = videoManager.createVideo(drive, faceInfo.getFaceId());
 		return new Status(status);
 	}
 
@@ -79,6 +81,21 @@ public class VideoResource {
 		return statusOptional.get();
 	}
 
+
+	public static class FaceInfo {
+
+		private final String faceId;
+
+		@JsonCreator
+		public FaceInfo(@JsonProperty("faceId") String faceId) {
+			this.faceId = faceId;
+		}
+
+		public String getFaceId() {
+			return faceId;
+		}
+
+	}
 
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)

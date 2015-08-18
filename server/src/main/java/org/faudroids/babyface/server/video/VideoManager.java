@@ -45,10 +45,10 @@ public class VideoManager {
 	}
 
 
-	public VideoConversionStatus createVideo(Drive drive) {
+	public VideoConversionStatus createVideo(Drive drive, String faceId) {
 		// setup target directory
 		final String videoId = UUID.randomUUID().toString();
-		final File targetDirectory = new File("data/" + videoId);
+		final File targetDirectory = new File("data/" + faceId + "/" + videoId);
 		if (!targetDirectory.mkdirs()) {
 			Log.e("failed to create dir " + targetDirectory.getAbsolutePath());
 			throw new IllegalStateException("error creating output dir");
@@ -59,7 +59,7 @@ public class VideoManager {
 		videoConversionStatusMap.put(videoId, status);
 
 		// start async conversion
-		threadPool.execute(new VideoCreationTask(drive, targetDirectory, status));
+		threadPool.execute(new VideoCreationTask(drive, faceId, targetDirectory, status));
 
 		return status;
 	}
@@ -74,12 +74,14 @@ public class VideoManager {
 	private class VideoCreationTask implements Runnable {
 
 		private final Drive drive;
+		private final String faceId;
 		private final File targetDirectory;
 		private final VideoConversionStatus status;
 		private final ScheduledExecutorService executorService;
 
-		public VideoCreationTask(Drive drive, File targetDirectory, VideoConversionStatus status) {
+		public VideoCreationTask(Drive drive, String faceId, File targetDirectory, VideoConversionStatus status) {
 			this.drive = drive;
+			this.faceId = faceId;
 			this.targetDirectory = targetDirectory;
 			this.status = status;
 			this.executorService = Executors.newSingleThreadScheduledExecutor();
@@ -89,7 +91,7 @@ public class VideoManager {
 		public void run() {
 			try {
 				// create download command
-				final PhotoDownloadCommand downloadCommand = new PhotoDownloadCommand.Builder(drive, targetDirectory).build();
+				final PhotoDownloadCommand downloadCommand = new PhotoDownloadCommand.Builder(drive, faceId, targetDirectory).build();
 
 				// start reading download progress
 				ScheduledFuture<?> downloadProgressFuture = executorService.scheduleAtFixedRate(new Runnable() {

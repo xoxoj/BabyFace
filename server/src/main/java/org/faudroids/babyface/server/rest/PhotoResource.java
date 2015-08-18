@@ -3,11 +3,9 @@ package org.faudroids.babyface.server.rest;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
-import com.google.common.collect.Lists;
 
 import org.faudroids.babyface.server.auth.User;
 import org.faudroids.babyface.server.photo.DriveApiFactory;
-import org.faudroids.babyface.server.photo.PhotoDownloadCommand;
 import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
@@ -75,6 +73,8 @@ public class PhotoResource {
 	@POST
 	@Path("/{photoId}/resize")
 	public void resizePhoto(@Auth User user, @PathParam("photoId") String photoId) throws Exception {
+		throw new UnsupportedOperationException("fix me");
+		/*
 		// download photo
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
 		File photoDriveFile = drive.files().get(photoId).execute();
@@ -82,6 +82,7 @@ public class PhotoResource {
 
 		// resize photo
 		photoResizeManager.resizeAndCropPhotos(Lists.newArrayList(photoFiles.get(0)));
+		*/
 	}
 
 }

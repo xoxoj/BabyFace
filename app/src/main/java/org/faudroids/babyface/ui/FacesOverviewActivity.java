@@ -154,6 +154,15 @@ public class FacesOverviewActivity extends AbstractActivity {
 				}
 			}
 		});
+
+		createMovieView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(FacesOverviewActivity.this, VideoConversionActivity.class);
+				intent.putExtra(VideoConversionActivity.EXTRA_FACE_ID, face.getId());
+				startActivity(intent);
+			}
+		});
 	}
 
 

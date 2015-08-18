@@ -12,6 +12,7 @@ import android.widget.Toast;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.faudroids.babyface.videos.FaceMetaData;
 import org.faudroids.babyface.videos.VideoConversionStatus;
 import org.faudroids.babyface.videos.VideoService;
 
@@ -35,6 +36,8 @@ import timber.log.Timber;
 @ContentView(R.layout.activity_video_conversion)
 public class VideoConversionActivity extends AbstractActivity {
 
+	public static final String EXTRA_FACE_ID = "EXTRA_FACE_ID";
+
 	private static final String STATE_STATUS = "STATE_STATUS";
 
 	@InjectView(R.id.btn_start_conversion) private Button startConversionButton;
@@ -51,12 +54,13 @@ public class VideoConversionActivity extends AbstractActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		final String faceId = getIntent().getStringExtra(EXTRA_FACE_ID);
 
 		// setup conversion start
 		startConversionButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				videoService.createVideo()
+				videoService.createVideo(new FaceMetaData(faceId))
 						.compose(new DefaultTransformer<VideoConversionStatus>())
 						.subscribe(new Action1<VideoConversionStatus>() {
 							@Override

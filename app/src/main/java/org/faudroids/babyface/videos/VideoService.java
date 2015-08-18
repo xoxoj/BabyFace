@@ -2,6 +2,7 @@ package org.faudroids.babyface.videos;
 
 
 import retrofit.client.Response;
+import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Headers;
 import retrofit.http.POST;
@@ -13,7 +14,7 @@ public interface VideoService {
 
 	@POST("/video")
 	@Headers("Content-type: application/json")
-	Observable<VideoConversionStatus> createVideo();
+	Observable<VideoConversionStatus> createVideo(@Body FaceMetaData metaData);
 
 	@GET("/video/{videoId}/status")
 	@Headers("Content-type: application/json")
