@@ -8,7 +8,7 @@
 class FaceDetector
 {
 public:
-    FaceDetector();
+    FaceDetector(const std::string &cascadeFile);
 
     cv::Rect detect(const cv::Mat &input);
 

@@ -2,28 +2,17 @@
 
 #include <string>
 
-FaceDetector::FaceDetector()
+FaceDetector::FaceDetector(const std::string &cascadeFile)
 {
-    std::string cascadeFile = "./haarcascade_frontalface_default.xml";
     this->classifier.load(cascadeFile);
 }
 
 
 cv::Rect FaceDetector::detect(const cv::Mat &input)
 {
-    cv::Mat1f grayScale;
-
-    cv::cvtColor(input,
-                 grayScale,
-#if CV_MAJOR_VERSION >= 3
-                 cv::COLOR_BGR2GRAY
-#else
-                 CV_BGR2GRAY);
-#endif
-
     std::vector<cv::Rect> faces;
 
-    this->classifier.detectMultiScale(grayScale, faces, 1.1, 5, 0);
+    this->classifier.detectMultiScale(input, faces, 1.1, 5, 0);
 
     //If multiple "faces" are detected we'll pick the biggest one
     //since we're assuming that the babys face should be the main object.
