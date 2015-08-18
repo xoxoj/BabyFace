@@ -5,7 +5,6 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
@@ -20,8 +19,6 @@ import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 import javax.inject.Inject;
 
@@ -151,6 +148,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				if (resultCode != RESULT_OK) return;
 				Timber.d("image taking success");
 
+				/*
 				// start image uploading
 				try {
 					subscriptions.add(googleDriveManager.createNewFile(new FileInputStream(imageFile), imageFile.getName(), "image/jpeg", false)
@@ -166,6 +164,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 					Timber.e(e, "failed to read file");
 					Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
 				}
+				*/
 				break;
 		}
 	}

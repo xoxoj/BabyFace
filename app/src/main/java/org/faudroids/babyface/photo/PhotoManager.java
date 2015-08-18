@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import com.google.android.gms.drive.DriveId;
+
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.roboguice.shaded.goole.common.base.Optional;
 import org.roboguice.shaded.goole.common.collect.Lists;
@@ -102,21 +104,46 @@ public class PhotoManager {
 
 		// upload + move photos internally
 		return Observable.from(filesToUpload)
-				.flatMap(new Func1<File, Observable<Void>>() {
+				// find + create face folder if necessary
+				.flatMap(new Func1<File, Observable<PhotoUploadContainer>>() {
 					@Override
-					public Observable<Void> call(final File photoFile) {
-						Timber.d("uploading "+ photoFile.getAbsolutePath());
+					public Observable<PhotoUploadContainer> call(final File photoFile) {
+						final String faceId = photoFile.getParentFile().getParentFile().getName();
+						return googleDriveManager.query(faceId, false)
+								.flatMap(new Func1<Optional<DriveId>, Observable<PhotoUploadContainer>>() {
+									@Override
+									public Observable<PhotoUploadContainer> call(Optional<DriveId> driveIdOptional) {
+										if (driveIdOptional.isPresent()) return Observable.just(new PhotoUploadContainer(driveIdOptional.get(),  photoFile));
+
+										// create folder
+										return googleDriveManager
+												.createNewFolder(faceId)
+												.map(new Func1<DriveId, PhotoUploadContainer>() {
+													@Override
+													public PhotoUploadContainer call(DriveId driveId) {
+														return new PhotoUploadContainer(driveId, photoFile);
+													}
+												});
+									}
+								});
+					}
+				})
+				.flatMap(new Func1<PhotoUploadContainer, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(final PhotoUploadContainer container) {
+						Timber.d("uploading " + container.photoFile.getAbsolutePath());
 						try {
 							return googleDriveManager
-									.createNewFile(new FileInputStream(photoFile), photoFile.getName(), "image/jpeg", false)
+									.createNewFile(Optional.of(container.driveId), new FileInputStream(container.photoFile), container.photoFile.getName(), "image/jpeg", false)
 									.flatMap(new Func1<Void, Observable<Void>>() {
 										@Override
 										public Observable<Void> call(Void nothing) {
 											// move photo to regular face dir (and remove from uploads dir)
 											try {
-												File newPhotoFile = new File(photoFile.getParentFile().getParentFile(), photoFile.getName());
-												copyStream(new FileInputStream(photoFile), new FileOutputStream(newPhotoFile));
-												if (!photoFile.delete()) Timber.d("failed to remove " + photoFile.getAbsolutePath());
+												File newPhotoFile = new File(container.photoFile.getParentFile().getParentFile(), container.photoFile.getName());
+												copyStream(new FileInputStream(container.photoFile), new FileOutputStream(newPhotoFile));
+												if (!container.photoFile.delete())
+													Timber.d("failed to remove " + container.photoFile.getAbsolutePath());
 											} catch (IOException e) {
 												return Observable.error(e);
 											}
@@ -202,6 +229,19 @@ public class PhotoManager {
 		} finally {
 			inStream.close();
 			outStream.close();
+		}
+	}
+
+
+	/**
+	 * Helper class for grouping values during rx chains.
+	 */
+	private static class PhotoUploadContainer {
+		private final DriveId driveId;
+		private final File photoFile;
+		public PhotoUploadContainer(DriveId driveId, File photoFile) {
+			this.driveId = driveId;
+			this.photoFile = photoFile;
 		}
 	}
 

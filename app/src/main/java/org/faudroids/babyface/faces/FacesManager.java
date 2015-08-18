@@ -41,7 +41,7 @@ public class FacesManager {
 
 	public Observable<List<Face>> getFaces() {
 		return googleDriveManager
-				.queryForFile(DRIVE_FACES_CONFIG_FILE_NAME)
+				.query(DRIVE_FACES_CONFIG_FILE_NAME, true)
 				.flatMap(new Func1<Optional<DriveId>, Observable<List<Face>>>() {
 					@Override
 					public Observable<List<Face>> call(Optional<DriveId> driveIdOptional) {
@@ -68,7 +68,7 @@ public class FacesManager {
 
 	public Observable<Void> addFace(final Face face) {
 		return Observable
-				.zip(getFaces(), googleDriveManager.queryForFile(DRIVE_FACES_CONFIG_FILE_NAME), new Func2<List<Face>, Optional<DriveId>, DriveConfig>() {
+				.zip(getFaces(), googleDriveManager.query(DRIVE_FACES_CONFIG_FILE_NAME, true), new Func2<List<Face>, Optional<DriveId>, DriveConfig>() {
 					@Override
 					public DriveConfig call(List<Face> faces, Optional<DriveId> driveIdOptional) {
 						faces.add(face);
@@ -93,15 +93,28 @@ public class FacesManager {
 						if (driveConfig.driveId.isPresent()) {
 							return googleDriveManager.writeFile(driveConfig.driveId.get(), jsonInputStream);
 						} else {
-							return googleDriveManager.createNewFile(jsonInputStream, DRIVE_FACES_CONFIG_FILE_NAME, "application/json", true);
+							return googleDriveManager.createNewFile(Optional.<DriveId>absent(), jsonInputStream, DRIVE_FACES_CONFIG_FILE_NAME, "application/json", true);
 						}
+					}
+				})
+				// create folder for storing face photos
+				.flatMap(new Func1<Void, Observable<DriveId>>() {
+					@Override
+					public Observable<DriveId> call(Void nothing) {
+						return googleDriveManager.createNewFolder(face.getId());
+					}
+				})
+				.map(new Func1<DriveId, Void>() {
+					@Override
+					public Void call(DriveId driveId) {
+						return null;
 					}
 				});
 	}
 
 
 	public Observable<Void> deleteAllFaces() {
-		return googleDriveManager.queryForFile(DRIVE_FACES_CONFIG_FILE_NAME)
+		return googleDriveManager.query(DRIVE_FACES_CONFIG_FILE_NAME, true)
 				.flatMap(new Func1<Optional<DriveId>, Observable<Void>>() {
 					@Override
 					public Observable<Void> call(Optional<DriveId> driveIdOptional) {

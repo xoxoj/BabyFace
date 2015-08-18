@@ -4,9 +4,13 @@ package org.faudroids.babyface.photo;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 
+import com.google.android.gms.common.ConnectionResult;
+
+import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
@@ -20,7 +24,7 @@ import timber.log.Timber;
  * Checks for a wifi connection starts uploading all (!) photos
  * if present.
  */
-public class PhotoUploadService extends RoboService {
+public class PhotoUploadService extends RoboService implements ConnectionListener {
 
 	@Inject private PhotoManager photoManager;
 	@Inject private GoogleApiClientManager googleApiClientManager;
@@ -40,6 +44,7 @@ public class PhotoUploadService extends RoboService {
 		Timber.d("starting upload service");
 		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PhotoUploadService.class.getSimpleName());
 		wakeLock.acquire();
+		googleApiClientManager.registerListener(this);
 		googleApiClientManager.connectToClient();
 
 		// check for wifi connection
@@ -50,6 +55,21 @@ public class PhotoUploadService extends RoboService {
 			return START_STICKY;
 		}
 
+		return START_STICKY;
+	}
+
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		googleApiClientManager.disconnectFromClient();
+		googleApiClientManager.unregisterListener(this);
+		wakeLock.release();
+	}
+
+
+	@Override
+	public void onConnected(Bundle bundle) {
 		// start photo upload
 		photoManager
 				.uploadAllPhotos()
@@ -67,16 +87,15 @@ public class PhotoUploadService extends RoboService {
 						stopSelf();
 					}
 				});
-
-		return START_STICKY;
 	}
+
+	@Override
+	public void onConnectionSuspended(int i) { }
 
 
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		googleApiClientManager.disconnectFromClient();
-		wakeLock.release();
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		Timber.e("failed to connect to google client, shutting down service");
 	}
 
 }

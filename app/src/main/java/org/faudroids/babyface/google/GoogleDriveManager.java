@@ -40,7 +40,23 @@ public class GoogleDriveManager {
 	}
 
 
+	public Observable<DriveId> createNewFolder(final String folderName) {
+		return Observable.defer(new Func0<Observable<DriveId>>() {
+			@Override
+			public Observable<DriveId> call() {
+				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+				DriveFolder appFolder = Drive.DriveApi.getAppFolder(client);
+				MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(folderName).build();
+				DriveFolder folder = appFolder.createFolder(client, changeSet).await().getDriveFolder();
+				return Observable.just(folder.getDriveId());
+			}
+		});
+
+	}
+
+
 	public Observable<Void> createNewFile(
+			final Optional<DriveId> folderId,
 			final InputStream inputStream,
 			final String fileName,
 			final String mimeType,
@@ -69,14 +85,19 @@ public class GoogleDriveManager {
 					return Observable.error(e);
 				}
 
+				// find target folder
+				DriveFolder targetFolder;
+				if (folderId.isPresent()) targetFolder = Drive.DriveApi.getFolder(apiClient, folderId.get());
+				else targetFolder = Drive.DriveApi.getAppFolder(apiClient);
+
 				// create drive file
 				MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
 						.setTitle(fileName)
 						.setMimeType(mimeType)
 						.setPinned(pinned)
 						.build();
-				DriveFolder.DriveFileResult driveFileResult = Drive.DriveApi
-						.getAppFolder(apiClient)
+
+				DriveFolder.DriveFileResult driveFileResult = targetFolder
 						.createFile(apiClient, metadatachangeset, driveContentsResult.getDriveContents())
 						.await();
 				status = driveFileResult.getStatus();
@@ -131,7 +152,7 @@ public class GoogleDriveManager {
 	}
 
 
-	public Observable<Optional<DriveId>> queryForFile(final String fileName) {
+	public Observable<Optional<DriveId>> query(final String fileName, final boolean tryReadingFile) {
 		final GoogleApiClient googleApiClient = googleApiClientManager.getGoogleApiClient();
 		return Observable
 				.defer(new Func0<Observable<Optional<DriveId>>>() {
@@ -158,16 +179,16 @@ public class GoogleDriveManager {
 				.flatMap(new Func1<Optional<DriveId>, Observable<Optional<DriveId>>>() {
 					@Override
 					public Observable<Optional<DriveId>> call(Optional<DriveId> driveIdOptional) {
-						if (driveIdOptional.isPresent()) {
-							// HACK: query sometimes returns files which are not (!) present
-							// Hence try downloading file and check for errors
-							DriveApi.DriveContentsResult result = Drive.DriveApi
-									.getFile(googleApiClient, driveIdOptional.get())
-									.open(googleApiClient, DriveFile.MODE_READ_ONLY, null)
-									.await();
-							if (!result.getStatus().isSuccess()) {
-								return Observable.just(Optional.<DriveId>absent());
-							}
+						if (!tryReadingFile || !driveIdOptional.isPresent()) return Observable.just(driveIdOptional);
+
+						// HACK: query sometimes returns files which are not (!) present
+						// Hence try downloading file and check for errors
+						DriveApi.DriveContentsResult result = Drive.DriveApi
+								.getFile(googleApiClient, driveIdOptional.get())
+								.open(googleApiClient, DriveFile.MODE_READ_ONLY, null)
+								.await();
+						if (!result.getStatus().isSuccess()) {
+							return Observable.just(Optional.<DriveId>absent());
 						}
 						return Observable.just(driveIdOptional);
 					}

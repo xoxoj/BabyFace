@@ -66,27 +66,33 @@ public class GoogleApiClientManager {
 	private class CompositeConnectionListener implements ConnectionListener {
 
 		private final List<ConnectionListener> listeners = new ArrayList<>();
+		private ConnectionResult lastConnectionResult = null;
 
 		@Override
 		public void onConnected(Bundle bundle) {
 			Timber.d("google api client connected");
+			this.lastConnectionResult = null;
 			for (ConnectionListener listener : listeners) listener.onConnected(bundle);
 		}
 
 		@Override
 		public void onConnectionSuspended(int i) {
 			Timber.d("google api client connection suspended");
+			this.lastConnectionResult = null;
 			for (ConnectionListener listener : listeners) listener.onConnectionSuspended(i);
 		}
 
 		@Override
 		public void onConnectionFailed(ConnectionResult connectionResult) {
 			Timber.d("google api client connection error");
+			this.lastConnectionResult = connectionResult;
 			for (ConnectionListener listener : listeners) listener.onConnectionFailed(connectionResult);
 		}
 
 		public void register(ConnectionListener listener) {
 			listeners.add(listener);
+			if (googleApiClient.isConnected()) listener.onConnected(null);
+			else if (lastConnectionResult != null) listener.onConnectionFailed(lastConnectionResult);
 		}
 
 		public void unregister(ConnectionListener listener) {
