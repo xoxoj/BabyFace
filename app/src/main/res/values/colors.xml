@@ -5,6 +5,7 @@
     <color name="primary_very_dark">#0D47A1</color>
     <color name="primary_light">#C5CAE9</color>
     <color name="accent">#18FFFF</color>
+    <color name="accent_dark">#00E5FF</color>
     <color name="light_text">#dcdcdc</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>

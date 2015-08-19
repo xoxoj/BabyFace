@@ -1,131 +1,67 @@
 package org.faudroids.babyface.ui;
 
+
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.faudroids.babyface.R;
-import org.faudroids.babyface.google.GoogleApiClientManager;
+import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.utils.DefaultTransformer;
-import org.faudroids.babyface.videos.FaceMetaData;
+import org.faudroids.babyface.videos.VideoConversionService;
 import org.faudroids.babyface.videos.VideoConversionStatus;
-import org.faudroids.babyface.videos.VideoService;
+import org.faudroids.babyface.videos.VideoManager;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.inject.Inject;
 
-import retrofit.client.Response;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
-import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import timber.log.Timber;
 
-
+/**
+ * Shows the progress of a running video conversion.
+ */
 @ContentView(R.layout.activity_video_conversion)
 public class VideoConversionActivity extends AbstractActivity {
 
-	public static final String EXTRA_FACE_ID = "EXTRA_FACE_ID";
+	public static final String
+			EXTRA_FACE = "EXTRA_FACE",
+			EXTRA_STATUS = "EXTRA_STATUS";
 
-	private static final String STATE_STATUS = "STATE_STATUS";
-
-	@InjectView(R.id.btn_start_conversion) private Button startConversionButton;
+	@InjectView(R.id.txt_progress) private TextView progressView;
 	@InjectView(R.id.btn_show_video) private Button showVideoButton;
-	@InjectView(R.id.btn_reset) private Button resetButton;
-	@InjectView(R.id.txt_status) private TextView statusTextView;
 
-	@Inject private VideoService videoService;
-	private VideoConversionStatus status;
-	private StatusUpdateTask statusUpdateTask;
+	@Inject private VideoManager videoManager;
+	@Inject private NotificationManager notificationManager;
 
-	@Inject private GoogleApiClientManager googleApiClientManager;
+	private final StatusReceiver statusReceiver = new StatusReceiver();
+	private VideoConversionStatus lastStatus = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		final String faceId = getIntent().getStringExtra(EXTRA_FACE_ID);
 
-		// setup conversion start
-		startConversionButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				videoService.createVideo(new FaceMetaData(faceId))
-						.compose(new DefaultTransformer<VideoConversionStatus>())
-						.subscribe(new Action1<VideoConversionStatus>() {
-							@Override
-							public void call(VideoConversionStatus status) {
-								VideoConversionActivity.this.status = status;
-								updateStatus();
-							}
-						});
-			}
-		});
+		final Face face = getIntent().getParcelableExtra(EXTRA_FACE);
 
-		// setup show video
+		// if started with a status object update UI
+		VideoConversionStatus status = getIntent().getParcelableExtra(EXTRA_STATUS);
+		if (status != null) onStatusUpdate(status);
+
 		showVideoButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Toast.makeText(VideoConversionActivity.this, "Stub", Toast.LENGTH_SHORT).show();
-			}
-		});
-
-		// setup view video button
-		showVideoButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				videoService.getVideo(status.getVideoId())
-						.flatMap(new Func1<Response, Observable<File>>() {
-							@Override
-							public Observable<File> call(Response response) {
-								// create dir file
-								File rootDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), getString(R.string.app_name));
-								if (!rootDir.exists()) {
-									if (!rootDir.mkdirs()) {
-										Timber.e("failed to create dir " + rootDir.getAbsolutePath());
-										return Observable.error(new IOException("error creating dir"));
-									}
-								}
-
-								// create video file
-								File videoFile = new File(rootDir, "out.mp4");
-								videoFile.deleteOnExit();
-
-								// download video
-								OutputStream outStream = null;
-								try {
-									outStream = new FileOutputStream(videoFile);
-									InputStream inStream = response.getBody().in();
-									byte[] buffer = new byte[1024];
-									int bytesRead;
-									while ((bytesRead = inStream.read(buffer)) != -1) {
-										outStream.write(buffer, 0, bytesRead);
-									}
-								} catch (IOException ioe) {
-									return Observable.error(ioe);
-								} finally {
-									if (outStream != null) {
-										try {
-											outStream.close();
-										} catch (IOException e) {
-											Timber.e(e, "failed to close stream");
-										}
-									}
-								}
-
-								return Observable.just(videoFile);
-							}
-						})
+				videoManager.downloadVideo(face, lastStatus)
 						.compose(new DefaultTransformer<File>())
 						.subscribe(new Action1<File>() {
 							@Override
@@ -139,131 +75,56 @@ public class VideoConversionActivity extends AbstractActivity {
 						});
 			}
 		});
-
-		// setup reset
-		resetButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				status = null;
-				updateStatus();
-			}
-		});
-
-		// restore state
-		if (savedInstanceState != null) {
-			status = savedInstanceState.getParcelable(STATE_STATUS);
-		}
-
-		// set status in ui
-		updateStatus();
 	}
 
 
 	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putParcelable(STATE_STATUS, status);
-		super.onSaveInstanceState(outState);
-	}
-
-
-	@Override
-	public void onStart() {
-		googleApiClientManager.connectToClient();
-		super.onStart();
-	}
-
-
-	@Override
-	public void onPause() {
-		stopStatusUpdates();
-		super.onPause();
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		onStatusUpdate((VideoConversionStatus) intent.getParcelableExtra(EXTRA_STATUS));
 	}
 
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		updateStatus();
+		LocalBroadcastManager.getInstance(this).registerReceiver(statusReceiver, new IntentFilter(VideoConversionService.ACTION_STATUS_UPDATE));
 	}
 
 
 	@Override
-	public void onStop() {
-		googleApiClientManager.disconnectFromClient();
-		super.onStop();
+	public void onPause() {
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver);
+		super.onPause();
 	}
 
 
-	private void updateStatus() {
-		// "reset" state
-		if (status == null) {
-			statusTextView.setText("");
-			startConversionButton.setEnabled(true);
-			showVideoButton.setEnabled(false);
-			stopStatusUpdates();
-			return;
-		}
+	private void onStatusUpdate(VideoConversionStatus status) {
+		this.lastStatus = status;
 
-		// conversion running or finished
-		startConversionButton.setEnabled(false);
+		// update progress view
+		progressView.setText((int) (lastStatus.getProgress() * 100) + " % complete");
 
-		// conversion running
-		if (!status.isComplete()) {
-			statusTextView.setText("converting ( " + status.getProgress() * 100 + "% )");
-			showVideoButton.setEnabled(false);
-			if (statusUpdateTask == null) {
-				statusUpdateTask = new StatusUpdateTask();
-				statusTextView.postDelayed(statusUpdateTask, 1000);
+		if (lastStatus.isComplete()) {
+			// cancel notification (still running if user did not leave activity)
+			notificationManager.cancel(VideoConversionService.NOTIFICATION_ID);
+
+			// update UI
+			if (lastStatus.getIsConversionSuccessful()) {
+				showVideoButton.setVisibility(View.VISIBLE);
+				progressView.setVisibility(View.GONE);
+			} else {
+				progressView.setText("Sorry, but there was an error converting the video");
 			}
-			return;
-		}
-
-		// stop status updates (conversion has finished)
-		stopStatusUpdates();
-
-		// finish successful
-		if (status.getIsConversionSuccessful()) {
-			statusTextView.setText("done");
-			showVideoButton.setEnabled(true);
-			return;
-		}
-
-		// finish error
-		statusTextView.setText("conversion error");
-		showVideoButton.setEnabled(false);
-	}
-
-
-	private void stopStatusUpdates() {
-		if (statusUpdateTask != null) {
-			statusUpdateTask.stop();
-			statusUpdateTask = null;
 		}
 	}
 
 
-	private class StatusUpdateTask implements Runnable {
-
-		private boolean isRunning = true;
+	private class StatusReceiver extends BroadcastReceiver {
 
 		@Override
-		public void run() {
-			if (status == null) return;
-			videoService.getStatus(status.getVideoId())
-					.compose(new DefaultTransformer<VideoConversionStatus>())
-					.subscribe(new Action1<VideoConversionStatus>() {
-						@Override
-						public void call(VideoConversionStatus status) {
-							if (!isRunning) return;
-							VideoConversionActivity.this.status = status;
-							updateStatus();
-							statusTextView.postDelayed(StatusUpdateTask.this, 1000);
-						}
-					});
-		}
-
-		public void stop() {
-			isRunning = false;
+		public void onReceive(Context context, Intent intent) {
+			onStatusUpdate((VideoConversionStatus ) intent.getParcelableExtra(VideoConversionService.EXTRA_STATUS));
 		}
 
 	}

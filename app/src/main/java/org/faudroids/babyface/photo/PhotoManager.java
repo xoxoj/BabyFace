@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import com.google.android.gms.drive.DriveId;
 
 import org.faudroids.babyface.google.GoogleDriveManager;
+import org.faudroids.babyface.utils.IOUtils;
 import org.roboguice.shaded.goole.common.base.Optional;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
@@ -18,8 +19,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,12 +53,14 @@ public class PhotoManager {
 
 	private final Context context;
 	private final GoogleDriveManager googleDriveManager;
+	private final IOUtils ioUtils;
 
 
 	@Inject
-	PhotoManager(Context context, GoogleDriveManager googleDriveManager) {
+	PhotoManager(Context context, GoogleDriveManager googleDriveManager, IOUtils ioUtils) {
 		this.context = context;
 		this.googleDriveManager = googleDriveManager;
+		this.ioUtils = ioUtils;
 	}
 
 
@@ -81,7 +82,7 @@ public class PhotoManager {
 		// copy image to internal storage
 		File uploadsDir = getUploadsDir(photoCreationResult.faceId);
 		File internalImageFile = new File(uploadsDir, photoCreationResult.tmpImageFile.getName());
-		copyStream(new FileInputStream(photoCreationResult.tmpImageFile), new FileOutputStream(internalImageFile));
+		ioUtils.copyStream(new FileInputStream(photoCreationResult.tmpImageFile), new FileOutputStream(internalImageFile));
 
 		// delete public file
 		if (!photoCreationResult.tmpImageFile.delete()) Timber.w("failed to delete file " + photoCreationResult.tmpImageFile.getAbsolutePath());
@@ -141,7 +142,7 @@ public class PhotoManager {
 											// move photo to regular face dir (and remove from uploads dir)
 											try {
 												File newPhotoFile = new File(container.photoFile.getParentFile().getParentFile(), container.photoFile.getName());
-												copyStream(new FileInputStream(container.photoFile), new FileOutputStream(newPhotoFile));
+												ioUtils.copyStream(new FileInputStream(container.photoFile), new FileOutputStream(newPhotoFile));
 												if (!container.photoFile.delete())
 													Timber.d("failed to remove " + container.photoFile.getAbsolutePath());
 											} catch (IOException e) {
@@ -216,20 +217,6 @@ public class PhotoManager {
 			if (!success) Timber.e("failed to create dir " + storageDir.getAbsolutePath());
 		}
 		return storageDir;
-	}
-
-
-	private void copyStream(InputStream inStream, OutputStream outStream) throws IOException {
-		try {
-			byte[] buffer = new byte[1024];
-			int bytesRead;
-			while ((bytesRead = inStream.read(buffer)) != -1) {
-				outStream.write(buffer, 0, bytesRead);
-			}
-		} finally {
-			inStream.close();
-			outStream.close();
-		}
 	}
 
 

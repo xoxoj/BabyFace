@@ -131,7 +131,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 		videoConversionButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startActivity(new Intent(MainActivity.this, VideoConversionActivity.class));
+				startActivity(new Intent(MainActivity.this, OldVideoConversionActivity.class));
 			}
 		});
 	}

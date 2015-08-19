@@ -18,6 +18,7 @@ import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.PhotoUploadService;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.faudroids.babyface.videos.VideoConversionService;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.File;
@@ -158,9 +159,13 @@ public class FacesOverviewActivity extends AbstractActivity {
 		createMovieView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(FacesOverviewActivity.this, VideoConversionActivity.class);
-				intent.putExtra(VideoConversionActivity.EXTRA_FACE_ID, face.getId());
-				startActivity(intent);
+				Intent serviceIntent = new Intent(FacesOverviewActivity.this, VideoConversionService.class);
+				serviceIntent.putExtra(VideoConversionService.EXTRA_FACE, face);
+				startService(serviceIntent);
+
+				Intent activityIntent = new Intent(FacesOverviewActivity.this, VideoConversionActivity.class);
+				activityIntent.putExtra(VideoConversionActivity.EXTRA_FACE, face);
+				startActivity(activityIntent);
 			}
 		});
 	}
