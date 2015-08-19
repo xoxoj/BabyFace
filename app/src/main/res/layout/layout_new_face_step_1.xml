@@ -10,21 +10,14 @@
         style="@style/TextIntroTitle"
         />
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/layout_name"
+    <EditText
+        android:id="@+id/edit_name"
+        style="@style/TextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        >
-
-        <EditText
-            android:id="@+id/edit_name"
-            style="@style/TextInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Baby name"
-            />
-
-    </android.support.design.widget.TextInputLayout>
+        android:hint="@string/example_baby_name"
+        android:textColorHint="@color/primary_light"
+        />
 
 </RelativeLayout>

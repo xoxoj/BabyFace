@@ -2,7 +2,6 @@ package org.faudroids.babyface.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.TextInputLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -160,24 +159,16 @@ public class NewFaceActivity extends AbstractActivity {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
 
 			private EditText nameEditText;
-			private TextInputLayout nameInputLayout;
 
 			@Override
 			public boolean onTryComplete() {
-				// check for empty name
-				if (nameEditText.getText().toString().isEmpty()) {
-					nameInputLayout.setError("Name must not be empty");
-					return false;
-				}
-				return true;
+				return !nameEditText.getText().toString().isEmpty();
 			}
 
 			@Override
 			protected View doCreateView(LayoutInflater inflater) {
 				View view = inflater.inflate(R.layout.layout_new_face_step_1, containerLayout, false);
 				this.nameEditText = (EditText) view.findViewById(R.id.edit_name);
-				this.nameInputLayout = (TextInputLayout) view.findViewById(R.id.layout_name);
-				this.nameInputLayout.setErrorEnabled(true);
 				return view;
 			}
 
