@@ -21,13 +21,15 @@ abstract class NewFaceView {
 	private final Context context;
 	private final ViewGroup containerView;
 	private final Face.Builder faceBuilder;
+	protected final InputListener inputListener;
 
 	private View view;
 
-	public NewFaceView(Context context, ViewGroup containerView, Face.Builder faceBuilder) {
+	public NewFaceView(Context context, ViewGroup containerView, Face.Builder faceBuilder, InputListener inputListener) {
 		this.context = context;
 		this.containerView = containerView;
 		this.faceBuilder = faceBuilder;
+		this.inputListener = inputListener;
 	}
 
 	/**
@@ -71,11 +73,6 @@ abstract class NewFaceView {
 	}
 
 	/**
-	 * Called to check if all conditions of this setup step are met (e.g. field has been filled in).
-	 */
-	public abstract boolean onTryComplete();
-
-	/**
 	 * Called when this view should update itself (e.g. on external events).
 	 */
 	public void onDataUpdated(Intent data) {
@@ -84,5 +81,12 @@ abstract class NewFaceView {
 
 	protected abstract void doOnComplete();
 	protected abstract View doCreateView(LayoutInflater inflater);
+
+
+	public interface InputListener {
+
+		void onInputChanged(boolean inputComplete);
+
+	}
 
 }

@@ -2,6 +2,8 @@ package org.faudroids.babyface.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +33,7 @@ import timber.log.Timber;
 
 
 @ContentView(R.layout.activity_new_face)
-public class NewFaceActivity extends AbstractActivity {
+public class NewFaceActivity extends AbstractActivity implements NewFaceView.InputListener {
 
 	private static final int REQUEST_CAPTURE_IMAGE = 42;
 
@@ -64,9 +66,7 @@ public class NewFaceActivity extends AbstractActivity {
 			@Override
 			public void onClick(View v) {
 				if (!currentProgress.equals(Progress.STATUS_4)) {
-					if (newFaceView.onTryComplete()) {
-						newFaceView.onComplete();
-					}
+					newFaceView.onComplete();
 					return;
 				}
 
@@ -100,6 +100,9 @@ public class NewFaceActivity extends AbstractActivity {
 		}
 		dotViews[progress.idx].setImageResource(R.drawable.circle_selected);
 
+		// disable next button
+		continueButton.setEnabled(false);
+
 		// setup progress content
 		switch (progress) {
 			// get name
@@ -124,9 +127,9 @@ public class NewFaceActivity extends AbstractActivity {
 
 		// toggle next button
 		if (progress.equals(Progress.STATUS_4)) {
-			continueButton.setImageResource(R.drawable.ic_check_with_background);
+			continueButton.setBackgroundResource(R.drawable.ic_check_with_background);
 		} else {
-			continueButton.setImageResource(R.drawable.ic_arrow_forward_with_background);
+			continueButton.setBackgroundResource(R.drawable.selector_next_button);
 		}
 	}
 
@@ -139,6 +142,12 @@ public class NewFaceActivity extends AbstractActivity {
 				newFaceView.onDataUpdated(data);
 				break;
 		}
+	}
+
+
+	@Override
+	public void onInputChanged(boolean inputComplete) {
+		continueButton.setEnabled(inputComplete);
 	}
 
 
@@ -156,19 +165,26 @@ public class NewFaceActivity extends AbstractActivity {
 
 	/** Configures the name */
 	private NewFaceView createNameView() {
-		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
+		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
 			private EditText nameEditText;
 
 			@Override
-			public boolean onTryComplete() {
-				return !nameEditText.getText().toString().isEmpty();
-			}
-
-			@Override
 			protected View doCreateView(LayoutInflater inflater) {
 				View view = inflater.inflate(R.layout.layout_new_face_step_1, containerLayout, false);
-				this.nameEditText = (EditText) view.findViewById(R.id.edit_name);
+				nameEditText = (EditText) view.findViewById(R.id.edit_name);
+				nameEditText.addTextChangedListener(new TextWatcher() {
+					@Override
+					public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+					@Override
+					public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+					@Override
+					public void afterTextChanged(Editable s) {
+						inputListener.onInputChanged(!nameEditText.getText().toString().isEmpty());
+					}
+				});
 				return view;
 			}
 
@@ -183,15 +199,10 @@ public class NewFaceActivity extends AbstractActivity {
 
 	/** Takes the first photo */
 	private NewFaceView createPhotoView() {
-		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
+		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
 			private ImageView cameraView, photoView;
 			private PhotoManager.PhotoCreationResult photoCreationResult;
-
-			@Override
-			public boolean onTryComplete() {
-				return photoManager.getRecentPhoto(faceBuilder.getId()).isPresent();
-			}
 
 			@Override
 			protected void doOnComplete() {
@@ -238,6 +249,8 @@ public class NewFaceActivity extends AbstractActivity {
 					cameraView.setVisibility(View.VISIBLE);
 					photoView.setVisibility(View.GONE);
 				}
+
+				inputListener.onInputChanged(photoManager.getRecentPhoto(faceBuilder.getId()).isPresent());
 			}
 		};
 	}
@@ -245,7 +258,7 @@ public class NewFaceActivity extends AbstractActivity {
 
 	/** Configures the reminder period */
 	private NewFaceView createReminderView() {
-		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
+		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
 			private ViewGroup[] regularRowView = new ViewGroup[4];
 			private ViewGroup[] customRowViews = new ViewGroup[4];
@@ -253,11 +266,6 @@ public class NewFaceActivity extends AbstractActivity {
 			private EditText amountEditText;
 
 			private int selectedIdx;
-
-			@Override
-			public boolean onTryComplete() {
-				return selectedIdx != 3;
-			}
 
 			@Override
 			protected void doOnComplete() {
@@ -341,6 +349,9 @@ public class NewFaceActivity extends AbstractActivity {
 
 						}
 					});
+
+					// always complete
+					inputListener.onInputChanged(true);
 				}
 
 				// set "every week" by default
@@ -364,12 +375,7 @@ public class NewFaceActivity extends AbstractActivity {
 
 	/** Configures the reminder period */
 	private NewFaceView createFinishView() {
-		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder) {
-
-			@Override
-			public boolean onTryComplete() {
-				return true;
-			}
+		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
 			@Override
 			protected void doOnComplete() { }
