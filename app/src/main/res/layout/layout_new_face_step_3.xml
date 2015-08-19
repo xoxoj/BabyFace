@@ -129,7 +129,7 @@
 
                     <TextView
                         style="@style/TextIntroReminder"
-                        android:text="Minutes"
+                        android:text="Hours"
                         />
 
                     <ImageView style="@style/ImageIntroReminder"/>

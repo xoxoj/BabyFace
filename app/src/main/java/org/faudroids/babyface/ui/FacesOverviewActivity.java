@@ -17,6 +17,7 @@ import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.PhotoUploadService;
+import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 import org.faudroids.babyface.videos.VideoConversionService;
 import org.roboguice.shaded.goole.common.base.Optional;
@@ -44,6 +45,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 	@Inject private FacesManager facesManager;
 	@Inject private PhotoManager photoManager;
+	@Inject private ReminderManager reminderManager;
 
 	@InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
@@ -166,6 +168,21 @@ public class FacesOverviewActivity extends AbstractActivity {
 				Intent activityIntent = new Intent(FacesOverviewActivity.this, VideoConversionActivity.class);
 				activityIntent.putExtra(VideoConversionActivity.EXTRA_FACE, face);
 				startActivity(activityIntent);
+			}
+
+		});
+
+		viewPhotosView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				reminderManager.addReminder(face);
+			}
+		});
+
+		settingsView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				reminderManager.removeReminder(face);
 			}
 		});
 	}
