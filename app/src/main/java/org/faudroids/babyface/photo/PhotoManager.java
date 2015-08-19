@@ -4,7 +4,6 @@ package org.faudroids.babyface.photo;
 import android.content.Context;
 import android.content.Intent;
 
-import com.commonsware.cwac.cam2.CameraActivity;
 import com.google.android.gms.drive.DriveId;
 
 import org.faudroids.babyface.google.GoogleDriveManager;
@@ -63,7 +62,7 @@ public class PhotoManager {
 
 
 	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
-		Intent photoIntent = new CameraActivity.IntentBuilder(context)
+		Intent photoIntent = new CustomizedCameraActivity.IntentBuilder(context)
 				.skipConfirm()
 				.to(getTmpPhotoFile())
 				.build();
