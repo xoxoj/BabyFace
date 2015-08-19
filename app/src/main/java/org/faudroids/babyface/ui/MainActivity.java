@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.commonsware.cwac.cam2.CameraActivity;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -55,21 +56,11 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 		cameraButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				/*
-				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-				if (intent.resolveActivity(getPackageManager()) != null) {
-					try {
-						imageFile = photoManager.createImageFile();
-						Timber.d("storing image as " + imageFile.getAbsolutePath());
-					} catch (IOException ioe) {
-						Timber.e(ioe, "failed to create image file");
-						return;
-					}
-
-					intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
-					startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
-				}
-				*/
+				Intent intent = new CameraActivity.IntentBuilder(MainActivity.this)
+						.skipConfirm()
+						.debug()
+						.build();
+				startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
 			}
 		});
 
@@ -145,6 +136,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				break;
 
 			case REQUEST_CAPTURE_IMAGE:
+				Timber.d("foo = " + data.getStringExtra("bar"));
 				if (resultCode != RESULT_OK) return;
 				Timber.d("image taking success");
 

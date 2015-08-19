@@ -27,12 +27,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.FacesOverviewActivity" />
+        <activity
+            android:name=".ui.FacesOverviewActivity"
+            android:screenOrientation="portrait"
+            />
         <activity android:name=".ui.OldVideoConversionActivity" />
-        <activity android:name=".ui.NewFaceActivity" />
+        <activity
+            android:name=".ui.NewFaceActivity"
+            android:screenOrientation="portrait"
+            />
         <activity
             android:name=".ui.VideoConversionActivity"
+            android:screenOrientation="portrait"
             android:launchMode="singleTop"
+            />
+        <activity
+            android:name="com.commonsware.cwac.cam2.CameraActivity"
+            android:screenOrientation="landscape"
             />
         <service android:name=".photo.PhotoUploadService" />
         <service android:name=".videos.VideoConversionService" />

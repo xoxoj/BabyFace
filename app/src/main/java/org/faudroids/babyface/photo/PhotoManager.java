@@ -3,10 +3,8 @@ package org.faudroids.babyface.photo;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
 
+import com.commonsware.cwac.cam2.CameraActivity;
 import com.google.android.gms.drive.DriveId;
 
 import org.faudroids.babyface.google.GoogleDriveManager;
@@ -38,8 +36,8 @@ import timber.log.Timber;
  *
  * The general workflow is as follows:
  *
- * 1. Take photo (regular camera via Intent) and store in public directory (accessible by all apps!).
- * 2. Copy to internal storage under /faceId/uploads (indicates which photos have to be uploaded)
+ * 1. Take photo and store in temp internal file
+ * 2. Copy temp photo file to /faceId/uploads (indicates which photos have to be uploaded) if user accepts photo
  * 3. Upload to google drive + on success move photo to /faceId locally
  *
  */
@@ -65,27 +63,25 @@ public class PhotoManager {
 
 
 	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
-		String timeStamp = PHOTO_DATE_FORMAT.format(new Date());
-		String imageFileName = "face_" + faceId + "_" + timeStamp + ".jpg";
-
-		File tmpImageFile = new File(getRootStorageDir(), imageFileName);
-		Timber.d("storing image as " + tmpImageFile.getAbsolutePath());
-
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpImageFile));
-
-		return new PhotoCreationResult(intent, faceId, tmpImageFile);
+		Intent photoIntent = new CameraActivity.IntentBuilder(context)
+				.skipConfirm()
+				.to(getTmpPhotoFile())
+				.build();
+		return new PhotoCreationResult(photoIntent, faceId);
 	}
 
 
 	public void onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
 		// copy image to internal storage
-		File uploadsDir = getUploadsDir(photoCreationResult.faceId);
-		File internalImageFile = new File(uploadsDir, photoCreationResult.tmpImageFile.getName());
-		ioUtils.copyStream(new FileInputStream(photoCreationResult.tmpImageFile), new FileOutputStream(internalImageFile));
+		final String faceId = photoCreationResult.faceId;
+		final String photoFileName = faceId + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
+
+		File internalImageFile = new File(getUploadsDir(faceId), photoFileName);
+		File tmpPhotoFile = getTmpPhotoFile();
+		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
 		// delete public file
-		if (!photoCreationResult.tmpImageFile.delete()) Timber.w("failed to delete file " + photoCreationResult.tmpImageFile.getAbsolutePath());
+		if (!tmpPhotoFile.delete()) Timber.w("failed to delete file " + tmpPhotoFile.getAbsolutePath());
 	}
 
 
@@ -207,16 +203,8 @@ public class PhotoManager {
 	}
 
 
-	/**
-	 * Returns the public (!) root directory for this app.
-	 */
-	private File getRootStorageDir() {
-		File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), PUBLIC_ROOT_DIR);
-		if (!storageDir.exists()) {
-			boolean success = storageDir.mkdirs();
-			if (!success) Timber.e("failed to create dir " + storageDir.getAbsolutePath());
-		}
-		return storageDir;
+	private File getTmpPhotoFile() {
+		return new File(context.getFilesDir(), "tmp.jpg");
 	}
 
 
@@ -237,12 +225,10 @@ public class PhotoManager {
 
 		private final Intent photoCaptureIntent;
 		private final String faceId;
-		private final File tmpImageFile;
 
-		private PhotoCreationResult(Intent photoCaptureIntent, String faceId, File tmpImageFile) {
+		private PhotoCreationResult(Intent photoCaptureIntent, String faceId) {
 			this.photoCaptureIntent = photoCaptureIntent;
 			this.faceId = faceId;
-			this.tmpImageFile = tmpImageFile;
 		}
 
 		public Intent getPhotoCaptureIntent() {
