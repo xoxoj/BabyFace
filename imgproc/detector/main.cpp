@@ -8,6 +8,7 @@
 #include <boost/program_options.hpp>
 
 #include "facedetector.h"
+#include "imageprocessor.h"
 
 //Cut down characters
 namespace po = boost::program_options;
@@ -22,12 +23,14 @@ int main(int argc, char *argv[])
 {
     std::string cascadeFile = "./haarcascade_frontalface_default.xml";
     FaceDetector detector(cascadeFile);
+    ImageProcessor processor;
 
     // Declare the supported options.
     po::options_description desc("Options");
     desc.add_options()
         ("help", "I'm here to help you")
-        ("detect,d", po::value<std::string>(), "Input image for face detection")
+        ("process,p", po::value<std::string>(), "Input image")
+        ("morph,m", po::value<bool>()->default_value(false), "Apply morphing")
     ;
 
     po::variables_map vm;
@@ -41,11 +44,18 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        if (vm.count("detect")) {
-            std::cout << "Input image for face detection: "
-         << vm["detect"].as<std::string>() << "." << std::endl;
+        if(vm.count("morph")) {
+            std::cout << "Apply image morphing: " << vm["morph"].as<std::string>() << std::endl;
+            processor.applyMorphing(true);
+        } else {
+            std::cout << "Apply image morphing: " << vm["morph"].as<std::string>() << std::endl;
+            processor.applyMorphing(false);
+        }
 
-            std::string inputFile = vm["detect"].as<std::string>();
+        if (vm.count("process")) {
+            std::cout << "Input image: " << vm["process"].as<std::string>() << "." << std::endl;
+
+            std::string inputFile = vm["process"].as<std::string>();
 
             try {
                 cv::Mat inputImage = cv::imread(inputFile, CV_LOAD_IMAGE_UNCHANGED);

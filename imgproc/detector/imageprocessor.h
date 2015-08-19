@@ -9,4 +9,10 @@ public:
     ImageProcessor();
 
     cv::Mat crop(cv::Mat &input, const cv::Rect &roi) const;
+
+    bool applyMorphing() const;
+    void applyMorphing(bool apply);
+
+private:
+    bool morphing = false;
 };
