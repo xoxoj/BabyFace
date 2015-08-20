@@ -16,14 +16,12 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
-import org.faudroids.babyface.photo.PhotoUploadService;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 import org.faudroids.babyface.videos.VideoConversionService;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -75,13 +73,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != RESULT_OK) return;
-				try {
-					photoManager.onPhotoResult(photoCreationResult);
-					loadImage(selectedFace, profileView);
-					startService(new Intent(FacesOverviewActivity.this, PhotoUploadService.class));
-				} catch (IOException e) {
-					Timber.e(e, "failed to process photo");
-				}
+				loadImage(selectedFace, profileView);
 		}
 	}
 
@@ -149,12 +141,9 @@ public class FacesOverviewActivity extends AbstractActivity {
 		takePhotoView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				try {
-					photoCreationResult = photoManager.createPhotoIntent(face.getId());
-					startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_TAKE_PHOTO);
-				} catch (IOException e) {
-					Timber.e(e, "failed to take photo");
-				}
+				Intent capturePhotoIntent = new Intent(FacesOverviewActivity.this, CapturePhotoActivity.class);
+				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE, selectedFace);
+				startActivityForResult(capturePhotoIntent, REQUEST_TAKE_PHOTO);
 			}
 		});
 

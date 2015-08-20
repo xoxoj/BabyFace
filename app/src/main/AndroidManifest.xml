@@ -42,7 +42,11 @@
             android:launchMode="singleTop"
             />
         <activity
-            android:name="org.faudroids.babyface.photo.CustomizedCameraActivity"
+            android:name=".ui.CapturePhotoActivity"
+            android:screenOrientation="landscape"
+            />
+        <activity
+            android:name=".photo.CustomizedCameraActivity"
             android:screenOrientation="landscape"
             />
         <service android:name=".photo.PhotoUploadService" />

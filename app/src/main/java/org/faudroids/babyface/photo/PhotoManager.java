@@ -62,11 +62,12 @@ public class PhotoManager {
 
 
 	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
+		File tmpPhotoFile = getTmpPhotoFile();
 		Intent photoIntent = new CustomizedCameraActivity.IntentBuilder(context)
 				.skipConfirm()
-				.to(getTmpPhotoFile())
+				.to(tmpPhotoFile)
 				.build();
-		return new PhotoCreationResult(photoIntent, faceId);
+		return new PhotoCreationResult(photoIntent, faceId, tmpPhotoFile);
 	}
 
 
@@ -76,7 +77,7 @@ public class PhotoManager {
 		final String photoFileName = faceId + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
 
 		File internalImageFile = new File(getUploadsDir(faceId), photoFileName);
-		File tmpPhotoFile = getTmpPhotoFile();
+		File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
 		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
 		// delete public file
@@ -224,14 +225,24 @@ public class PhotoManager {
 
 		private final Intent photoCaptureIntent;
 		private final String faceId;
+		private final File tmpPhotoFile;
 
-		private PhotoCreationResult(Intent photoCaptureIntent, String faceId) {
+		private PhotoCreationResult(Intent photoCaptureIntent, String faceId, File tmpPhotoFile) {
 			this.photoCaptureIntent = photoCaptureIntent;
 			this.faceId = faceId;
+			this.tmpPhotoFile = tmpPhotoFile;
 		}
 
 		public Intent getPhotoCaptureIntent() {
 			return photoCaptureIntent;
+		}
+
+		public String getFaceId() {
+			return faceId;
+		}
+
+		public File getTmpPhotoFile() {
+			return tmpPhotoFile;
 		}
 
 	}
