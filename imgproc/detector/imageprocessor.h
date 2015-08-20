@@ -10,6 +10,8 @@ public:
 
     cv::Mat crop(cv::Mat &input, const cv::Rect &roi) const;
 
+    cv::Mat equalizeHistogram(const cv::Mat &input) const;
+
     bool applyMorphing() const;
     void applyMorphing(bool apply);
 
