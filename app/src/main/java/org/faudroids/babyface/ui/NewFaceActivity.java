@@ -127,6 +127,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 		// toggle next button
 		if (progress.equals(Progress.STATUS_4)) {
+			continueButton.setEnabled(true);
 			continueButton.setBackgroundResource(R.drawable.ic_check_with_background);
 		} else {
 			continueButton.setBackgroundResource(R.drawable.selector_next_button);
