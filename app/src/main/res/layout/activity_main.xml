@@ -2,39 +2,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     >
 
-    <Button
-        android:id="@+id/btn_camera"
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Start camera"
-        />
-
-    <Button
-        android:id="@+id/btn_photo_count"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="How many photos have I taken?"
-        />
-
-    <Button
-        android:id="@+id/btn_get_token"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Get Google OAUTH2 token"
-        />
-
-    <Button
-        android:id="@+id/btn_video_conversion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Video conversion"
+        android:layout_height="match_parent"
         />
 
 </LinearLayout>

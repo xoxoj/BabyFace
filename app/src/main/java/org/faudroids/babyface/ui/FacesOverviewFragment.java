@@ -1,9 +1,12 @@
 package org.faudroids.babyface.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,13 +25,13 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import roboguice.inject.ContentView;
+import roboguice.fragment.provided.RoboFragment;
 import roboguice.inject.InjectView;
 import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-@ContentView(R.layout.activity_faces_overview)
-public class FacesOverviewActivity extends AbstractActivity {
+public class FacesOverviewFragment extends RoboFragment {
 
 	private static final int
 			REQUEST_ADD_FACE = 42,
@@ -51,25 +54,31 @@ public class FacesOverviewActivity extends AbstractActivity {
 	private Face selectedFace;
 	private PhotoManager.PhotoCreationResult photoCreationResult;
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setupFaces();
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupFaces();
 
-		slidingLayout.setPanelHeight(0);
-	}
+        slidingLayout.setPanelHeight(0);
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_faces_overview, container, false);
+        return view;
+    }
 
-	@Override
+    @Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 			case REQUEST_ADD_FACE:
-				if (resultCode != RESULT_OK) return;
+				if (resultCode != Activity.RESULT_OK) return;
 				setupFaces();
 				break;
 
 			case REQUEST_TAKE_PHOTO:
-				if (resultCode != RESULT_OK) return;
+				if (resultCode != Activity.RESULT_OK) return;
 
 				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
 				photoManager.requestPhotoUpload();
@@ -78,6 +87,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 
 	private void setupFaces() {
+		CompositeSubscription subscriptions = new CompositeSubscription();
 		subscriptions.add(facesManager.getFaces()
 				.compose(new DefaultTransformer<List<Face>>())
 				.subscribe(new Action1<List<Face>>() {
@@ -86,7 +96,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 						Timber.d("loaded " + faces.size() + " faces");
 
 						facesLayout.removeAllViews();
-						LayoutInflater inflater = LayoutInflater.from(FacesOverviewActivity.this);
+						LayoutInflater inflater = LayoutInflater.from(getActivity());
 
 						// add profile layouts
 						for (int i = 0; i < faces.size(); ++i) {
@@ -123,7 +133,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 						addProfileView.setOnClickListener(new View.OnClickListener() {
 							@Override
 							public void onClick(View v) {
-								startActivityForResult(new Intent(FacesOverviewActivity.this, NewFaceActivity.class), REQUEST_ADD_FACE);
+								startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
 							}
 						});
 
@@ -140,7 +150,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 		takePhotoView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent capturePhotoIntent = new Intent(FacesOverviewActivity.this, CapturePhotoActivity.class);
+				Intent capturePhotoIntent = new Intent(getActivity(), CapturePhotoActivity.class);
 				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, selectedFace.getId());
 				startActivityForResult(capturePhotoIntent, REQUEST_TAKE_PHOTO);
 			}
@@ -149,11 +159,11 @@ public class FacesOverviewActivity extends AbstractActivity {
 		createMovieView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent serviceIntent = new Intent(FacesOverviewActivity.this, VideoConversionService.class);
+				Intent serviceIntent = new Intent(getActivity(), VideoConversionService.class);
 				serviceIntent.putExtra(VideoConversionService.EXTRA_FACE, face);
-				startService(serviceIntent);
+				getActivity().startService(serviceIntent);
 
-				Intent activityIntent = new Intent(FacesOverviewActivity.this, VideoConversionActivity.class);
+				Intent activityIntent = new Intent(getActivity(), VideoConversionActivity.class);
 				activityIntent.putExtra(VideoConversionActivity.EXTRA_FACE, face);
 				startActivity(activityIntent);
 			}
