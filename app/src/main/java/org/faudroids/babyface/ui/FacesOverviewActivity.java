@@ -9,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
@@ -19,9 +17,7 @@ import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 import org.faudroids.babyface.videos.VideoConversionService;
-import org.roboguice.shaded.goole.common.base.Optional;
 
-import java.io.File;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -44,6 +40,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 	@Inject private FacesManager facesManager;
 	@Inject private PhotoManager photoManager;
 	@Inject private ReminderManager reminderManager;
+	@Inject private PhotoUtils photoUtils;
 
 	@InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
@@ -73,7 +70,8 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != RESULT_OK) return;
-				loadImage(selectedFace, profileView);
+
+				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
 				photoManager.requestPhotoUpload();
 		}
 	}
@@ -100,7 +98,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 							// fill face details
 							final Face face = faces.get(i);
 							nameView.setText(face.getName());
-							loadImage(face, imageView);
+							photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
 							imageView.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
@@ -137,7 +135,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 	private void setupSelectedFace(final Face face) {
 		this.selectedFace = face;
 		nameView.setText(face.getName());
-		loadImage(face, profileView);
+		photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
 
 		takePhotoView.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -185,22 +183,4 @@ public class FacesOverviewActivity extends AbstractActivity {
 		return params;
 	}
 
-
-	private void loadImage(Face face, ImageView view) {
-		Optional<File> photoFile = photoManager.getRecentPhoto(face.getId());
-
-		RequestCreator requestCreator;
-		if (photoFile.isPresent()) {
-			Timber.d("loading image " + photoFile.get().getAbsolutePath());
-			requestCreator = Picasso.with(FacesOverviewActivity.this).load(photoFile.get());
-		} else {
-			requestCreator = Picasso.with(FacesOverviewActivity.this).load(R.drawable.ic_person);
-		}
-		requestCreator
-				.resizeDimen(R.dimen.profile_image_size_large, R.dimen.profile_image_size_large)
-				.centerCrop()
-				.transform(new CircleTransformation(getResources().getColor(R.color.primary_very_dark)))
-				.into(view);
-
-	}
 }

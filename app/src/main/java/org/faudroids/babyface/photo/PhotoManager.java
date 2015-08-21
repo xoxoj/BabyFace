@@ -3,9 +3,13 @@ package org.faudroids.babyface.photo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 
 import com.google.android.gms.drive.DriveId;
 
+import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.IOUtils;
 import org.roboguice.shaded.goole.common.base.Optional;
@@ -63,11 +67,9 @@ public class PhotoManager {
 
 	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
 		File tmpPhotoFile = getTmpPhotoFile();
-		Intent photoIntent = new CustomizedCameraActivity.IntentBuilder(context)
-				.skipConfirm()
-				.to(tmpPhotoFile)
-				.build();
-		return new PhotoCreationResult(photoIntent, faceId, tmpPhotoFile);
+		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpPhotoFile));
+		return new PhotoCreationResult(takePictureIntent, faceId, tmpPhotoFile);
 	}
 
 
@@ -212,7 +214,11 @@ public class PhotoManager {
 
 
 	private File getTmpPhotoFile() {
-		return new File(context.getFilesDir(), "tmp.jpg");
+		File photoDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), context.getString(R.string.app_name));
+		if (!photoDir.exists()) {
+			if (photoDir.mkdirs()) Timber.e("failed to make dir " + photoDir.getAbsolutePath());
+		}
+		return new File(photoDir, "tmp.jpg");
 	}
 
 
@@ -249,7 +255,7 @@ public class PhotoManager {
 			return faceId;
 		}
 
-		public File getTmpPhotoFile() {
+		private File getTmpPhotoFile() {
 			return tmpPhotoFile;
 		}
 

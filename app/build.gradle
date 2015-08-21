@@ -56,7 +56,6 @@ dependencies {
     compile 'com.squareup.retrofit:converter-jackson:1.9.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.sothree.slidinguppanel:library:3.1.1'
-    compile 'com.commonsware.cwac:cam2:0.2.+'
     compile 'org.roboguice:roboguice:3.0.1'
     provided 'org.roboguice:roboblender:3.0.1'
     compile('com.mikepenz:materialdrawer:3.1.2@aar') {
