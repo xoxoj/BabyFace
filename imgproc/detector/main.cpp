@@ -16,7 +16,8 @@ namespace po = boost::program_options;
 enum RETURN_VALUES {
     SUCCESS = 0,
     COMMAND_LINE_ERROR = 1,
-    OPENCV_ERROR = 2
+    OPENCV_ERROR = 2,
+    DETECTION_ERROR = 3
 };
 
 int main(int argc, char *argv[])
@@ -67,6 +68,10 @@ int main(int argc, char *argv[])
             try {
                 cv::Mat inputImage = cv::imread(inputFile, CV_LOAD_IMAGE_UNCHANGED);
                 cv::Rect roi = detector.detect(inputImage);
+
+                if(roi.area() == 0) {
+                    return RETURN_VALUES::DETECTION_ERROR;
+                }
 
                 cv::rectangle(inputImage, roi, cv::Scalar(0, 0, 255), 2);
 

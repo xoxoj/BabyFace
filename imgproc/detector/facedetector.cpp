@@ -14,6 +14,10 @@ cv::Rect FaceDetector::detect(const cv::Mat &input)
 
     this->classifier.detectMultiScale(input, faces, 1.1, 5, 0);
 
+    if(faces.empty()) {
+        return cv::Rect();
+    }
+
     //If multiple "faces" are detected we'll pick the biggest one
     //since we're assuming that the babys face should be the main object.
     return this->findLargestFace(faces);
