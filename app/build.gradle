@@ -58,4 +58,7 @@ dependencies {
     compile 'com.sothree.slidinguppanel:library:3.1.1'
     compile 'org.roboguice:roboguice:3.0.1'
     provided 'org.roboguice:roboblender:3.0.1'
+    compile('com.mikepenz:materialdrawer:3.1.2@aar') {
+        transitive = true
+    }
 }

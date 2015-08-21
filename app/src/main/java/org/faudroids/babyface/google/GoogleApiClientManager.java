@@ -4,7 +4,9 @@ import android.content.Context;
 import android.os.Bundle;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.plus.Plus;
 
@@ -29,6 +31,7 @@ public class GoogleApiClientManager {
 		this.googleApiClient = new GoogleApiClient.Builder(context)
 				.addApi(Drive.API)
 				.addApi(Plus.API)
+				.addScope(new Scope(Scopes.PROFILE))
 				.addScope(Drive.SCOPE_APPFOLDER)
 				.addConnectionCallbacks(connectionListener)
 				.addOnConnectionFailedListener(connectionListener)

@@ -7,4 +7,13 @@
     <string name="photo_time">Photo time</string>
     <string name="time_to_take_photo">Time to take a photo of %1$s!</string>
     <string name="take_photo">Take photo</string>
+
+    <string name="faces">Show Faces</string>
+    <string name="video">Show Videos</string>
+    <string name="settings">Settings</string>
+    <string name="feedback">Feedback</string>
+
+    <string name="address">ideas@faudroids.org</string>
+    <string name="feedback_mail_subject">Feedback Babyface</string>
+    <string name="feedback_mail_chooser">Choose Mail</string>
 </resources>

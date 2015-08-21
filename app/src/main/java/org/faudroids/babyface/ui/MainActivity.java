@@ -3,30 +3,20 @@ package org.faudroids.babyface.ui;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.photo.PhotoManager;
-import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
 
 import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
-import roboguice.inject.InjectView;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func0;
 import timber.log.Timber;
 
 
@@ -37,10 +27,12 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 			REQUEST_CAPTURE_IMAGE = 42,
 			REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 43;
 
+	/*
 	@InjectView(R.id.btn_camera) private Button cameraButton;
 	@InjectView(R.id.btn_photo_count) private Button photoCountButton;
 	@InjectView(R.id.btn_get_token) private Button getTokenButton;
 	@InjectView(R.id.btn_video_conversion) private Button videoConversionButton;
+	*/
 
 	@Inject private PhotoManager photoManager;
 	private File imageFile;
@@ -51,24 +43,8 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// setup count photos button
-		photoCountButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// TODO
-				startActivity(new Intent(MainActivity.this, FacesOverviewActivity.class));
-
-				/*
-				int photoCount = 0;
-				for (File file : photoManager.getRootStorageDir().listFiles()) {
-					if (file.getName().toLowerCase().endsWith(".jpg")) ++photoCount;
-				}
-				Toast.makeText(MainActivity.this, "Found " + photoCount + " photos", Toast.LENGTH_SHORT).show();
-				*/
-			}
-		});
-
 		// setup oauth2 token example button
+		/*
 		getTokenButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -83,6 +59,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 											+ getString(R.string.google_web_oauth_client_id);
 											// + ":api_scope:" + Drive.SCOPE_APPFOLDER.toString();
 											*/
+		/*
 									String scope = "oauth2:" + Drive.SCOPE_APPFOLDER.toString();
 									Timber.d("scope is " + scope);
 									String token = GoogleAuthUtil.getToken(
@@ -104,7 +81,9 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 						});
 			}
 		});
+		*/
 
+		/*
 		// setup forwarding to conversion activity
 		videoConversionButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -112,6 +91,7 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 				startActivity(new Intent(MainActivity.this, OldVideoConversionActivity.class));
 			}
 		});
+		*/
 	}
 
 
