@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 
 import com.google.android.gms.drive.DriveId;
@@ -48,9 +50,7 @@ public class PhotoManager {
 
 	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
 
-	private static final String
-			PUBLIC_ROOT_DIR = "BabyFace",
-			INTERNAL_UPLOADS_DIR = "uploads";
+	private static final String INTERNAL_UPLOADS_DIR = "uploads";
 
 	private final Context context;
 	private final GoogleDriveManager googleDriveManager;
@@ -235,7 +235,7 @@ public class PhotoManager {
 	}
 
 
-	public static class PhotoCreationResult {
+	public static class PhotoCreationResult implements Parcelable {
 
 		private final Intent photoCaptureIntent;
 		private final String faceId;
@@ -259,5 +259,35 @@ public class PhotoManager {
 			return tmpPhotoFile;
 		}
 
+		protected PhotoCreationResult(Parcel in) {
+			photoCaptureIntent = (Intent) in.readValue(Intent.class.getClassLoader());
+			faceId = in.readString();
+			tmpPhotoFile = (File) in.readSerializable();
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeValue(photoCaptureIntent);
+			dest.writeString(faceId);
+			dest.writeSerializable(tmpPhotoFile);
+		}
+
+		@SuppressWarnings("unused")
+		public static final Parcelable.Creator<PhotoCreationResult> CREATOR = new Parcelable.Creator<PhotoCreationResult>() {
+			@Override
+			public PhotoCreationResult createFromParcel(Parcel in) {
+				return new PhotoCreationResult(in);
+			}
+
+			@Override
+			public PhotoCreationResult[] newArray(int size) {
+				return new PhotoCreationResult[size];
+			}
+		};
 	}
 }

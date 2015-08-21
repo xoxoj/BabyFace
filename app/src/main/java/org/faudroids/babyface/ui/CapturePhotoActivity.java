@@ -20,6 +20,8 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 	public static final String EXTRA_FACE_ID = "EXTRA_FACE_ID";
 
+	private static final String STATE_PHOTO = "STATE_PHOTO";
+
 	private static final int REQUEST_CAPTURE_PHOTO = 42;
 
 	@Inject private PhotoManager photoManager;
@@ -30,6 +32,10 @@ public class CapturePhotoActivity extends AbstractActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		faceId = getIntent().getStringExtra(EXTRA_FACE_ID);
+
+		if (savedInstanceState != null) {
+			photoCreationResult = savedInstanceState.getParcelable(STATE_PHOTO);
+		}
 
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
 			// immediately forward to actual photo capturing
@@ -47,6 +53,19 @@ public class CapturePhotoActivity extends AbstractActivity {
 			Timber.e(e, "failed to start camera");
 			// TODO
 		}
+	}
+
+
+	@Override
+	public void onRestoreInstanceState(Bundle inState) {
+		super.onRestoreInstanceState(inState);
+	}
+
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		outState.putParcelable(STATE_PHOTO, photoCreationResult);
+		super.onSaveInstanceState(outState);
 	}
 
 
