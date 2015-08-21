@@ -19,10 +19,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
-import org.faudroids.babyface.photo.PhotoUploadService;
 import org.faudroids.babyface.utils.DefaultTransformer;
-
-import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -82,7 +79,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 						});
 
 				// start photo uploading
-				startService(new Intent(NewFaceActivity.this, PhotoUploadService.class));
+				photoManager.requestPhotoUpload();
 			}
 		});
 
@@ -203,7 +200,6 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
 			private ImageView cameraView, photoView;
-			private PhotoManager.PhotoCreationResult photoCreationResult;
 
 			@Override
 			protected void doOnComplete() {
@@ -220,13 +216,9 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				cameraView.setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						try {
-							photoCreationResult = photoManager.createPhotoIntent(faceBuilder.getId());
-							startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_CAPTURE_IMAGE);
-						} catch (IOException e) {
-							Timber.e(e, "failed to start camera");
-							// TODO
-						}
+						Intent capturePhotoIntent = new Intent(NewFaceActivity.this, CapturePhotoActivity.class);
+						capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, faceBuilder.getId());
+						startActivityForResult(capturePhotoIntent, REQUEST_CAPTURE_IMAGE);
 					}
 				});
 				return view;
@@ -234,12 +226,6 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 			@Override
 			public void onDataUpdated(Intent data) {
-				try {
-					photoManager.onPhotoResult(photoCreationResult);
-				} catch(IOException e) {
-					Timber.e(e, "failed to take photo");
-					// TODO
-				}
 
 				// toggle preview of photo
 				if (photoManager.getRecentPhoto(faceBuilder.getId()).isPresent()) {
@@ -253,6 +239,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 				inputListener.onInputChanged(photoManager.getRecentPhoto(faceBuilder.getId()).isPresent());
 			}
+
 		};
 	}
 

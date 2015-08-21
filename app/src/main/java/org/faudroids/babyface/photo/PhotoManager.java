@@ -180,6 +180,14 @@ public class PhotoManager {
 
 
 	/**
+	 * Starts uploading photos to Google drive if WiFi is connected
+	 */
+	public void requestPhotoUpload() {
+		context.startService(new Intent(context, PhotoUploadService.class));
+	}
+
+
+	/**
 	 * Returns the internal (!) root directory for one face.
 	 */
 	private File getFaceDir(String faceId) {

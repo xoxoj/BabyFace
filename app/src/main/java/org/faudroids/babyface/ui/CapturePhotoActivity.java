@@ -9,9 +9,7 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
-import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.photo.PhotoManager;
-import org.faudroids.babyface.photo.PhotoUploadService;
 
 import java.io.IOException;
 
@@ -24,7 +22,7 @@ import timber.log.Timber;
 @ContentView(R.layout.activity_capture_photo)
 public class CapturePhotoActivity extends AbstractActivity {
 
-	public static final String EXTRA_FACE = "EXTRA_FACE";
+	public static final String EXTRA_FACE_ID = "EXTRA_FACE_ID";
 
 	private static final int REQUEST_CAPTURE_PHOTO = 42;
 
@@ -34,13 +32,13 @@ public class CapturePhotoActivity extends AbstractActivity {
 	@InjectView(R.id.btn_redo) private View redoBtn;
 
 	@Inject private PhotoManager photoManager;
-	private Face face;
+	private String faceId;
 	private PhotoManager.PhotoCreationResult photoCreationResult;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		face = getIntent().getParcelableExtra(EXTRA_FACE);
+		faceId = getIntent().getStringExtra(EXTRA_FACE_ID);
 
 		// hide status bar
 		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
@@ -57,7 +55,6 @@ public class CapturePhotoActivity extends AbstractActivity {
 				} catch (IOException e) {
 					Timber.e(e, "failed to store image");
 				}
-				startService(new Intent(CapturePhotoActivity.this, PhotoUploadService.class));
 				setResult(RESULT_OK);
 				finish();
 			}
@@ -79,7 +76,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 	private void startPhotoCapture() {
 		try {
-			photoCreationResult = photoManager.createPhotoIntent(face.getId());
+			photoCreationResult = photoManager.createPhotoIntent(faceId);
 			startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_CAPTURE_PHOTO);
 
 		} catch (IOException e) {
