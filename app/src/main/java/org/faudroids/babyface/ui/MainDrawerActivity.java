@@ -79,7 +79,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 		switch (item.getIdentifier()) {
 			case ID_FEEDBACK:
-				String address = getString(R.string.adress);
+				String address = getString(R.string.address);
 				String subject = getString(
 						R.string.feedback_mail_subject,
 						getString(R.string.app_name));
