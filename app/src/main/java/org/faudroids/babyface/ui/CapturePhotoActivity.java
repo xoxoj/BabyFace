@@ -2,6 +2,7 @@ package org.faudroids.babyface.ui;
 
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 import org.faudroids.babyface.R;
@@ -30,8 +31,10 @@ public class CapturePhotoActivity extends AbstractActivity {
 		super.onCreate(savedInstanceState);
 		faceId = getIntent().getStringExtra(EXTRA_FACE_ID);
 
-		// immediately forward to actual photo capturing
-		startPhotoCapture();
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			// immediately forward to actual photo capturing
+			startPhotoCapture();
+		}
 	}
 
 

@@ -43,7 +43,6 @@
             />
         <activity
             android:name=".ui.CapturePhotoActivity"
-            android:screenOrientation="portrait"
             />
 
         <service android:name=".photo.PhotoUploadService" />
