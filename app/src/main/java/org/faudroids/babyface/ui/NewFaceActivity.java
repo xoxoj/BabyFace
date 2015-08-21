@@ -278,9 +278,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					int multiplier = 0;
 					switch (selectedIdx) {
 						case 0: // hours
-							multiplier = 10;
-							// TODO
-							// multiplier = 60 * 60;
+							multiplier = 60 * 60;
 							break;
 						case 1: // days
 							multiplier = 60 * 60 * 24;
