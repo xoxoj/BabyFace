@@ -60,6 +60,9 @@ public class GoogleApiClientManager {
 		this.connectionListener.unregister(listener);
 	}
 
+    public boolean isConnected() {
+        return googleApiClient.isConnected();
+    }
 
 	public GoogleApiClient getGoogleApiClient() {
 		return googleApiClient;

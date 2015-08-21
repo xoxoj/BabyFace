@@ -48,6 +48,7 @@ public class AbstractActivity extends RoboActionBarActivity {
 
 	@Override
 	public void onStop() {
+        System.out.println("ABSTRACT ACTVITY ON STOP");
 		subscriptions.unsubscribe();
 		subscriptions = new CompositeSubscription();
 		googleApiClientManager.disconnectFromClient();

@@ -11,11 +11,14 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
+import org.faudroids.babyface.google.ConnectionListener;
+import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
@@ -31,7 +34,7 @@ import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-public class FacesOverviewFragment extends RoboFragment {
+public class FacesOverviewFragment extends RoboFragment implements ConnectionListener {
 
 	private static final int
 			REQUEST_ADD_FACE = 42,
@@ -44,8 +47,9 @@ public class FacesOverviewFragment extends RoboFragment {
 	@Inject private PhotoManager photoManager;
 	@Inject private ReminderManager reminderManager;
 	@Inject private PhotoUtils photoUtils;
+    @Inject private GoogleApiClientManager googleApiClientManager;
 
-	@InjectView(R.id.img_profile) private ImageView profileView;
+    @InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
 	@InjectView(R.id.layout_take_photo) private View takePhotoView;
 	@InjectView(R.id.layout_create_movie) private View createMovieView;
@@ -53,11 +57,13 @@ public class FacesOverviewFragment extends RoboFragment {
 	@InjectView(R.id.layout_settings) private View settingsView;
 	private Face selectedFace;
 	private PhotoManager.PhotoCreationResult photoCreationResult;
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupFaces();
+        //setupFaces();
 
         slidingLayout.setPanelHeight(0);
     }
@@ -79,64 +85,78 @@ public class FacesOverviewFragment extends RoboFragment {
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != Activity.RESULT_OK) return;
-				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
+                photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
 		}
 	}
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("curChoice", selectedFace);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            // Restore last state for checked position.
+            selectedFace = savedInstanceState.getParcelable("curChoice");
+        }
+    }
+
 
 	private void setupFaces() {
-		CompositeSubscription subscriptions = new CompositeSubscription();
 		subscriptions.add(facesManager.getFaces()
-				.compose(new DefaultTransformer<List<Face>>())
-				.subscribe(new Action1<List<Face>>() {
-					@Override
-					public void call(List<Face> faces) {
-						Timber.d("loaded " + faces.size() + " faces");
+                .compose(new DefaultTransformer<List<Face>>())
+                .subscribe(new Action1<List<Face>>() {
+                    @Override
+                    public void call(List<Face> faces) {
+                        Timber.d("loaded " + faces.size() + " faces");
 
-						facesLayout.removeAllViews();
-						LayoutInflater inflater = LayoutInflater.from(getActivity());
+                        facesLayout.removeAllViews();
+                        LayoutInflater inflater = LayoutInflater.from(getActivity());
 
-						// add profile layouts
-						for (int i = 0; i < faces.size(); ++i) {
-							// get view
-							View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
-							final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
-							TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
+                        // add profile layouts
+                        for (int i = 0; i < faces.size(); ++i) {
+                            // get view
+                            View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
+                            final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
+                            TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
 
-							// fill face details
-							final Face face = faces.get(i);
-							nameView.setText(face.getName());
-							photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
-							imageView.setOnClickListener(new View.OnClickListener() {
-								@Override
-								public void onClick(View v) {
-									slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-									setupSelectedFace(face);
-								}
-							});
+                            // fill face details
+                            final Face face = faces.get(i);
+                            nameView.setText(face.getName());
+                            photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
+                            imageView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                                    setupSelectedFace(face);
+                                }
+                            });
 
-							// add to grid view
-							int row = i / 2;
-							int column = i - (row * 2);
-							GridLayout.LayoutParams params = createLayoutParams(row, column);
-							facesLayout.addView(profileView, params);
-						}
+                            // add to grid view
+                            int row = i / 2;
+                            int column = i - (row * 2);
+                            GridLayout.LayoutParams params = createLayoutParams(row, column);
+                            facesLayout.addView(profileView, params);
+                        }
 
-						// add "add profile" layout
-						View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
-						int row = faces.size() / 2;
-						int column = faces.size() - (row * 2);
-						GridLayout.LayoutParams params = createLayoutParams(row, column);
-						facesLayout.addView(addProfileView, params);
-						addProfileView.setOnClickListener(new View.OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
-							}
-						});
+                        // add "add profile" layout
+                        View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
+                        int row = faces.size() / 2;
+                        int column = faces.size() - (row * 2);
+                        GridLayout.LayoutParams params = createLayoutParams(row, column);
+                        facesLayout.addView(addProfileView, params);
+                        addProfileView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
+                            }
+                        });
 
-					}
-				}));
+                    }
+                }));
 	}
 
 
@@ -177,11 +197,11 @@ public class FacesOverviewFragment extends RoboFragment {
 		});
 
 		settingsView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				reminderManager.removeReminder(face);
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                reminderManager.removeReminder(face);
+            }
+        });
 	}
 
 
@@ -192,4 +212,30 @@ public class FacesOverviewFragment extends RoboFragment {
 		return params;
 	}
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        subscriptions = new CompositeSubscription();
+        googleApiClientManager.registerListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        subscriptions.unsubscribe();
+        googleApiClientManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        if(getActivity() != null) {
+            setupFaces();
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) { }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }
