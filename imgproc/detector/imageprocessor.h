@@ -13,8 +13,12 @@ public:
     cv::Mat equalizeHistogram(const cv::Mat &input) const;
 
     bool applyMorphing() const;
-    void applyMorphing(bool apply);
+    void applyMorphing(const bool apply);
+
+    bool enhance() const;
+    void enhance(const bool apply);
 
 private:
     bool morphing = false;
+    bool enhancement = false;
 };
