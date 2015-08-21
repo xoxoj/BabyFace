@@ -16,6 +16,7 @@ import rx.subscriptions.CompositeSubscription;
 public class AbstractActivity extends RoboActionBarActivity {
 
 	private final boolean setupToolbar;
+	protected Toolbar toolbar;
 
 	protected CompositeSubscription subscriptions = new CompositeSubscription();
 	@Inject protected GoogleApiClientManager googleApiClientManager;
@@ -32,7 +33,8 @@ public class AbstractActivity extends RoboActionBarActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (setupToolbar) {
-			setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+            toolbar = (Toolbar) findViewById(R.id.toolbar);
+			setSupportActionBar(toolbar);
 			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 			getSupportActionBar().setDisplayShowHomeEnabled(true);
 		}

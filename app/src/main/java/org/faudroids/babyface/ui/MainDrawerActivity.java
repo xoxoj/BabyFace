@@ -53,7 +53,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 
 	public MainDrawerActivity() {
-		super(false);
+		super(true);
 	}
 
 
@@ -164,7 +164,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
         // setup actual nav drawer
         drawer = new DrawerBuilder()
                 .withActivity(this)
-                        //.withToolbar(toolbar)
+                .withToolbar(toolbar)
                 .withAccountHeader(accountHeader)
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName(R.string.faces).withIconTintingEnabled(true).withIcon(R.drawable.ic_faces).withIdentifier(ID_SHOW_FACES),
