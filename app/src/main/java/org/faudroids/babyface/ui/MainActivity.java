@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.commonsware.cwac.cam2.CameraActivity;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -51,18 +50,6 @@ public class MainActivity extends AbstractActivity implements ConnectionListener
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		// setup camera button
-		cameraButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new CameraActivity.IntentBuilder(MainActivity.this)
-						.skipConfirm()
-						.debug()
-						.build();
-				startActivityForResult(intent, REQUEST_CAPTURE_IMAGE);
-			}
-		});
 
 		// setup count photos button
 		photoCountButton.setOnClickListener(new View.OnClickListener() {

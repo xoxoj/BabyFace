@@ -13,8 +13,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
@@ -43,9 +41,9 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 	private Face.Builder faceBuilder = new Face.Builder();
 
-
 	@Inject private FacesManager facesManager;
 	@Inject private PhotoManager photoManager;
+	@Inject private PhotoUtils photoUtils;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -231,7 +229,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				if (photoManager.getRecentPhoto(faceBuilder.getId()).isPresent()) {
 					cameraView.setVisibility(View.GONE);
 					photoView.setVisibility(View.VISIBLE);
-					Picasso.with(NewFaceActivity.this).load(photoManager.getRecentPhoto(faceBuilder.getId()).get()).into(photoView);
+					photoUtils.loadImage(photoManager.getRecentPhoto(faceBuilder.getId()), photoView, R.dimen.profile_image_size_extra_large);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoView.setVisibility(View.GONE);
