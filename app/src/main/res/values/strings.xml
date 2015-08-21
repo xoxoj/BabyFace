@@ -2,6 +2,9 @@
     <string name="app_name">BabyFace</string>
     <string name="add_new_baby">Add new baby</string>
 
-    <string name="transition_profile_image">profile_image_transition</string>
     <string name="example_baby_name"><i>e.g. cute toddler</i></string>
+
+    <string name="photo_time">Photo time</string>
+    <string name="time_to_take_photo">Time to take a photo of %1$s!</string>
+    <string name="take_photo">Take photo</string>
 </resources>

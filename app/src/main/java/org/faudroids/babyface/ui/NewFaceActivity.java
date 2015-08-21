@@ -17,6 +17,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import javax.inject.Inject;
@@ -43,6 +44,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 	@Inject private FacesManager facesManager;
 	@Inject private PhotoManager photoManager;
+	@Inject private ReminderManager reminderManager;
 	@Inject private PhotoUtils photoUtils;
 
 	@Override
@@ -66,12 +68,14 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				}
 
 				// create final face
-				facesManager.addFace(faceBuilder.build())
+				final Face face = faceBuilder.build();
+				facesManager.addFace(face)
 						.compose(new DefaultTransformer<Void>())
 						.subscribe(new Action1<Void>() {
 							@Override
 							public void call(Void aVoid) {
 								Timber.d("adding face success");
+								reminderManager.addReminder(face);
 								finish();
 							}
 						});
@@ -274,7 +278,9 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					int multiplier = 0;
 					switch (selectedIdx) {
 						case 0: // hours
-							multiplier = 60 * 60;
+							multiplier = 10;
+							// TODO
+							// multiplier = 60 * 60;
 							break;
 						case 1: // days
 							multiplier = 60 * 60 * 24;

@@ -70,9 +70,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != RESULT_OK) return;
-
 				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
-				photoManager.requestPhotoUpload();
 		}
 	}
 
@@ -142,6 +140,7 @@ public class FacesOverviewActivity extends AbstractActivity {
 			public void onClick(View v) {
 				Intent capturePhotoIntent = new Intent(FacesOverviewActivity.this, CapturePhotoActivity.class);
 				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, selectedFace.getId());
+				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_UPLOAD_PHOTO, true);
 				startActivityForResult(capturePhotoIntent, REQUEST_TAKE_PHOTO);
 			}
 		});
