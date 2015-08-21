@@ -59,4 +59,7 @@ dependencies {
     compile 'com.commonsware.cwac:cam2:0.2.+'
     compile 'org.roboguice:roboguice:3.0.1'
     provided 'org.roboguice:roboblender:3.0.1'
+    compile('com.mikepenz:materialdrawer:3.1.2@aar') {
+        transitive = true
+    }
 }
