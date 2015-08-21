@@ -38,7 +38,7 @@ public class BabyFaceApplication extends Application<BabyFaceConfig> {
 				new GoogleOAuth2Authenticator(
 						injector.getInstance(GoogleTokenInfoService.class),
 						configuration.getGoogleOAuth2WebClientId(),
-						configuration.getGoogleOAuth2AndroidClientId()),
+						configuration.getGoogleOAuth2AndroidClientIds()),
 				"secret",
 				User.class)));
 	}

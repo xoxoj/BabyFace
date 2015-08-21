@@ -29,8 +29,10 @@ int main(int argc, char *argv[])
     po::options_description desc("Options");
     desc.add_options()
         ("help", "I'm here to help you")
-        ("process,p", po::value<std::string>(), "Input image")
-        ("morph,m", po::value<bool>()->default_value(false), "Apply morphing")
+        ("process,p", po::value<std::string>()->required(), "Input image")
+        ("output,o", po::value<std::string>()->required(), "Output image")
+        ("morph,m", po::value<bool>()->default_value(false), "Apply morphing (when its done")
+        ("enhance,e", po::value<bool>()->default_value(false), "Apply automatic image enhancement (experimental)")
     ;
 
     po::variables_map vm;
@@ -45,26 +47,40 @@ int main(int argc, char *argv[])
         }
 
         if(vm.count("morph")) {
-            std::cout << "Apply image morphing: " << vm["morph"].as<std::string>() << std::endl;
-            processor.applyMorphing(true);
-        } else {
-            std::cout << "Apply image morphing: " << vm["morph"].as<std::string>() << std::endl;
-            processor.applyMorphing(false);
+            std::cout << "Apply image morphing: " << vm["morph"].as<bool>() << std::endl;
+            processor.applyMorphing(vm["morph"].as<bool>());
+        }
+        if(vm.count("enhance")) {
+            std::cout << "Apply image enhancement: " << vm["enhance"].as<bool>() << std::endl;
+            processor.enhance(vm["enhance"].as<bool>());
+        }
+        if(vm.count("output")) {
+            std::cout << "Output image: " << vm["output"].as<std::string>() << "." << std::endl;
         }
 
         if (vm.count("process")) {
             std::cout << "Input image: " << vm["process"].as<std::string>() << "." << std::endl;
 
             std::string inputFile = vm["process"].as<std::string>();
+            std::string outputFile = vm["output"].as<std::string>();
 
             try {
                 cv::Mat inputImage = cv::imread(inputFile, CV_LOAD_IMAGE_UNCHANGED);
-
                 cv::Rect roi = detector.detect(inputImage);
 
                 cv::rectangle(inputImage, roi, cv::Scalar(0, 0, 255), 2);
 
-                cv::imwrite("test_ouput.jpg", inputImage);
+                cv::Mat newImage = processor.crop(inputImage, roi);
+
+                if(processor.applyMorphing()) {
+                    std::cout << "I'm a morphing dummy" << std::endl;
+                }
+                if(processor.enhance()) {
+                    std::cout << "Enhancing..." << std::endl;
+                    newImage = processor.equalizeHistogram(newImage);
+                }
+
+                cv::imwrite(outputFile, newImage);
 
                 return RETURN_VALUES::SUCCESS;
 
