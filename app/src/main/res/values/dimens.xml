@@ -3,8 +3,8 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="profile_width">150dp</dimen>
-    <dimen name="profile_height">190dp</dimen>
+    <dimen name="profile_width">170dp</dimen>
+    <dimen name="profile_height">210dp</dimen>
 
     <dimen name="profile_image_size_small">120dp</dimen>
     <dimen name="profile_image_size_large">150dp</dimen>
@@ -12,4 +12,6 @@
 
     <dimen name="reminder_height">32dp</dimen>
     <dimen name="reminder_vertical_padding">8dp</dimen>
+
+    <dimen name="photo_frame_size">16dp</dimen>
 </resources>

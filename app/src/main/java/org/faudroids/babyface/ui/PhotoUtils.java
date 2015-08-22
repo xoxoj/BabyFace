@@ -41,7 +41,6 @@ public class PhotoUtils {
 		requestCreator
 				.resizeDimen(dimensResource, dimensResource)
 				.centerCrop()
-				.transform(new CircleTransformation(context.getResources().getColor(R.color.primary_very_dark)))
 				.into(target);
 	}
 
