@@ -3,7 +3,6 @@ package org.faudroids.babyface.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,11 +33,13 @@ import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-public class FacesOverviewFragment extends RoboFragment implements ConnectionListener {
+public class FacesOverviewFragment extends RoboFragment implements ConnectionListener, OnBackPressedListener {
 
 	private static final int
 			REQUEST_ADD_FACE = 42,
 			REQUEST_TAKE_PHOTO = 43;
+
+	private static final String STATE_FACE = "FACE";
 
 	@InjectView(R.id.layout_sliding_panel) private SlidingUpPanelLayout slidingLayout;
 	@InjectView(R.id.layout_profiles) private GridLayout facesLayout;
@@ -61,21 +62,36 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        //setupFaces();
-
-        slidingLayout.setPanelHeight(0);
-    }
-
-    @Nullable
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_faces_overview, container, false);
-        return view;
+        return inflater.inflate(R.layout.activity_faces_overview, container, false);
     }
 
+
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		slidingLayout.setPanelHeight(0);
+	}
+
+
+
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(STATE_FACE, selectedFace);
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            selectedFace = savedInstanceState.getParcelable(STATE_FACE);
+        }
+    }
+
+
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 			case REQUEST_ADD_FACE:
@@ -85,78 +101,73 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != Activity.RESULT_OK) return;
-                photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
+				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
 		}
 	}
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable("curChoice", selectedFace);
-    }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState != null) {
-            // Restore last state for checked position.
-            selectedFace = savedInstanceState.getParcelable("curChoice");
-        }
-    }
+	@Override
+	public boolean onBackPressed() {
+		if (!slidingLayout.getPanelState().equals(SlidingUpPanelLayout.PanelState.EXPANDED)) {
+			return false;
+		}
+		slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+		return true;
+	}
 
 
 	private void setupFaces() {
 		subscriptions.add(facesManager.getFaces()
-                .compose(new DefaultTransformer<List<Face>>())
-                .subscribe(new Action1<List<Face>>() {
-                    @Override
-                    public void call(List<Face> faces) {
-                        Timber.d("loaded " + faces.size() + " faces");
+				.compose(new DefaultTransformer<List<Face>>())
+				.subscribe(new Action1<List<Face>>() {
+					@Override
+					public void call(List<Face> faces) {
+						Timber.d("loaded " + faces.size() + " faces");
 
-                        facesLayout.removeAllViews();
-                        LayoutInflater inflater = LayoutInflater.from(getActivity());
+						facesLayout.removeAllViews();
+						LayoutInflater inflater = LayoutInflater.from(getActivity());
 
-                        // add profile layouts
-                        for (int i = 0; i < faces.size(); ++i) {
-                            // get view
-                            View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
-                            final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
-                            TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
+						// add profile layouts
+						for (int i = 0; i < faces.size(); ++i) {
+							// get view
+							View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
+							final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
+							TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
 
-                            // fill face details
-                            final Face face = faces.get(i);
-                            nameView.setText(face.getName());
-                            photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
-                            imageView.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-                                    setupSelectedFace(face);
-                                }
-                            });
+							// fill face details
+							final Face face = faces.get(i);
+							nameView.setText(face.getName());
+							photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
+							imageView.setOnClickListener(new View.OnClickListener() {
+								@Override
+								public void onClick(View v) {
+									slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+									setupSelectedFace(face);
+								}
+							});
 
-                            // add to grid view
-                            int row = i / 2;
-                            int column = i - (row * 2);
-                            GridLayout.LayoutParams params = createLayoutParams(row, column);
-                            facesLayout.addView(profileView, params);
-                        }
+							// add to grid view
+							int row = i / 2;
+							int column = i - (row * 2);
+							GridLayout.LayoutParams params = createLayoutParams(row, column);
+							facesLayout.addView(profileView, params);
+						}
 
-                        // add "add profile" layout
-                        View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
-                        int row = faces.size() / 2;
-                        int column = faces.size() - (row * 2);
-                        GridLayout.LayoutParams params = createLayoutParams(row, column);
-                        facesLayout.addView(addProfileView, params);
-                        addProfileView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
-                            }
-                        });
+						// add "add profile" layout
+						View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
+						int row = faces.size() / 2;
+						int column = faces.size() - (row * 2);
+						GridLayout.LayoutParams params = createLayoutParams(row, column);
+						facesLayout.addView(addProfileView, params);
+						addProfileView.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
+							}
+						});
 
-                    }
-                }));
+					}
+				}));
 	}
 
 
@@ -212,19 +223,24 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 		return params;
 	}
 
+
     @Override
     public void onResume() {
         super.onResume();
         subscriptions = new CompositeSubscription();
         googleApiClientManager.registerListener(this);
+		((MainDrawerActivity) getActivity()).setOnBackPressedListener(this);
     }
+
 
     @Override
     public void onPause() {
         super.onPause();
         subscriptions.unsubscribe();
         googleApiClientManager.unregisterListener(this);
+		((MainDrawerActivity) getActivity()).removeOnBackPressedListener();
     }
+
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -233,9 +249,12 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
         }
     }
 
+
     @Override
     public void onConnectionSuspended(int i) { }
 
+
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) { }
+
 }

@@ -51,6 +51,8 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	private Drawer drawer;
 	private int visibleFragmentId;
 
+	private OnBackPressedListener backPressedListener;
+
 
 	public MainDrawerActivity() {
 		super(true);
@@ -122,6 +124,27 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
         googleApiClientManager.unregisterListener(this);
     }
 
+
+	@Override
+	public void onBackPressed() {
+		if (backPressedListener != null) {
+			boolean eventHandled = backPressedListener.onBackPressed();
+			if (eventHandled) return;
+		}
+		super.onBackPressed();
+	}
+
+
+	public void setOnBackPressedListener(OnBackPressedListener listener) {
+		this.backPressedListener = listener;
+	}
+
+
+	public void removeOnBackPressedListener() {
+		this.backPressedListener = null;
+	}
+
+
     @Override
     public void onConnected(Bundle bundle) {
 
@@ -181,10 +204,10 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
         visibleFragmentId = ID_SHOW_FACES;
     }
 
-    @Override
-    public void onConnectionSuspended(int i) {
 
-    }
+    @Override
+    public void onConnectionSuspended(int i) { }
+
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -202,6 +225,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
         }
     }
 
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -210,4 +234,5 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
                 break;
         }
     }
+
 }
