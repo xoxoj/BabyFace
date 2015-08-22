@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -54,7 +55,6 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 	@InjectView(R.id.txt_name) private TextView nameView;
 	@InjectView(R.id.layout_take_photo) private View takePhotoView;
 	@InjectView(R.id.layout_create_movie) private View createMovieView;
-	@InjectView(R.id.layout_view_photos) private View viewPhotosView;
 	@InjectView(R.id.layout_settings) private View settingsView;
 	private Face selectedFace;
 	private PhotoManager.PhotoCreationResult photoCreationResult;
@@ -63,7 +63,7 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_faces_overview, container, false);
+        return inflater.inflate(R.layout.fragment_faces_overview, container, false);
     }
 
 
@@ -200,18 +200,11 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 
 		});
 
-		viewPhotosView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				reminderManager.addReminder(face);
-			}
-		});
-
 		settingsView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                reminderManager.removeReminder(face);
-            }
+				Toast.makeText(getActivity(), "Dummy", Toast.LENGTH_SHORT).show();
+			}
         });
 	}
 
