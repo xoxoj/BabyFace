@@ -15,7 +15,7 @@ cv::Rect FaceDetector::detect(const cv::Mat &input)
     if(this->classifier.load(this->cascadeFile)) {
         std::vector<cv::Rect> faces;
 
-        this->classifier.detectMultiScale(input, faces, 1.1, 5, 0);
+        this->classifier.detectMultiScale(input, faces, 1.1, 5, 0, cv::Size(600, 600));
 
         if(faces.empty()) {
             return cv::Rect();
