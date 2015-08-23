@@ -1,26 +1,32 @@
 #include "facedetector.h"
 
 #include <string>
+#include <iostream>
 
 FaceDetector::FaceDetector(const std::string &cascadeFile)
 {
-    this->classifier.load(cascadeFile);
+    this->cascadeFile = cascadeFile;
+    if(this->classifier.load(cascadeFile)) {}
 }
 
 
 cv::Rect FaceDetector::detect(const cv::Mat &input)
 {
-    std::vector<cv::Rect> faces;
+    if(this->classifier.load(this->cascadeFile)) {
+        std::vector<cv::Rect> faces;
 
-    this->classifier.detectMultiScale(input, faces, 1.1, 5, 0);
+        this->classifier.detectMultiScale(input, faces, 1.1, 5, 0);
 
-    if(faces.empty()) {
-        return cv::Rect();
+        if(faces.empty()) {
+            return cv::Rect();
+        }
+
+        //If multiple "faces" are detected we'll pick the biggest one
+        //since we're assuming that the babys face should be the main object.
+        return this->findLargestFace(faces);
+    } else {
+        std::cerr << "Error! Unable to load cascade file!" << std::endl;
     }
-
-    //If multiple "faces" are detected we'll pick the biggest one
-    //since we're assuming that the babys face should be the main object.
-    return this->findLargestFace(faces);
 }
 
 

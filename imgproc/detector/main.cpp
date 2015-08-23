@@ -22,7 +22,7 @@ enum RETURN_VALUES {
 
 int main(int argc, char *argv[])
 {
-    std::string cascadeFile = "./haarcascade_frontalface_default.xml";
+    std::string cascadeFile = "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml";
     FaceDetector detector(cascadeFile);
     ImageProcessor processor;
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
                 cv::Mat inputImage = cv::imread(inputFile, CV_LOAD_IMAGE_UNCHANGED);
                 cv::Rect roi = detector.detect(inputImage);
 
-                if(roi.area() == 0) {
+                if(roi.width == 0 || roi.height == 0) {
                     return RETURN_VALUES::DETECTION_ERROR;
                 }
 

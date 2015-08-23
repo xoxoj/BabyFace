@@ -20,4 +20,5 @@ private:
   */
 private:
     cv::CascadeClassifier classifier;
+    std::string cascadeFile;
 };
