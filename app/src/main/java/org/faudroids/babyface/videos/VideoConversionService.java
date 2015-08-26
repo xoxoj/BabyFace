@@ -73,7 +73,7 @@ public class VideoConversionService extends RoboService {
 		notificationBuilder = new NotificationCompat.Builder(this)
 				.setContentTitle("Creating movie")
 				.setContentText("0 % complete")
-				.setSmallIcon(R.mipmap.ic_launcher)
+				.setSmallIcon(R.drawable.ic_notification)
 				.setProgress(100, 0, false)
 				.setOngoing(true)
 				.setContentIntent(createConversionActivityIntent(null));

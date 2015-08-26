@@ -48,7 +48,7 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 				.setAutoCancel(true)
 				.setContentTitle(context.getString(R.string.photo_time))
 				.setContentText(msg)
-				.setSmallIcon(R.mipmap.ic_launcher)
+				.setSmallIcon(R.drawable.ic_notification)
 				.setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
 				.addAction(new NotificationCompat.Action.Builder(R.drawable.ic_photo_camera_white_24dp, context.getString(R.string.take_photo), photoPendingIntent).build())
 				.build();
