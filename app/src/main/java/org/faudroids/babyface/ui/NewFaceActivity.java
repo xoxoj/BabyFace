@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,31 +63,36 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 		continueButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (!currentProgress.equals(Progress.STATUS_4)) {
-					newFaceView.onComplete();
-					return;
-				}
-
-				// create final face
-				final Face face = faceBuilder.build();
-				facesManager.addFace(face)
-						.compose(new DefaultTransformer<Void>())
-						.subscribe(new Action1<Void>() {
-							@Override
-							public void call(Void aVoid) {
-								Timber.d("adding face success");
-								reminderManager.addReminder(face);
-								finish();
-							}
-						});
-
-				// start photo uploading
-				photoManager.requestPhotoUpload();
+				setNextProgress();
 			}
 		});
 
 		// start with first progress step
 		setProgress(Progress.STATUS_1);
+	}
+
+
+	private void setNextProgress() {
+		if (!currentProgress.equals(Progress.STATUS_4)) {
+			newFaceView.onComplete();
+			return;
+		}
+
+		// create final face
+		final Face face = faceBuilder.build();
+		facesManager.addFace(face)
+				.compose(new DefaultTransformer<Void>())
+				.subscribe(new Action1<Void>() {
+					@Override
+					public void call(Void aVoid) {
+						Timber.d("adding face success");
+						reminderManager.addReminder(face);
+						finish();
+					}
+				});
+
+		// start photo uploading
+		photoManager.requestPhotoUpload();
 	}
 
 
@@ -183,6 +189,16 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					@Override
 					public void afterTextChanged(Editable s) {
 						inputListener.onInputChanged(!nameEditText.getText().toString().isEmpty());
+					}
+				});
+				nameEditText.setOnKeyListener(new View.OnKeyListener() {
+					@Override
+					public boolean onKey(View v, int keyCode, KeyEvent event) {
+						if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+							if (nameEditText.getText().toString().isEmpty()) return false;
+							setNextProgress();
+						}
+						return false;
 					}
 				});
 				return view;

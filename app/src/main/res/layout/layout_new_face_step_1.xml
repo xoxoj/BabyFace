@@ -18,6 +18,7 @@
         android:layout_centerInParent="true"
         android:hint="@string/example_baby_name"
         android:textColorHint="@color/primary_light"
+        android:singleLine="true"
         />
 
 </RelativeLayout>
