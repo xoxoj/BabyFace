@@ -217,6 +217,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 	private NewFaceView createPhotoView() {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
+			private View photoContainer;
 			private ImageView cameraView, photoView;
 
 			@Override
@@ -228,6 +229,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			protected View doCreateView(LayoutInflater inflater) {
 				View view = inflater.inflate(R.layout.layout_new_face_step_2, containerLayout, false);
 				cameraView = (ImageView) view.findViewById(R.id.img_camera);
+				photoContainer = view.findViewById(R.id.container_photo);
 				photoView = (ImageView) view.findViewById(R.id.img_photo);
 
 				// click to start camera
@@ -248,11 +250,11 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				// toggle preview of photo
 				if (photoManager.getRecentPhoto(faceBuilder.getId()).isPresent()) {
 					cameraView.setVisibility(View.GONE);
-					photoView.setVisibility(View.VISIBLE);
+					photoContainer.setVisibility(View.VISIBLE);
 					photoUtils.loadImage(photoManager.getRecentPhoto(faceBuilder.getId()), photoView, R.dimen.profile_image_size_extra_large);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
-					photoView.setVisibility(View.GONE);
+					photoContainer.setVisibility(View.GONE);
 				}
 
 				inputListener.onInputChanged(photoManager.getRecentPhoto(faceBuilder.getId()).isPresent());
