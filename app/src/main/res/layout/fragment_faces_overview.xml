@@ -63,6 +63,8 @@
 
         </ScrollView>
 
+        <include layout="@layout/progressbar"/>
+
     </RelativeLayout>
 
     <RelativeLayout

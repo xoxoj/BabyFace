@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,13 +27,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import roboguice.fragment.provided.RoboFragment;
 import roboguice.inject.InjectView;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-public class FacesOverviewFragment extends RoboFragment implements ConnectionListener, OnBackPressedListener {
+public class FacesOverviewFragment extends AbstractFragment implements ConnectionListener, OnBackPressedListener {
 
 	private static final int
 			REQUEST_ADD_FACE = 42,
@@ -61,10 +59,9 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_faces_overview, container, false);
-    }
+	public FacesOverviewFragment() {
+		super(R.layout.fragment_faces_overview);
+	}
 
 
 	@Override
@@ -72,7 +69,6 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 		super.onViewCreated(view, savedInstanceState);
 		slidingLayout.setPanelHeight(0);
 	}
-
 
 
     @Override
@@ -117,11 +113,13 @@ public class FacesOverviewFragment extends RoboFragment implements ConnectionLis
 
 
 	private void setupFaces() {
+		showProgressBar();
 		subscriptions.add(facesManager.getFaces()
 				.compose(new DefaultTransformer<List<Face>>())
 				.subscribe(new Action1<List<Face>>() {
 					@Override
 					public void call(List<Face> faces) {
+						hideProgressBar();
 						Timber.d("loaded " + faces.size() + " faces");
 
 						facesLayout.removeAllViews();
