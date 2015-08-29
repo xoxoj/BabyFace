@@ -2,13 +2,16 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 class ImageProcessor
 {
 public:
     ImageProcessor();
 
-    cv::Mat crop(cv::Mat &input, const cv::Rect &roi) const;
+    cv::Mat crop(const cv::Mat &input, const cv::Rect &roi) const;
+
+    cv::Mat scale(const cv::Mat &input) const;
 
     cv::Mat equalizeHistogram(const cv::Mat &input) const;
 
