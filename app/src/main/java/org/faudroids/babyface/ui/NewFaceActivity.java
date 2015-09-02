@@ -282,13 +282,13 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				if (customView.getVisibility() == View.GONE) {
 					switch (selectedIdx) {
 						case 0: // one day
-							updatePeriod = 60 * 60 * 24;
+							updatePeriod = ReminderManager.DURATION_ONE_DAY;
 							break;
 						case 1: // one week
-							updatePeriod = 60 * 60 * 24 * 7;
+							updatePeriod = ReminderManager.DURATION_ONE_WEEK;
 							break;
 						case 2: // one month
-							updatePeriod = 60 * 60 * 24 * 30;
+							updatePeriod = ReminderManager.DURATION_ONE_MONTH;
 							break;
 					}
 				} else {
@@ -296,16 +296,16 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					int multiplier = 0;
 					switch (selectedIdx) {
 						case 0: // hours
-							multiplier = 60 * 60;
+							multiplier = ReminderManager.DURATION_ONE_HOUR;
 							break;
 						case 1: // days
-							multiplier = 60 * 60 * 24;
+							multiplier = ReminderManager.DURATION_ONE_DAY;
 							break;
 						case 2: // weeks
-							multiplier = 60 * 60 * 24 * 7;
+							multiplier = ReminderManager.DURATION_ONE_WEEK;
 							break;
 						case 3: // months
-							multiplier = 60 * 60 * 24 * 30;
+							multiplier = ReminderManager.DURATION_ONE_MONTH;
 							break;
 					}
 					updatePeriod = amount * multiplier;

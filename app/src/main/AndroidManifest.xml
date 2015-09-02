@@ -33,13 +33,15 @@
             android:screenOrientation="portrait"
             />
         <activity
+            android:name=".ui.FaceSettingsActivity"
+            android:screenOrientation="portrait"
+            />
+        <activity
             android:name=".ui.VideoConversionActivity"
             android:screenOrientation="portrait"
             android:launchMode="singleTop"
             />
-        <activity
-            android:name=".ui.CapturePhotoActivity"
-            />
+        <activity android:name=".ui.CapturePhotoActivity" />
 
         <service android:name=".photo.PhotoUploadService" />
         <service android:name=".videos.VideoConversionService" />

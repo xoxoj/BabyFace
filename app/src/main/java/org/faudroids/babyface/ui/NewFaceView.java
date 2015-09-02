@@ -39,7 +39,7 @@ abstract class NewFaceView {
 		doOnComplete();
 
 		// animate sliding out
-		Animation outAnimation = AnimationUtils.loadAnimation(context, R.anim.slide_out);
+		Animation outAnimation = AnimationUtils.loadAnimation(context, R.anim.slide_out_to_left);
 		view.startAnimation(outAnimation);
 		outAnimation.setAnimationListener(new Animation.AnimationListener() {
 			@Override
@@ -67,7 +67,7 @@ abstract class NewFaceView {
 	 */
 	public final View createView(LayoutInflater inflater) {
 		view = doCreateView(inflater);
-		Animation inAnimation = AnimationUtils.loadAnimation(context, R.anim.slide_in);
+		Animation inAnimation = AnimationUtils.loadAnimation(context, R.anim.slide_in_from_right);
 		view.startAnimation(inAnimation);
 		return view;
 	}

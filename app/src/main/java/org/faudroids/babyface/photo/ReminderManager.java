@@ -23,6 +23,12 @@ import timber.log.Timber;
  */
 public class ReminderManager {
 
+	public static final int
+			DURATION_ONE_HOUR = 60 * 60,
+			DURATION_ONE_DAY = 60 * 60 * 24,
+			DURATION_ONE_WEEK = 60 * 60 * 24 * 7,
+			DURATION_ONE_MONTH = 60 * 60 * 24 * 30;
+
 	private static final String PREFS_NAME = "org.faudroids.babyface.ReminderManager";
 	private static final String
 			KEY_REMINDER_COUNTER = "REMINDER_COUNTER",

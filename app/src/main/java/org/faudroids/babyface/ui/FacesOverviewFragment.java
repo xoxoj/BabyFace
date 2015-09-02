@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -201,7 +200,10 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 		settingsView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-				Toast.makeText(getActivity(), "Dummy", Toast.LENGTH_SHORT).show();
+				Intent settingsIntent = new Intent(getActivity(), FaceSettingsActivity.class);
+				settingsIntent.putExtra(FaceSettingsActivity.EXTRA_FACE, selectedFace);
+				startActivity(settingsIntent);
+				getActivity().overridePendingTransition(R.anim.slide_in_from_bottom, R.anim.slide_out_to_top);
 			}
         });
 	}
