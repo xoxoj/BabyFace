@@ -37,10 +37,9 @@ import timber.log.Timber;
 @ContentView(R.layout.activity_main)
 public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDrawerItemClickListener, ConnectionListener {
 
-    private static final int
-            REQUEST_CAPTURE_IMAGE = 42,
-            REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 43;
+	private static final String STATE_FRAGMENT = "FRAGMENT";
 
+    private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 43;
 
 	private static final int
 			ID_SHOW_FACES = 0,
@@ -50,7 +49,9 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
             ID_ABOUT = 4;
 
 	private Drawer drawer;
+
 	private int visibleFragmentId;
+	private Fragment visibleFragment;
 
 	private OnBackPressedListener backPressedListener;
 
@@ -63,10 +64,21 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if (savedInstanceState != null) {
+			visibleFragment = getFragmentManager().getFragment(savedInstanceState, STATE_FRAGMENT);
+		}
+	}
+
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		getFragmentManager().putFragment(outState, STATE_FRAGMENT, visibleFragment);
 	}
 
 
 	private void showFragment(Fragment fragment, boolean replace) {
+		visibleFragment = fragment;
 		FragmentManager fragmentManager = getFragmentManager();
 		FragmentTransaction transaction = fragmentManager.beginTransaction();
 		if (!replace) transaction.add(R.id.container, fragment);
@@ -97,11 +109,11 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				break;
 
 			case ID_SHOW_VIDEOS:
-				//showFragment(new FinishedChallengesFragment(), true);
+				// TODO
 				break;
 
 			case ID_SETTINGS:
-				//showFragment(new SettingsFragment(), true);
+				// TODO
 				break;
 
             case ID_ABOUT:
@@ -114,6 +126,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		visibleFragmentId = item.getIdentifier();
 		return true;
 	}
+
 
     @Override
     public void onStart() {
@@ -205,7 +218,8 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
                 .withOnDrawerItemClickListener(this)
                 .build();
 
-        showFragment(new FacesOverviewFragment(), false);
+		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
+		else showFragment(visibleFragment, true);
         visibleFragmentId = ID_SHOW_FACES;
     }
 
