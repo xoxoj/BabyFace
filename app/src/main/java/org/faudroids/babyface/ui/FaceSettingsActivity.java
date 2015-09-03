@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
-import org.faudroids.babyface.photo.ReminderManager;
+import org.faudroids.babyface.photo.ReminderUnit;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
@@ -41,14 +41,14 @@ public class FaceSettingsActivity extends AbstractActivity {
 
 
 	private String prettyPrintDuration(long durationInSeconds) {
-		if (durationInSeconds / ReminderManager.DURATION_ONE_MONTH > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderManager.DURATION_ONE_MONTH, R.plurals.months);
-		} else if (durationInSeconds / ReminderManager.DURATION_ONE_WEEK > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderManager.DURATION_ONE_WEEK, R.plurals.weeks);
-		} else if (durationInSeconds / ReminderManager.DURATION_ONE_DAY > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderManager.DURATION_ONE_DAY, R.plurals.days);
-		} else if (durationInSeconds / ReminderManager.DURATION_ONE_HOUR > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderManager.DURATION_ONE_HOUR, R.plurals.hours);
+		if (durationInSeconds / ReminderUnit.MONTH > 0) {
+			return prettyPrintDuration(durationInSeconds, ReminderUnit.MONTH, R.plurals.months);
+		} else if (durationInSeconds / ReminderUnit.WEEK> 0) {
+			return prettyPrintDuration(durationInSeconds, ReminderUnit.WEEK, R.plurals.weeks);
+		} else if (durationInSeconds / ReminderUnit.DAY > 0) {
+			return prettyPrintDuration(durationInSeconds, ReminderUnit.DAY, R.plurals.days);
+		} else if (durationInSeconds / ReminderUnit.HOUR > 0) {
+			return prettyPrintDuration(durationInSeconds, ReminderUnit.HOUR, R.plurals.hours);
 		}
 		Timber.e("failed to pretty print duration " + durationInSeconds + " seconds");
 		return "unknown";

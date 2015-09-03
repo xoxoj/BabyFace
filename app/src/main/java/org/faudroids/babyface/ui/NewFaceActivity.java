@@ -7,18 +7,18 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
+import org.faudroids.babyface.photo.ReminderPeriod;
+import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import javax.inject.Inject;
@@ -268,48 +268,12 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 	private NewFaceView createReminderView() {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
-			private ViewGroup[] regularRowView = new ViewGroup[4];
-			private ViewGroup[] customRowViews = new ViewGroup[4];
-			private View regularView, customView;
-			private EditText amountEditText;
-
-			private int selectedIdx;
+			private ReminderPeriodViewHandler viewHandler;
 
 			@Override
 			protected void doOnComplete() {
-				long updatePeriod = Long.MAX_VALUE;
-
-				if (customView.getVisibility() == View.GONE) {
-					switch (selectedIdx) {
-						case 0: // one day
-							updatePeriod = ReminderManager.DURATION_ONE_DAY;
-							break;
-						case 1: // one week
-							updatePeriod = ReminderManager.DURATION_ONE_WEEK;
-							break;
-						case 2: // one month
-							updatePeriod = ReminderManager.DURATION_ONE_MONTH;
-							break;
-					}
-				} else {
-					int amount = Integer.valueOf(amountEditText.getText().toString());
-					int multiplier = 0;
-					switch (selectedIdx) {
-						case 0: // hours
-							multiplier = ReminderManager.DURATION_ONE_HOUR;
-							break;
-						case 1: // days
-							multiplier = ReminderManager.DURATION_ONE_DAY;
-							break;
-						case 2: // weeks
-							multiplier = ReminderManager.DURATION_ONE_WEEK;
-							break;
-						case 3: // months
-							multiplier = ReminderManager.DURATION_ONE_MONTH;
-							break;
-					}
-					updatePeriod = amount * multiplier;
-				}
+				ReminderPeriod period = viewHandler.getReminderPeriod();
+				long updatePeriod = period.getAmount() * period.getUnitInSeconds();
 				Timber.d("setting reminder period to " + updatePeriod);
 				faceBuilder.setReminderPeriodInSeconds(updatePeriod);
 				setProgress(Progress.STATUS_4);
@@ -318,64 +282,15 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			@Override
 			protected View doCreateView(LayoutInflater inflater) {
 				View view = inflater.inflate(R.layout.layout_new_face_step_3, containerLayout, false);
+				viewHandler = new ReminderPeriodViewHandler(view);
 
-				regularView = view.findViewById(R.id.layout_regular);
-				regularRowView[0] = (ViewGroup) view.findViewById(R.id.row_1);
-				regularRowView[1] = (ViewGroup) view.findViewById(R.id.row_2);
-				regularRowView[2] = (ViewGroup) view.findViewById(R.id.row_3);
-				regularRowView[3] = (ViewGroup) view.findViewById(R.id.row_4);
-
-				customView = view.findViewById(R.id.layout_custom);
-				amountEditText = (EditText) view.findViewById(R.id.edit_amount);
-				customRowViews[0] = (ViewGroup) view.findViewById(R.id.row_hours);
-				customRowViews[1] = (ViewGroup) view.findViewById(R.id.row_days);
-				customRowViews[2] = (ViewGroup) view.findViewById(R.id.row_weeks);
-				customRowViews[3] = (ViewGroup) view.findViewById(R.id.row_months);
-
-				// setup on clicks
-				for (int idx = 0; idx < regularRowView.length; ++idx) {
-					final int clickedIdx = idx;
-					regularRowView[idx].setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							// switch to custom view
-							if (clickedIdx == 3) {
-								customView.setVisibility(View.VISIBLE);
-								regularView.setVisibility(View.GONE);
-								toggleSelected(customRowViews, 1);
-								amountEditText.requestFocus();
-								amountEditText.selectAll();
-								return;
-							}
-							toggleSelected(regularRowView, clickedIdx);
-						}
-					});
-					customRowViews[idx].setOnClickListener(new View.OnClickListener() {
-						@Override
-						public void onClick(View v) {
-							toggleSelected(customRowViews, clickedIdx);
-
-						}
-					});
-
-					// always complete
-					inputListener.onInputChanged(true);
-				}
+				// always complete
+				inputListener.onInputChanged(true);
 
 				// set "every week" by default
-				toggleSelected(regularRowView, 1);
+				viewHandler.setReminderPeriod(new ReminderPeriod(ReminderUnit.WEEK, 1));
 
 				return view;
-			}
-
-			private void toggleSelected(ViewGroup[] rowViews, int selectedIdx) {
-				this.selectedIdx = selectedIdx;
-				for (int idx = 0; idx < rowViews.length; ++idx) {
-					int txtColor = (idx == selectedIdx) ? getResources().getColor(R.color.accent) : getResources().getColor(android.R.color.white);
-					int imgVisibility = (idx == selectedIdx) ? View.VISIBLE : View.GONE;
-					((TextView) rowViews[idx].getChildAt(0)).setTextColor(txtColor);
-					rowViews[idx].getChildAt(1).setVisibility(imgVisibility);
-				}
 			}
 		};
 	}

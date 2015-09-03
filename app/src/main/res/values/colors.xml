@@ -10,6 +10,6 @@
     <color name="accent_dark">#00E5FF</color>
     <color name="light_text">#dcdcdc</color>
     <color name="icons">#FFFFFF</color>
-    <color name="divider">#B6B6B6</color>
+    <color name="divider">#cdcdcd</color>
     <color name="dark_gray">#0f0f0f</color>
 </resources>
