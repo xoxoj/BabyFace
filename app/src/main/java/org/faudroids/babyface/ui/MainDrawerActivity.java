@@ -117,7 +117,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				break;
 
 			case ID_SHOW_VIDEOS:
-				// TODO
+				showFragment(new VideosFragment(), true);
 				break;
 
 			case ID_SETTINGS:

@@ -10,7 +10,7 @@
     <item>
         <shape>
             <solid
-                android:color="@color/dark_gray" />
+                android:color="@color/gray_dark" />
         </shape>
     </item>
 </selector>

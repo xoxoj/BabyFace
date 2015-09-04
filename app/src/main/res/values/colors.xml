@@ -11,7 +11,11 @@
     <color name="light_text">#dcdcdc</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#cdcdcd</color>
-    <color name="dark_gray">#0f0f0f</color>
+
+    <color name="gray_dark">#0f0f0f</color>
+    <color name="gray_light">#ffdcdcdc</color>
+    <color name="gray_light_2">#ffcecece</color>
+
     <color name="red">#f44336</color>
     <color name="red_dark">#D32F2F</color>
 </resources>
