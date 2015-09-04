@@ -93,4 +93,6 @@
 
     </LinearLayout>
 
+    <include layout="@layout/progressbar" />
+
 </RelativeLayout>

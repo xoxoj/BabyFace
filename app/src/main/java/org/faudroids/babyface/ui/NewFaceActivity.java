@@ -48,6 +48,10 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 	@Inject private ReminderManager reminderManager;
 	@Inject private PhotoUtils photoUtils;
 
+	public NewFaceActivity() {
+		super(false, true);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,19 +84,30 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 		// create final face
 		final Face face = faceBuilder.build();
+		showProgressBar();
+		continueButton.setEnabled(false);
 		facesManager.addFace(face)
 				.compose(new DefaultTransformer<Void>())
 				.subscribe(new Action1<Void>() {
 					@Override
 					public void call(Void aVoid) {
+						hideProgressBar();
 						Timber.d("adding face success");
 						reminderManager.addReminder(face);
 						finish();
 					}
+				}, new Action1<Throwable>() {
+					@Override
+					public void call(Throwable throwable) {
+						// TODO error handling
+						Timber.e(throwable, "failed to add face");
+						continueButton.setEnabled(true);
+						hideProgressBar();
+					}
 				});
 
-		// start photo uploading
-		photoManager.requestPhotoUpload();
+						// start photo uploading
+						photoManager.requestPhotoUpload();
 	}
 
 

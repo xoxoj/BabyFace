@@ -104,5 +104,6 @@
 
     </RelativeLayout>
 
+    <include layout="@layout/progressbar" />
 
 </RelativeLayout>

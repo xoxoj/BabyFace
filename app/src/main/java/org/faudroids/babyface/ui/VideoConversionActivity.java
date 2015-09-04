@@ -48,6 +48,10 @@ public class VideoConversionActivity extends AbstractActivity {
 	private final StatusReceiver statusReceiver = new StatusReceiver();
 	private VideoConversionStatus lastStatus = null;
 
+	public VideoConversionActivity() {
+		super(false, true);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -61,16 +65,27 @@ public class VideoConversionActivity extends AbstractActivity {
 		showVideoButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				showProgressBar();
+				showVideoButton.setEnabled(false);
 				videoManager.downloadVideo(face, lastStatus)
 						.compose(new DefaultTransformer<File>())
 						.subscribe(new Action1<File>() {
 							@Override
 							public void call(File videoFile) {
+								hideProgressBar();
 								Timber.d("written video to " + videoFile.getAbsolutePath());
 								Uri videoUri = Uri.parse("file:///" + videoFile.getAbsolutePath());
 								Intent intent = new Intent(Intent.ACTION_VIEW);
 								intent.setDataAndType(videoUri, "video/mp4");
 								startActivity(intent);
+							}
+						}, new Action1<Throwable>() {
+							@Override
+							public void call(Throwable throwable) {
+								// TODO error handling
+								Timber.e(throwable, "failed to download video");
+								hideProgressBar();
+								showVideoButton.setEnabled(true);
 							}
 						});
 			}
