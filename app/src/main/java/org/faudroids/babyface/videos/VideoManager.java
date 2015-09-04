@@ -1,6 +1,7 @@
 package org.faudroids.babyface.videos;
 
 import android.content.Context;
+import android.media.MediaScannerConnection;
 import android.os.Environment;
 
 import org.faudroids.babyface.R;
@@ -44,16 +45,17 @@ public class VideoManager {
 					public Observable<File> call(Response response) {
 						// create dir file
 						File rootDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), context.getString(R.string.app_name));
-						if (!rootDir.exists()) {
-							if (!rootDir.mkdirs()) {
-								Timber.e("failed to create dir " + rootDir.getAbsolutePath());
+						File faceDir = new File(rootDir, face.getId());
+						if (!faceDir.exists()) {
+							if (!faceDir.mkdirs()) {
+								Timber.e("failed to create dir " + faceDir.getAbsolutePath());
 								return Observable.error(new IOException("error creating dir"));
 							}
 						}
 
 						// create video file
-						final String videoFileName = face.getName() + VIDEO_DATE_FORMAT.format(new Date()) + ".mp4";
-						File videoFile = new File(rootDir, videoFileName);
+						final String videoFileName = VIDEO_DATE_FORMAT.format(new Date()) + ".mp4";
+						File videoFile = new File(faceDir, videoFileName);
 
 						// download video
 						try {
@@ -61,6 +63,9 @@ public class VideoManager {
 						} catch (IOException ioe) {
 							return Observable.error(ioe);
 						}
+
+						// tell media manager about new video
+						MediaScannerConnection.scanFile(context, new String[] { videoFile.getAbsolutePath() }, null, null);
 
 						return Observable.just(videoFile);
 					}

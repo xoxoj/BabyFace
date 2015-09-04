@@ -78,6 +78,8 @@ public class VideoConversionActivity extends AbstractActivity {
 								Intent intent = new Intent(Intent.ACTION_VIEW);
 								intent.setDataAndType(videoUri, "video/mp4");
 								startActivity(intent);
+								finish();
+
 							}
 						}, new Action1<Throwable>() {
 							@Override
