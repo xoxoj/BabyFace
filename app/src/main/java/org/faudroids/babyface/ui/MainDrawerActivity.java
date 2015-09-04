@@ -55,6 +55,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
             ID_ABOUT = 4;
 
 	private Drawer drawer;
+	private AccountHeader accountHeader;
 
 	private int visibleFragmentId;
 	private Fragment visibleFragment;
@@ -73,15 +74,61 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		if (savedInstanceState != null && savedInstanceState.containsKey(STATE_FRAGMENT)) {
 			visibleFragment = getFragmentManager().getFragment(savedInstanceState, STATE_FRAGMENT);
 		}
+
+		// setup image loading for nav drawer
+		DrawerImageLoader.init(new DrawerImageLoader.IDrawerImageLoader() {
+			@Override
+			public void set(ImageView imageView, Uri uri, Drawable drawable) {
+				Picasso.with(imageView.getContext()).load(uri).into(imageView);
+			}
+
+			@Override
+			public void cancel(ImageView imageView) {
+				Picasso.with(imageView.getContext()).cancelRequest(imageView);
+			}
+
+			@Override
+			public Drawable placeholder(Context context) {
+				return null;
+			}
+		});
+
+		// setup account in nav drawer
+		accountHeader = new AccountHeaderBuilder()
+				.withActivity(this)
+				.withProfileImagesClickable(false)
+				.withSelectionListEnabledForSingleProfile(false)
+				.withSavedInstance(savedInstanceState)
+				.build();
+
+		// setup actual nav drawer
+		drawer = new DrawerBuilder()
+				.withActivity(this)
+				.withToolbar(toolbar)
+				.withAccountHeader(accountHeader)
+				.addDrawerItems(
+						new PrimaryDrawerItem().withName(R.string.faces).withIconTintingEnabled(true).withIcon(R.drawable.ic_faces).withIdentifier(ID_SHOW_FACES),
+						new PrimaryDrawerItem().withName(R.string.video).withIconTintingEnabled(true).withIcon(R.drawable.ic_movie).withIdentifier(ID_SHOW_VIDEOS)
+				)
+				.addStickyDrawerItems(
+						new PrimaryDrawerItem().withName("About").withIconTintingEnabled(true).withIcon(R.drawable.ic_about).withIdentifier(ID_ABOUT),
+						new PrimaryDrawerItem().withName(R.string.settings).withIconTintingEnabled(true).withIcon(R.drawable.ic_settings).withIdentifier(ID_SETTINGS),
+						new PrimaryDrawerItem().withName(R.string.feedback).withIconTintingEnabled(true).withIcon(R.drawable.ic_email).withIdentifier(ID_FEEDBACK)
+				)
+				.withOnDrawerItemClickListener(this)
+				.withSavedInstance(savedInstanceState)
+				.build();
 	}
 
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
+		outState = drawer.saveInstanceState(outState);
+		outState = accountHeader.saveInstanceState(outState);
 		if (visibleFragment != null) {
 			getFragmentManager().putFragment(outState, STATE_FRAGMENT, visibleFragment);
 		}
+		super.onSaveInstanceState(outState);
 	}
 
 
@@ -172,66 +219,24 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
     @Override
     public void onConnected(Bundle bundle) {
+		// setup account header
+		Person person = Plus.PeopleApi.getCurrentPerson(googleApiClientManager.getGoogleApiClient());
+		accountHeader.clear();
+		accountHeader.addProfiles(
+				new ProfileDrawerItem().withName(person.getName().toString())
+						.withEmail(Plus.AccountApi.getAccountName
+								(googleApiClientManager.getGoogleApiClient()))
+						.withIcon(Uri.parse(person.getImage().getUrl()).buildUpon().
+								clearQuery().build().toString())
+		);
 
-        Person person = Plus.PeopleApi.getCurrentPerson(googleApiClientManager.getGoogleApiClient());
-        // setup image loading for nav drawer
-        DrawerImageLoader.init(new DrawerImageLoader.IDrawerImageLoader() {
-            @Override
-            public void set(ImageView imageView, Uri uri, Drawable drawable) {
-                Picasso.with(imageView.getContext()).load(uri).into(imageView);
-            }
-
-            @Override
-            public void cancel(ImageView imageView) {
-                Picasso.with(imageView.getContext()).cancelRequest(imageView);
-            }
-
-            @Override
-            public Drawable placeholder(Context context) {
-                return null;
-            }
-        });
-
-        // setup account in nav drawer
-        AccountHeader accountHeader = new AccountHeaderBuilder()
-                .withActivity(this)
-                        //.withHeaderBackground(R.drawable.background)
-
-                .addProfiles(
-                        new ProfileDrawerItem().withName(person.getName().toString())
-                                .withEmail(Plus.AccountApi.getAccountName
-                                        (googleApiClientManager.getGoogleApiClient()))
-                                .withIcon(Uri.parse(person.getImage().getUrl()).buildUpon().
-                                        clearQuery().build().toString())
-                )
-
-                .withProfileImagesClickable(false)
-                .withSelectionListEnabledForSingleProfile(false)
-                .build();
-
-        // setup actual nav drawer
-        drawer = new DrawerBuilder()
-                .withActivity(this)
-                .withToolbar(toolbar)
-                .withAccountHeader(accountHeader)
-                .addDrawerItems(
-                        new PrimaryDrawerItem().withName(R.string.faces).withIconTintingEnabled(true).withIcon(R.drawable.ic_faces).withIdentifier(ID_SHOW_FACES),
-                        new PrimaryDrawerItem().withName(R.string.video).withIconTintingEnabled(true).withIcon(R.drawable.ic_movie).withIdentifier(ID_SHOW_VIDEOS)
-                )
-                .addStickyDrawerItems(
-                        new PrimaryDrawerItem().withName("About").withIconTintingEnabled(true).withIcon(R.drawable.ic_about).withIdentifier(ID_ABOUT),
-                        new PrimaryDrawerItem().withName(R.string.settings).withIconTintingEnabled(true).withIcon(R.drawable.ic_settings).withIdentifier(ID_SETTINGS),
-                        new PrimaryDrawerItem().withName(R.string.feedback).withIconTintingEnabled(true).withIcon(R.drawable.ic_email).withIdentifier(ID_FEEDBACK)
-                )
-                .withOnDrawerItemClickListener(this)
-                .build();
-
+		// show first fragment
 		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
 		else showFragment(visibleFragment, true);
         visibleFragmentId = ID_SHOW_FACES;
 
 		// TODO
-		printGoogleAuthToken();
+		// printGoogleAuthToken();
     }
 
 
