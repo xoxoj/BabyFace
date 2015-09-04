@@ -13,8 +13,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.mikepenz.materialdrawer.Drawer;
@@ -29,8 +31,12 @@ import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.ConnectionListener;
+import org.faudroids.babyface.utils.DefaultTransformer;
 
 import roboguice.inject.ContentView;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func0;
 import timber.log.Timber;
 
 
@@ -64,7 +70,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (savedInstanceState != null) {
+		if (savedInstanceState != null && savedInstanceState.containsKey(STATE_FRAGMENT)) {
 			visibleFragment = getFragmentManager().getFragment(savedInstanceState, STATE_FRAGMENT);
 		}
 	}
@@ -73,7 +79,9 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		getFragmentManager().putFragment(outState, STATE_FRAGMENT, visibleFragment);
+		if (visibleFragment != null) {
+			getFragmentManager().putFragment(outState, STATE_FRAGMENT, visibleFragment);
+		}
 	}
 
 
@@ -221,6 +229,9 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
 		else showFragment(visibleFragment, true);
         visibleFragmentId = ID_SHOW_FACES;
+
+		// TODO
+		printGoogleAuthToken();
     }
 
 
@@ -253,5 +264,40 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
                 break;
         }
     }
+
+
+	private void printGoogleAuthToken() {
+		Observable
+				.defer(new Func0<Observable<String>>() {
+					@Override
+					public Observable<String> call() {
+						try {
+							String scope = "oauth2:" + Drive.SCOPE_APPFOLDER.toString();
+							Timber.d("scope is " + scope);
+							String token = GoogleAuthUtil.getToken(
+									MainDrawerActivity.this,
+									Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()),
+									scope);
+							return Observable.just(token);
+						} catch (Exception e) {
+							return Observable.error(e);
+						}
+					}
+				})
+				.compose(new DefaultTransformer<String>())
+				.subscribe(new Action1<String>() {
+					@Override
+					public void call(String token) {
+						Timber.d("google auth token: " + token);
+					}
+				}, new Action1<Throwable>() {
+					@Override
+					public void call(Throwable throwable) {
+						Timber.e(throwable, "failed to get token");
+					}
+				});
+
+
+	}
 
 }

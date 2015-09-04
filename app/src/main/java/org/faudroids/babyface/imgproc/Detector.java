@@ -9,6 +9,8 @@ import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 
+import javax.inject.Inject;
+
 import timber.log.Timber;
 
 public class Detector {
@@ -16,15 +18,16 @@ public class Detector {
     private final FaceDetector detector;
     private final ImageProcessor imageProcessor;
 
-    public Detector(Context ctx) {
-        this.detector = new FaceDetector.Builder(ctx).setTrackingEnabled(false)
-                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS).setMode(FaceDetector
-                        .ACCURATE_MODE).build();
-
-        while(!detector.isOperational()) {
-            Timber.d("Not yet able to detect faces!");
-        }
-        imageProcessor = new ImageProcessor();
+	@Inject
+    Detector(Context ctx) {
+        this.detector = new FaceDetector.Builder(ctx)
+				.setTrackingEnabled(false)
+                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+				.setMode(FaceDetector.ACCURATE_MODE)
+				.build();
+		// TODO check if detector is available
+		if (!detector.isOperational()) Timber.w("face processor is not operational!");
+        this.imageProcessor = new ImageProcessor();
     }
 
     public Bitmap process(Bitmap input) {
@@ -51,6 +54,7 @@ public class Detector {
         SparseArray<Face> faces = this.detector.detect(imageFrame);
         Face largestFace = null;
         Size maxSize = new Size(0, 0);
+		Timber.d("found " + faces.size() + " faces in photo");
 
         for(int i = 0; i < faces.size(); ++i) {
             Face face = faces.valueAt(i);

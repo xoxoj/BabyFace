@@ -3,6 +3,8 @@ package org.faudroids.babyface.photo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcel;
@@ -14,6 +16,7 @@ import com.google.android.gms.drive.DriveId;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.google.GoogleDriveManager;
+import org.faudroids.babyface.imgproc.Detector;
 import org.faudroids.babyface.utils.IOUtils;
 import org.roboguice.shaded.goole.common.base.Optional;
 import org.roboguice.shaded.goole.common.collect.Lists;
@@ -54,13 +57,15 @@ public class PhotoManager {
 	private static final String INTERNAL_UPLOADS_DIR = "uploads";
 
 	private final Context context;
+	private final Detector faceDetector;
 	private final GoogleDriveManager googleDriveManager;
 	private final IOUtils ioUtils;
 
 
 	@Inject
-	PhotoManager(Context context, GoogleDriveManager googleDriveManager, IOUtils ioUtils) {
+	PhotoManager(Context context, Detector faceDetector, GoogleDriveManager googleDriveManager, IOUtils ioUtils) {
 		this.context = context;
+		this.faceDetector = faceDetector;
 		this.googleDriveManager = googleDriveManager;
 		this.ioUtils = ioUtils;
 	}
@@ -75,12 +80,17 @@ public class PhotoManager {
 
 
 	public void onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
-		// copy image to internal storage
 		final String faceId = photoCreationResult.faceId;
-		final String photoFileName = faceId + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
+		final File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
 
+		// process image (resize + finding faces)
+		Bitmap originalImage = BitmapFactory.decodeFile(tmpPhotoFile.getAbsolutePath(), new BitmapFactory.Options());
+		Bitmap processedImage = faceDetector.process(originalImage);
+		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
+
+		// copy image to internal storage
+		final String photoFileName = faceId + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
 		File internalImageFile = new File(getUploadsDir(faceId), photoFileName);
-		File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
 		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
 		// delete public file

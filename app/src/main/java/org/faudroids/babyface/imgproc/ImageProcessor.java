@@ -4,10 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
-public class ImageProcessor {
-    public ImageProcessor() {
+import javax.inject.Inject;
 
-    }
+class ImageProcessor {
+
+	@Inject
+	ImageProcessor() { }
 
     /**
      * Scales a whole bitmap to given {@link Size}. If one of the {@link Size} parameters is <= 0,

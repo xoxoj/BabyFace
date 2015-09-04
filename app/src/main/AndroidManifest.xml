@@ -60,8 +60,9 @@
             android:name="roboguice.annotations.packages"
             android:value="roboguice,org.faudroids.babyface"
             />
-        <meta-data android:name="com.google.android.gms.vision.DEPENDENCIES"
-                   android:value="face"
+        <meta-data
+            android:name="com.google.android.gms.vision.DEPENDENCIES"
+            android:value="face"
             />
     </application>
 
