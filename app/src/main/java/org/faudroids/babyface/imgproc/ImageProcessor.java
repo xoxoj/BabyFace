@@ -1,15 +1,13 @@
 package org.faudroids.babyface.imgproc;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Rect;
-
-import timber.log.Timber;
 
 public class ImageProcessor {
     public ImageProcessor() {
 
     }
-
 
     /**
      * Scales a whole bitmap to given {@link Size}. If one of the {@link Size} parameters is <= 0,
@@ -19,17 +17,14 @@ public class ImageProcessor {
      * @return Scaled {@link Bitmap}
      */
     public Bitmap scaleImage(Bitmap input, Size newSize) {
+        double scaleFactor = (double)(input.getWidth())/input.getHeight();
+
         if(newSize.height() <= 0 && newSize.width() <= 0) {
             return input;
         } else if(newSize.height() <= 0) {
-            double scaleFactor = input.getHeight()/input.getWidth();
-
-            int newHeight = (int)(newSize.width() * scaleFactor);
-
+            int newHeight = (int)(newSize.width() / scaleFactor);
             return Bitmap.createScaledBitmap(input, newSize.width(), newHeight, true);
         } else if(newSize.width() <= 0) {
-            double scaleFactor = input.getWidth()/input.getHeight();
-
             int newWidth = (int)(newSize.height() * scaleFactor);
 
             return Bitmap.createScaledBitmap(input, newWidth, newSize.height(), true);
@@ -47,26 +42,28 @@ public class ImageProcessor {
      * @return Scaled {@link Bitmap}
      */
     public Bitmap scaleImageROI(Bitmap input, Rect roi, Size newSize) {
+        double aspectRatio = (double)(input.getWidth())/(double)(input.getHeight());
+        int newWidth;
+        int newHeight;
+
         if(newSize.height() <= 0 && newSize.width() <= 0) {
             return input;
         } else if(newSize.height() <= 0) {
-            int newWidth = (int)(input.getWidth() * (double)(newSize.width()/roi.width()));
-            int newHeight = (int)(input.getHeight() * (double)(input.getHeight()/input
-                    .getWidth()));
-
-            return Bitmap.createScaledBitmap(input, newWidth, newHeight, true);
+            double scaling = (double)(newSize.width())/roi.width();
+            newWidth = (int)(input.getWidth() * scaling);
+            newHeight = (int)(newWidth/aspectRatio);
         } else if(newSize.width() <= 0) {
-            int newHeight = (int)(input.getHeight() * (double)(newSize.height()/roi.height()));
-            int newWidth = (int)(input.getWidth() * (double)(input.getWidth()/input
-                    .getHeight()));
-
-            return Bitmap.createScaledBitmap(input, newWidth, newHeight, true);
+            double scaling = (double)(newSize.height())/roi.height();
+            newHeight = (int)(input.getHeight() * scaling);
+            newWidth = (int)(newHeight * aspectRatio);
         } else {
-            int newWidth = (int)(input.getWidth() * (double)(newSize.width() / roi.width()));
-            int newHeight = (int)(input.getHeight() * (double)(newSize.height() / roi.height()));
+            double scalingX = (double)(newSize.width())/roi.width();
+            double scalingY = (double)(newSize.height())/roi.height();
 
-            return Bitmap.createScaledBitmap(input, newWidth, newHeight, true);
+            newWidth = (int)(input.getWidth() * scalingX);
+            newHeight = (int)(input.getHeight() * scalingY);
         }
+        return Bitmap.createScaledBitmap(input, newWidth, newHeight, true);
     }
 
 
@@ -78,33 +75,28 @@ public class ImageProcessor {
      * @return Scaled {@link Rect}
      */
     public Rect scaleROI(Rect roi, Size newSize) {
+        double scaleFactor = (double)(roi.width())/(double)(roi.height());
+
+        int offsetX;
+        int offsetY;
+
         if(newSize.height() <= 0 && newSize.width() <= 0) {
             return roi;
         } else if(newSize.height() <= 0) {
-            double scaleFactor = roi.height()/roi.width();
-
-            int newHeight = (int)(roi.height() * scaleFactor);
-            int offsetY = newHeight/2;
-            int offsetX = newSize.width()/2;
-
-            return new Rect(roi.centerX() - offsetX, roi.centerY() - offsetY, roi.centerX() +
-                    offsetX, roi.centerY() + offsetY);
+            int newHeight = (int)(newSize.width() / scaleFactor);
+            offsetY = newHeight/2;
+            offsetX = newSize.width()/2;
         } else if(newSize.width() <= 0) {
-            double scaleFactor = roi.width()/roi.height();
-
-            int newWidth = (int)(roi.width() * scaleFactor);
-            int offsetX = newSize.height()/2;
-            int offsetY = newWidth/2;
-
-            return new Rect(roi.centerX() - offsetX, roi.centerY() - offsetY, roi.centerX() +
-                    offsetX, roi.centerY() + offsetY);
+            int newWidth = (int)(newSize.height() * scaleFactor);
+            offsetY = newSize.height()/2;
+            offsetX = newWidth/2;
         } else {
-            int offsetX = newSize.width()/2;
-            int offsetY = newSize.height()/2;
-
-            return new Rect(roi.centerX() - offsetX, roi.centerY() - offsetY, roi.centerX() +
-                    offsetX, roi.centerY() + offsetY);
+            offsetX = newSize.width()/2;
+            offsetY = newSize.height()/2;
         }
+
+        return new Rect(roi.centerX() - offsetX, roi.centerY() - offsetY, roi.centerX() +
+                offsetX, roi.centerY() + offsetY);
     }
 
 
@@ -119,9 +111,58 @@ public class ImageProcessor {
 
         left = (roi.left < 0) ? 0 : roi.left;
         top = (roi.top < 0)  ? 0 : roi.top;
-        width = (roi.right > input.getWidth()) ? input.getWidth() - left : roi.right - left;
-        height = (roi.bottom > input.getHeight()) ? input.getHeight() - top : roi.bottom - top;
+        width = (left + roi.width() > input.getWidth()) ? input.getWidth() - left : roi.width();
+        height = (top + roi.height() > input.getHeight()) ? input.getHeight() - top : roi.height();
 
         return Bitmap.createBitmap(input, left, top, width, height);
+    }
+
+    /**
+     * Creates a padded image with custom sized borders
+     * @param input Input {@link Bitmap}
+     * @param paddingLeft Padding on the left side of the image
+     * @param paddingTop Padding at the top of the image
+     * @param paddingRight Padding on the right side of the image
+     * @param paddingBottom Padding at the bottom of the image
+     * @return Padded {@link Bitmap}
+     */
+    public Bitmap createPaddedBitmap(Bitmap input,
+                                     int paddingLeft,
+                                     int paddingTop,
+                                     int paddingRight,
+                                     int paddingBottom) {
+        if(paddingLeft < 0 || paddingTop < 0 || paddingRight < 0 || paddingBottom < 0) {
+            throw new RuntimeException("Error! Padding can't be negative.");
+        }
+        Bitmap result = Bitmap.createBitmap(input.getWidth() + paddingLeft + paddingRight, input
+                .getHeight() + paddingBottom + paddingTop, Bitmap.Config.ARGB_8888);
+
+        Canvas c = new Canvas(result);
+        c.drawBitmap(input, (float)paddingLeft, (float)paddingTop, null);
+
+        return result;
+    }
+
+    /**
+     * Creates a border around an image to match the given dimensions
+     * @param input Input {@link Bitmap}
+     * @param newWidth New width of resulting image
+     * @param newHeight New height of resulting image
+     * @return Padded {@link Bitmap}
+     */
+    public Bitmap createPaddedBitmap(Bitmap input,
+                                     int newWidth,
+                                     int newHeight) {
+        if(newWidth < input.getWidth() || newHeight < input.getHeight()) {
+            throw new RuntimeException("Error! Padded image size has to be greater or equal to " +
+                    "original image size.");
+        }
+        int offsetX = newWidth - input.getWidth();
+        int offsetY = newHeight - input.getHeight();
+
+        int left = offsetX/2;
+        int top = offsetY/2;
+
+        return createPaddedBitmap(input, left, top, left, top);
     }
 }
