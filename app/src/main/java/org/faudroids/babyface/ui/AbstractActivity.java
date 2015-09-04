@@ -4,6 +4,9 @@ package org.faudroids.babyface.ui;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+
+import com.lsjwzh.widget.materialloadingprogressbar.CircleProgressBar;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.google.GoogleApiClientManager;
@@ -15,18 +18,21 @@ import rx.subscriptions.CompositeSubscription;
 
 public class AbstractActivity extends RoboActionBarActivity {
 
-	private final boolean setupToolbar;
+	private final boolean setupToolbar, setupProgressBar;
+
 	protected Toolbar toolbar;
+	protected CircleProgressBar progressBar;
 
 	protected CompositeSubscription subscriptions = new CompositeSubscription();
 	@Inject protected GoogleApiClientManager googleApiClientManager;
 
 	protected AbstractActivity() {
-		this(false);
+		this(false, false);
 	}
 
-	protected AbstractActivity(boolean setupToolbar) {
+	protected AbstractActivity(boolean setupToolbar, boolean setupProgressBar) {
 		this.setupToolbar = setupToolbar;
+		this.setupProgressBar = setupProgressBar;
 	}
 
 	@Override
@@ -38,6 +44,9 @@ public class AbstractActivity extends RoboActionBarActivity {
 			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 			getSupportActionBar().setDisplayShowHomeEnabled(true);
 		}
+		if (setupProgressBar) {
+			progressBar = (CircleProgressBar) findViewById(R.id.progressbar);
+		}
 	}
 
 	@Override
@@ -48,7 +57,6 @@ public class AbstractActivity extends RoboActionBarActivity {
 
 	@Override
 	public void onStop() {
-        System.out.println("ABSTRACT ACTVITY ON STOP");
 		subscriptions.unsubscribe();
 		subscriptions = new CompositeSubscription();
 		googleApiClientManager.disconnectFromClient();
@@ -63,6 +71,16 @@ public class AbstractActivity extends RoboActionBarActivity {
 				return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	public void showProgressBar() {
+		if (!setupProgressBar) throw new IllegalStateException("no progress bar");
+		progressBar.setVisibility(View.VISIBLE);
+	}
+
+	public void hideProgressBar() {
+		if (!setupProgressBar) throw new IllegalStateException("no progress bar");
+		progressBar.setVisibility(View.GONE);
 	}
 
 }

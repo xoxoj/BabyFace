@@ -35,7 +35,8 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 
 	private static final int
 			REQUEST_ADD_FACE = 42,
-			REQUEST_TAKE_PHOTO = 43;
+			REQUEST_TAKE_PHOTO = 43,
+			REQUEST_SHOW_SETTINGS = 44; // face might get deleted --> update UI
 
 	private static final String STATE_FACE = "FACE";
 
@@ -97,6 +98,17 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != Activity.RESULT_OK) return;
 				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
+				break;
+
+			case REQUEST_SHOW_SETTINGS:
+				if (resultCode != FaceSettingsActivity.RESULT_FACE_DELETED) return;
+				slidingLayout.post(new Runnable() {
+					@Override
+					public void run() {
+						slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+					}
+				});
+				break;
 		}
 	}
 
@@ -202,10 +214,10 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
             public void onClick(View v) {
 				Intent settingsIntent = new Intent(getActivity(), FaceSettingsActivity.class);
 				settingsIntent.putExtra(FaceSettingsActivity.EXTRA_FACE, selectedFace);
-				startActivity(settingsIntent);
+				startActivityForResult(settingsIntent, REQUEST_SHOW_SETTINGS);
 				getActivity().overridePendingTransition(R.anim.slide_in_from_bottom, R.anim.slide_out_to_top);
 			}
-        });
+		});
 	}
 
 

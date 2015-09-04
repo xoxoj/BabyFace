@@ -12,6 +12,7 @@ import android.provider.MediaStore;
 import com.google.android.gms.drive.DriveId;
 
 import org.faudroids.babyface.R;
+import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.IOUtils;
 import org.roboguice.shaded.goole.common.base.Optional;
@@ -84,6 +85,22 @@ public class PhotoManager {
 
 		// delete public file
 		if (!tmpPhotoFile.delete()) Timber.w("failed to delete file " + tmpPhotoFile.getAbsolutePath());
+	}
+
+
+	public Observable<Void> addPhotoDir(Face face) {
+		return googleDriveManager.createNewFolder(face.getPhotoFolderName())
+				.map(new Func1<DriveId, Void>() {
+					@Override
+					public Void call(DriveId driveId) {
+						return null;
+					}
+				});
+	}
+
+
+	public Observable<Void> deletePhotoDir(Face face) {
+		return googleDriveManager.deleteFolder(face.getPhotoFolderName());
 	}
 
 

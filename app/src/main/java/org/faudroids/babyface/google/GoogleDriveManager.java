@@ -51,7 +51,30 @@ public class GoogleDriveManager {
 				return Observable.just(folder.getDriveId());
 			}
 		});
+	}
 
+
+	public Observable<Void> deleteFolder(final String folderName) {
+		return Observable.defer(new Func0<Observable<Void>>() {
+			@Override
+			public Observable<Void> call() {
+				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+
+				// find folder drive id
+				DriveFolder appFolder = Drive.DriveApi.getAppFolder(client);
+				MetadataBuffer queryResult = appFolder.queryChildren(
+						client,
+						new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, folderName)).build())
+						.await().getMetadataBuffer();
+				if (queryResult.getCount() == 0) throw new IllegalArgumentException("no folder with name " + folderName);
+				DriveId folderId = queryResult.get(0).getDriveId();
+
+				// delete folder
+				DriveFile folder = Drive.DriveApi.getFile(client, folderId);
+				folder.delete(client).await();
+				return Observable.just(null);
+			}
+		});
 	}
 
 

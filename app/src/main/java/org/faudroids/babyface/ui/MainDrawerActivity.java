@@ -57,7 +57,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 
 	public MainDrawerActivity() {
-		super(true);
+		super(true, true);
 	}
 
 

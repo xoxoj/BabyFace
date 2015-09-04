@@ -5,7 +5,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.roboguice.shaded.goole.common.base.Objects;
 
 import java.util.UUID;
 
@@ -41,9 +44,29 @@ public class Face implements Parcelable {
 		return reminderPeriodInSeconds;
 	}
 
+	@JsonIgnore
+	public String getPhotoFolderName() {
+		return id;
+	}
+
 	@Override
 	public String toString() {
 		return "[id = " + id + ", name = " + name + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Face face = (Face) o;
+		return Objects.equal(reminderPeriodInSeconds, face.reminderPeriodInSeconds) &&
+				Objects.equal(id, face.id) &&
+				Objects.equal(name, face.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id, name, reminderPeriodInSeconds);
 	}
 
 	protected Face(Parcel in) {

@@ -33,6 +33,7 @@ public class DriveFacesSource implements FacesSource {
 		this.googleDriveManager = googleDriveManager;
 	}
 
+
 	@Override
 	public Observable<List<Face>> loadAll() {
 		return googleDriveManager
@@ -60,6 +61,7 @@ public class DriveFacesSource implements FacesSource {
 				});
 	}
 
+
 	@Override
 	public Observable<Void> store(final Face face) {
 		return Observable
@@ -71,51 +73,29 @@ public class DriveFacesSource implements FacesSource {
 					}
 				})
 				// store file
-				.flatMap(new Func1<DriveConfig, Observable<Void>>() {
-					@Override
-					public Observable<Void> call(DriveConfig driveConfig) {
-						// convert to json
-						String json;
-						try {
-							json = objectMapper.writeValueAsString(driveConfig.faces);
-						} catch (JsonProcessingException e) {
-							Timber.e(e, "failed to write json");
-							return Observable.error(e);
-						}
-
-						// check if drive config file exists
-						InputStream jsonInputStream = new ByteArrayInputStream(json.getBytes());
-						if (driveConfig.driveId.isPresent()) {
-							return googleDriveManager.writeFile(driveConfig.driveId.get(), jsonInputStream);
-						} else {
-							return googleDriveManager.createNewFile(Optional.<DriveId>absent(), jsonInputStream, DRIVE_FACES_CONFIG_FILE_NAME, "application/json", true);
-						}
-					}
-				})
-				// create folder for storing face photos
-				.flatMap(new Func1<Void, Observable<DriveId>>() {
-					@Override
-					public Observable<DriveId> call(Void nothing) {
-						return googleDriveManager.createNewFolder(face.getId());
-					}
-				})
-				.map(new Func1<DriveId, Void>() {
-					@Override
-					public Void call(DriveId driveId) {
-						return null;
-					}
-				});
+				.flatMap(createUpdateConfigFunc());
 	}
+
 
 	@Override
 	public Observable<Void> storeAll(List<Face> faces) {
 		throw new UnsupportedOperationException("implement me");
 	}
 
+
 	@Override
-	public Observable<Void> remove(Face face) {
-		throw new UnsupportedOperationException("implement me");
+	public Observable<Void> remove(final Face face) {
+		return Observable
+				.zip(loadAll(), googleDriveManager.query(DRIVE_FACES_CONFIG_FILE_NAME, true), new Func2<List<Face>, Optional<DriveId>, DriveConfig>() {
+					@Override
+					public DriveConfig call(List<Face> faces, Optional<DriveId> driveIdOptional) {
+						faces.remove(face);
+						return new DriveConfig(faces, driveIdOptional);
+					}
+				})
+				.flatMap(createUpdateConfigFunc());
 	}
+
 
 	@Override
 	public Observable<Void> removeAll() {
@@ -130,6 +110,32 @@ public class DriveFacesSource implements FacesSource {
 						}
 					}
 				});
+	}
+
+
+	private Func1<DriveConfig, Observable<Void>> createUpdateConfigFunc() {
+		// store file
+		return new Func1<DriveConfig, Observable<Void>>() {
+			@Override
+			public Observable<Void> call(DriveConfig driveConfig) {
+				// convert to json
+				String json;
+				try {
+					json = objectMapper.writeValueAsString(driveConfig.faces);
+				} catch (JsonProcessingException e) {
+					Timber.e(e, "failed to write json");
+					return Observable.error(e);
+				}
+
+				// check if drive config file exists
+				InputStream jsonInputStream = new ByteArrayInputStream(json.getBytes());
+				if (driveConfig.driveId.isPresent()) {
+					return googleDriveManager.writeFile(driveConfig.driveId.get(), jsonInputStream);
+				} else {
+					return googleDriveManager.createNewFile(Optional.<DriveId>absent(), jsonInputStream, DRIVE_FACES_CONFIG_FILE_NAME, "application/json", true);
+				}
+			}
+		};
 	}
 
 
