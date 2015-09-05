@@ -102,6 +102,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				.withProfileImagesClickable(false)
 				.withSelectionListEnabledForSingleProfile(false)
 				.withSavedInstance(savedInstanceState)
+				.withHeaderBackground(R.drawable.drawer_background)
 				.build();
 
 		// setup actual nav drawer
@@ -228,11 +229,9 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		Person person = Plus.PeopleApi.getCurrentPerson(googleApiClientManager.getGoogleApiClient());
 		accountHeader.clear();
 		accountHeader.addProfiles(
-				new ProfileDrawerItem().withName(person.getName().toString())
-						.withEmail(Plus.AccountApi.getAccountName
-								(googleApiClientManager.getGoogleApiClient()))
-						.withIcon(Uri.parse(person.getImage().getUrl()).buildUpon().
-								clearQuery().build().toString())
+				new ProfileDrawerItem().withName(person.getName().getGivenName() + " " + person.getName().getFamilyName())
+						.withEmail(Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()))
+						.withIcon(Uri.parse(person.getImage().getUrl()).buildUpon().clearQuery().build().toString())
 		);
 
 		// show first fragment
