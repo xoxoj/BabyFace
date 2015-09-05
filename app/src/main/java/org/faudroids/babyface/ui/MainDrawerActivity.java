@@ -177,6 +177,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
             case ID_ABOUT:
                 showFragment(new AboutFragment(), true);
+				break;
 
 			default:
 				return false;
