@@ -53,8 +53,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 			ID_SHOW_FACES = 0,
 			ID_SHOW_VIDEOS = 1,
 			ID_SETTINGS = 2,
-			ID_FEEDBACK = 3,
-            ID_ABOUT = 4;
+			ID_FEEDBACK = 3;
 
 	private Drawer drawer;
 	private AccountHeader accountHeader;
@@ -115,7 +114,6 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 						new PrimaryDrawerItem().withName(R.string.videos).withIconTintingEnabled(true).withIcon(R.drawable.ic_movie).withIdentifier(ID_SHOW_VIDEOS)
 				)
 				.addStickyDrawerItems(
-						new PrimaryDrawerItem().withName("About").withIconTintingEnabled(true).withIcon(R.drawable.ic_about).withIdentifier(ID_ABOUT),
 						new PrimaryDrawerItem().withName(R.string.settings).withIconTintingEnabled(true).withIcon(R.drawable.ic_settings).withIdentifier(ID_SETTINGS),
 						new PrimaryDrawerItem().withName(R.string.feedback).withIconTintingEnabled(true).withIcon(R.drawable.ic_email).withIdentifier(ID_FEEDBACK)
 				)
@@ -173,11 +171,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				break;
 
 			case ID_SETTINGS:
-				// TODO
-				break;
-
-            case ID_ABOUT:
-                showFragment(new AboutFragment(), true);
+				showFragment(new SettingsFragment(), true);
 				break;
 
 			default:

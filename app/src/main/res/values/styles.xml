@@ -79,20 +79,34 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
-    <style name="SettingsItemTitle">
+    <style name="FaceSettingsItemTitle">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@android:color/black</item>
         <item name="android:textSize">18sp</item>
     </style>
 
-    <style name="SettingsItemValue">
+    <style name="FaceSettingsItemValue">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">#585858</item>
         <item name="android:textSize">16sp</item>
         <item name="android:layout_alignParentRight">true</item>
         <item name="android:layout_centerVertical">true</item>
+    </style>
+
+
+    <style name="SettingsEntry">
+        <item name="android:padding">20dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+
+    <style name="SettingsTextEntry" parent="SettingsEntry">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">15sp</item>
     </style>
 
 </resources>
