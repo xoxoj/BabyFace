@@ -14,5 +14,6 @@ configuration.yml
 data
 
 # various
-/local.properties
+local.properties
 .gradle
+fabric.properties
