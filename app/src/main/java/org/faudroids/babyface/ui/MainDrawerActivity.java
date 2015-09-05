@@ -43,7 +43,9 @@ import timber.log.Timber;
 @ContentView(R.layout.activity_main)
 public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDrawerItemClickListener, ConnectionListener {
 
-	private static final String STATE_FRAGMENT = "FRAGMENT";
+	private static final String
+			STATE_FRAGMENT = "FRAGMENT",
+			STATE_FRAGMENT_ID = "FRAGMENT_ID";
 
     private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 43;
 
@@ -57,7 +59,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	private Drawer drawer;
 	private AccountHeader accountHeader;
 
-	private int visibleFragmentId;
+	private int visibleFragmentId = ID_SHOW_FACES;
 	private Fragment visibleFragment;
 
 	private OnBackPressedListener backPressedListener;
@@ -73,6 +75,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState != null && savedInstanceState.containsKey(STATE_FRAGMENT)) {
 			visibleFragment = getFragmentManager().getFragment(savedInstanceState, STATE_FRAGMENT);
+			visibleFragmentId = savedInstanceState.getInt(STATE_FRAGMENT_ID);
 		}
 
 		// setup image loading for nav drawer
@@ -127,6 +130,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		outState = accountHeader.saveInstanceState(outState);
 		if (visibleFragment != null) {
 			getFragmentManager().putFragment(outState, STATE_FRAGMENT, visibleFragment);
+			outState.putInt(STATE_FRAGMENT_ID, visibleFragmentId);
 		}
 		super.onSaveInstanceState(outState);
 	}
@@ -233,7 +237,6 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		// show first fragment
 		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
 		else showFragment(visibleFragment, true);
-        visibleFragmentId = ID_SHOW_FACES;
 
 		// TODO
 		// printGoogleAuthToken();
