@@ -30,6 +30,7 @@ import rx.functions.Action1;
 
 public class VideosFragment extends AbstractFragment {
 
+	@InjectView(R.id.txt_empty) private TextView emptyView;
 	@InjectView(R.id.list_videos) private RecyclerView videosView;
 	private VideoAdapter videoAdapter;
 
@@ -72,6 +73,7 @@ public class VideosFragment extends AbstractFragment {
 								return lhs.getCreationDate().compareTo(rhs.getCreationDate());
 							}
 						});
+						emptyView.setVisibility(videos.isEmpty() ? View.VISIBLE : View.GONE);
 						videoAdapter.setVideos(videos);
 					}
 				});
