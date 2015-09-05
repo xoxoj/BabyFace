@@ -1,5 +1,6 @@
 # generated files
 build
+*.apk
 
 # IDE files
 .idea
