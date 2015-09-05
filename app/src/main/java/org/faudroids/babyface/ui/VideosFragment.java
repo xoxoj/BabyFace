@@ -44,6 +44,7 @@ public class VideosFragment extends AbstractFragment {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+		getActivity().setTitle(R.string.videos);
 		videosView.setLayoutManager(new LinearLayoutManager(getActivity()));
 		videoAdapter = new VideoAdapter();
 		videosView.setAdapter(videoAdapter);
