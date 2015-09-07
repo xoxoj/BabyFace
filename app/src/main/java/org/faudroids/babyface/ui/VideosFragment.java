@@ -13,7 +13,6 @@ import android.widget.TextView;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
-import org.faudroids.babyface.utils.DefaultTransformer;
 import org.faudroids.babyface.videos.VideoInfo;
 import org.faudroids.babyface.videos.VideoManager;
 
@@ -26,7 +25,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import roboguice.inject.InjectView;
-import rx.functions.Action1;
 
 public class VideosFragment extends AbstractFragment {
 
@@ -55,28 +53,19 @@ public class VideosFragment extends AbstractFragment {
 
 
 	private void setupFaces() {
-		showProgressBar();
-		facesManager.getFaces()
-				.compose(new DefaultTransformer<List<Face>>())
-				.subscribe(new Action1<List<Face>>() {
-					@Override
-					public void call(List<Face> faces) {
-						hideProgressBar();
-
-						List<VideoInfo> videos = new ArrayList<>();
-						for (Face face : faces) {
-							videos.addAll(videoManager.getVideosForFace(face));
-						}
-						Collections.sort(videos, new Comparator<VideoInfo>() {
-							@Override
-							public int compare(VideoInfo lhs, VideoInfo rhs) {
-								return lhs.getCreationDate().compareTo(rhs.getCreationDate());
-							}
-						});
-						emptyView.setVisibility(videos.isEmpty() ? View.VISIBLE : View.GONE);
-						videoAdapter.setVideos(videos);
-					}
-				});
+		List<Face> faces = facesManager.getFaces();
+		List<VideoInfo> videos = new ArrayList<>();
+		for (Face face : faces) {
+			videos.addAll(videoManager.getVideosForFace(face));
+		}
+		Collections.sort(videos, new Comparator<VideoInfo>() {
+			@Override
+			public int compare(VideoInfo lhs, VideoInfo rhs) {
+				return lhs.getCreationDate().compareTo(rhs.getCreationDate());
+			}
+		});
+		emptyView.setVisibility(videos.isEmpty() ? View.VISIBLE : View.GONE);
+		videoAdapter.setVideos(videos);
 	}
 
 

@@ -19,7 +19,6 @@ import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
-import org.faudroids.babyface.utils.DefaultTransformer;
 import org.faudroids.babyface.videos.VideoConversionService;
 
 import java.util.List;
@@ -27,7 +26,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import roboguice.inject.InjectView;
-import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
@@ -125,59 +123,50 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 
 
 	private void setupFaces() {
-		showProgressBar();
-		subscriptions.add(facesManager.getFaces()
-				.compose(new DefaultTransformer<List<Face>>())
-				.subscribe(new Action1<List<Face>>() {
-					@Override
-					public void call(List<Face> faces) {
-						hideProgressBar();
-						Timber.d("loaded " + faces.size() + " faces");
+		List<Face> faces = facesManager.getFaces();
+		Timber.d("loaded " + faces.size() + " faces");
 
-						facesLayout.removeAllViews();
-						LayoutInflater inflater = LayoutInflater.from(getActivity());
+		facesLayout.removeAllViews();
+		LayoutInflater inflater = LayoutInflater.from(getActivity());
 
-						// add profile layouts
-						for (int i = 0; i < faces.size(); ++i) {
-							// get view
-							View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
-							final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
-							TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
+		// add profile layouts
+		for (int i = 0; i < faces.size(); ++i) {
+			// get view
+			View profileView = inflater.inflate(R.layout.item_profile, facesLayout, false);
+			final ImageView imageView = (ImageView) profileView.findViewById(R.id.img_profile);
+			TextView nameView = (TextView) profileView.findViewById(R.id.txt_name);
 
-							// fill face details
-							final Face face = faces.get(i);
-							nameView.setText(face.getName());
-							photoUtils.loadImage(photoManager.getRecentPhoto(face), imageView);
-							imageView.setOnClickListener(new View.OnClickListener() {
-								@Override
-								public void onClick(View v) {
-									slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-									setupSelectedFace(face);
-								}
-							});
+			// fill face details
+			final Face face = faces.get(i);
+			nameView.setText(face.getName());
+			photoUtils.loadImage(photoManager.getRecentPhoto(face), imageView);
+			imageView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+					setupSelectedFace(face);
+				}
+			});
 
-							// add to grid view
-							int row = i / 2;
-							int column = i - (row * 2);
-							GridLayout.LayoutParams params = createLayoutParams(row, column);
-							facesLayout.addView(profileView, params);
-						}
+			// add to grid view
+			int row = i / 2;
+			int column = i - (row * 2);
+			GridLayout.LayoutParams params = createLayoutParams(row, column);
+			facesLayout.addView(profileView, params);
+		}
 
-						// add "add profile" layout
-						View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
-						int row = faces.size() / 2;
-						int column = faces.size() - (row * 2);
-						GridLayout.LayoutParams params = createLayoutParams(row, column);
-						facesLayout.addView(addProfileView, params);
-						addProfileView.setOnClickListener(new View.OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
-							}
-						});
-
-					}
-				}));
+		// add "add profile" layout
+		View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
+		int row = faces.size() / 2;
+		int column = faces.size() - (row * 2);
+		GridLayout.LayoutParams params = createLayoutParams(row, column);
+		facesLayout.addView(addProfileView, params);
+		addProfileView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
+			}
+		});
 	}
 
 
