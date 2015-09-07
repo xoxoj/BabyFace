@@ -60,6 +60,14 @@ public abstract class Pref<T> {
 		return new BooleanPref(getPrefs(context, prefsName), key, defaultValue);
 	}
 
+	public static Pref<Integer> newIntPref(Context context, String prefsName, String key) {
+		return new IntPref(getPrefs(context, prefsName), key);
+	}
+
+	public static Pref<Integer> newIntPref(Context context, String prefsName, String key, Integer defaultValue) {
+		return new IntPref(getPrefs(context, prefsName), key, defaultValue);
+	}
+
 	private static SharedPreferences getPrefs(Context context, String prefsName) {
 		return context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 	}

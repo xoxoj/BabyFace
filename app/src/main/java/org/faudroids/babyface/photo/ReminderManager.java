@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.faudroids.babyface.faces.Face;
+import org.faudroids.babyface.utils.Pref;
 
 import java.io.IOException;
 
@@ -25,7 +26,6 @@ public class ReminderManager {
 
 	private static final String PREFS_NAME = "org.faudroids.babyface.ReminderManager";
 	private static final String
-			KEY_REMINDER_COUNTER = "REMINDER_COUNTER",
 			PROPERTY_LAST_TRIGGER = "LAST_TRIGGER",
 			PROPERTY_REMINDER_ID = "REMINDER_ID",
 			PROPERTY_FACE = "FACE";
@@ -35,13 +35,13 @@ public class ReminderManager {
 	private final Context context;
 	private final AlarmManager alarmManager;
 
-	private int reminderCounter; // cyclic counter for assigning ids to alarms
+	private final Pref<Integer> reminderCounter; // cyclic counter for assigning ids to alarms
 
 	@Inject
 	ReminderManager(Context context, AlarmManager alarmManager) {
 		this.context = context;
 		this.alarmManager = alarmManager;
-		this.reminderCounter = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(KEY_REMINDER_COUNTER, 0);
+		this.reminderCounter = Pref.newIntPref(context, PREFS_NAME, "reminder_counter", 0);
 	}
 
 
@@ -121,8 +121,8 @@ public class ReminderManager {
 	private int addReminderToPrefs(Face face, long firstReminderTimestamp) {
 		SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
 
-		int reminderId = reminderCounter;
-		++reminderCounter;
+		int reminderId = reminderCounter.get();
+		reminderCounter.set(reminderId + 1);
 		editor.putInt(toKey(face, PROPERTY_REMINDER_ID), reminderId);
 		editor.putLong(toKey(face, PROPERTY_LAST_TRIGGER), firstReminderTimestamp);
 		try {
@@ -130,7 +130,6 @@ public class ReminderManager {
 		} catch (JsonProcessingException e) {
 			Timber.e(e, "failed to serialize face");
 		}
-		editor.putInt(KEY_REMINDER_COUNTER, reminderCounter);
 		editor.apply();
 
 		return reminderId;
