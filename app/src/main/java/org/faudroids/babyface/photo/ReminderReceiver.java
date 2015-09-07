@@ -9,6 +9,7 @@ import android.support.v4.app.NotificationCompat;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
+import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.ui.CapturePhotoActivity;
 
 import javax.inject.Inject;
@@ -23,6 +24,7 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 
 	public static final String EXTRA_FACE = "EXTRA_FACE";
 
+	@Inject private FacesManager facesManager;
 	@Inject private ReminderManager reminderManager;
 	@Inject private NotificationManager notificationManager;
 
@@ -30,13 +32,15 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 	protected void handleReceive(Context context, Intent intent) {
 		Face face = intent.getParcelableExtra(EXTRA_FACE);
 		Timber.d("triggered reminder for face " + face.getName());
+
+		// update last reminder timestamp
 		reminderManager.onReminderTriggered(face);
-		final int notificationId = faceToNotificationId(face);
+		facesManager.updateFace(face);
 
 		// build the photo taking intent
 		Intent photoIntent = new Intent(context, CapturePhotoActivity.class);
 		photoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_NAME, face.getName());
-		photoIntent.putExtra(CapturePhotoActivity.EXTRA_NOTIFICATION_ID, notificationId);
+		photoIntent.putExtra(CapturePhotoActivity.EXTRA_NOTIFICATION_ID, faceToNotificationId(face));
 		photoIntent.putExtra(CapturePhotoActivity.EXTRA_UPLOAD_PHOTO, true);
 		PendingIntent photoPendingIntent = PendingIntent.getActivity(context, 0, photoIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 

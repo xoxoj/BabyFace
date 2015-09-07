@@ -10,6 +10,7 @@ import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.Pref;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -54,7 +55,7 @@ public class FacesManager {
 	 * Removes the face and all photos that are associated with it
 	 */
 	public Observable<Void> deleteFace(final Face face) {
-		// try deleting files first --> on error state is consistent (face exists in all sources, photos are present)
+		// try deleting files first --> on error state is consistent (face still exists)
 		return photoManager.deletePhotoDir(face)
 				.flatMap(new Func1<Void, Observable<Void>>() {
 					@Override
@@ -65,6 +66,20 @@ public class FacesManager {
 						return Observable.just(null);
 					}
 				});
+	}
+
+
+	public void updateFace(final Face face) {
+		List<Face> faces = loadFaces();
+		Iterator<Face> faceIterator = faces.iterator();
+		while (faceIterator.hasNext()) {
+			if (faceIterator.next().getName().equals(face.getName())) {
+				faceIterator.remove();
+				break;
+			}
+		}
+		faces.add(face);
+		storeFaces(faces);
 	}
 
 

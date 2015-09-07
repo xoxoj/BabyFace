@@ -5,15 +5,11 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.utils.Pref;
 
-import java.io.IOException;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -25,12 +21,6 @@ import timber.log.Timber;
 public class ReminderManager {
 
 	private static final String PREFS_NAME = "org.faudroids.babyface.ReminderManager";
-	private static final String
-			PROPERTY_LAST_TRIGGER = "LAST_TRIGGER",
-			PROPERTY_REMINDER_ID = "REMINDER_ID",
-			PROPERTY_FACE = "FACE";
-
-	private static final ObjectMapper mapper = new ObjectMapper();
 
 	private final Context context;
 	private final AlarmManager alarmManager;
@@ -47,10 +37,19 @@ public class ReminderManager {
 
 	public void addReminder(Face face) {
 		Timber.d("adding reminder for " + face.getName());
+
+		// get first trigger timestamp
 		long firstReminderTimestamp = System.currentTimeMillis() + face.getReminderPeriodInSeconds() * 1000;
 		long interval = face.getReminderPeriodInSeconds() * 1000;
-		int reminderId = addReminderToPrefs(face, firstReminderTimestamp);
+		int reminderId = reminderCounter.get();
+		reminderCounter.set(reminderId + 1);
 
+		// store reminder info (not yet persistent!)
+		face.setReminderId(reminderId);
+		face.setLastReminderTrigger(firstReminderTimestamp);    // Timestamp in future since trigger has not been called
+		// Required for restarting reminders.
+
+		// start repeating alarm
 		alarmManager.setInexactRepeating(
 				AlarmManager.RTC_WAKEUP,
 				firstReminderTimestamp,
@@ -61,7 +60,7 @@ public class ReminderManager {
 
 	public void removeReminder(Face face) {
 		Timber.d("removing reminder for " + face.getName());
-		int reminderId = removeReminderFromPrefs(face);
+		int reminderId = face.getReminderId();
 		alarmManager.cancel(createPendingIntent(face, reminderId));
 	}
 
@@ -70,86 +69,38 @@ public class ReminderManager {
 	 * Call this to track the last trigger time of each reminder
 	 */
 	public void onReminderTriggered(Face face) {
-		SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
-		editor.putLong(toKey(face, PROPERTY_LAST_TRIGGER), System.currentTimeMillis());
-		editor.apply();
+		// update when this reminder was last triggered (not yet persistent!)
+		face.setLastReminderTrigger(System.currentTimeMillis());
 	}
 
 
 	/**
 	 * Call this when needing to start all reminders e.g. after device reboot
 	 */
-	public void restartAllReminders() {
+	public void restartAllReminders(List<Face> faces) {
 		Timber.d("restarting reminders");
-		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
 		int reminderCount = 0;
-		for (String key : prefs.getAll().keySet()) {
-			if (!key.endsWith(PROPERTY_REMINDER_ID)) continue;
+		for (Face face : faces) {
+			int reminderId = face.getReminderId();
+			long lastTrigger = face.getLastReminderTrigger();
+			long interval = face.getReminderPeriodInSeconds() * 1000;
 
-			try {
-				String faceId = key.substring(0, key.indexOf("." + PROPERTY_REMINDER_ID));
-				int reminderId = prefs.getInt(toKey(faceId, PROPERTY_REMINDER_ID), -1);
-				long lastTrigger = prefs.getLong(toKey(faceId, PROPERTY_LAST_TRIGGER), -1);
-				Face face = mapper.readValue(prefs.getString(toKey(faceId, PROPERTY_FACE), null), Face.class);
-				long interval = face.getReminderPeriodInSeconds() * 1000;
-
-				// only if reminder has not triggered before (!) add interval
-				if (lastTrigger <= System.currentTimeMillis()) {
-					lastTrigger += interval;
-				}
-
-				alarmManager.setInexactRepeating(
-						AlarmManager.RTC_WAKEUP,
-						lastTrigger,
-						interval,
-						createPendingIntent(face, reminderId));
-
-				++reminderCount;
-
-			} catch (IOException e) {
-				Timber.e(e, "failed to deserialize face");
+			// only if reminder has not triggered before (!) add interval
+			if (lastTrigger <= System.currentTimeMillis()) {
+				lastTrigger += interval;
 			}
+
+			alarmManager.setInexactRepeating(
+					AlarmManager.RTC_WAKEUP,
+					lastTrigger,
+					interval,
+					createPendingIntent(face, reminderId));
+
+			++reminderCount;
 		}
+
 		Timber.d("restarted " + reminderCount + " reminders");
-	}
-
-
-	/**
-	 * @return the id for this reminder
-	 */
-	private int addReminderToPrefs(Face face, long firstReminderTimestamp) {
-		SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
-
-		int reminderId = reminderCounter.get();
-		reminderCounter.set(reminderId + 1);
-		editor.putInt(toKey(face, PROPERTY_REMINDER_ID), reminderId);
-		editor.putLong(toKey(face, PROPERTY_LAST_TRIGGER), firstReminderTimestamp);
-		try {
-			editor.putString(toKey(face, PROPERTY_FACE), mapper.writeValueAsString(face));
-		} catch (JsonProcessingException e) {
-			Timber.e(e, "failed to serialize face");
-		}
-		editor.apply();
-
-		return reminderId;
-	}
-
-
-	/**
-	 * @return the id for this reminder
-	 */
-	private int removeReminderFromPrefs(Face face) {
-		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor  = prefs.edit();
-
-		int reminderId  = prefs.getInt(toKey(face, PROPERTY_REMINDER_ID), -1);
-		editor.remove(toKey(face, PROPERTY_LAST_TRIGGER));
-		editor.remove(toKey(face, PROPERTY_FACE));
-		editor.remove(toKey(face, PROPERTY_REMINDER_ID));
-		editor.apply();
-
-		return reminderId;
 	}
 
 
@@ -159,13 +110,4 @@ public class ReminderManager {
 		return PendingIntent.getBroadcast(context, reminderId, intent, 0);
 	}
 
-
-	private String toKey(Face face, String property) {
-		return toKey(face.getName(), property);
-	}
-
-
-	private String toKey(String faceId, String property) {
-		return faceId + "." + property;
-	}
 }
