@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
@@ -52,7 +53,8 @@ import timber.log.Timber;
  */
 public class PhotoManager {
 
-	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd_HHmmss");
+	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+	private static final Pattern PHOTO_FILE_NAME_PATTERN = Pattern.compile("\\d\\d\\d\\d-\\d\\d-\\d\\d_\\d\\d-\\d\\d-\\d\\d\\.jpg");
 
 	private static final String INTERNAL_UPLOADS_DIR = "uploads";
 
@@ -89,7 +91,7 @@ public class PhotoManager {
 		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 
 		// copy image to internal storage
-		final String photoFileName = faceName + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
+		final String photoFileName = PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
 		File internalImageFile = new File(getUploadsDir(faceName), photoFileName);
 		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
@@ -218,6 +220,11 @@ public class PhotoManager {
 	 */
 	public void requestPhotoUpload() {
 		context.startService(new Intent(context, PhotoUploadService.class));
+	}
+
+
+	public boolean isFaceFileName(String imageFileName) {
+		return PHOTO_FILE_NAME_PATTERN.matcher(imageFileName).matches();
 	}
 
 

@@ -292,7 +292,7 @@ public class GoogleDriveManager {
 	/**
 	 * @return the root folder for this app. All application data should be stored there
 	 */
-	private DriveFolder getAppRootFolder() {
+	public DriveFolder getAppRootFolder() {
 		DriveId folderId = DriveId.decodeFromString(appRootFolderIdPref.get());
 		return Drive.DriveApi.getFolder(googleApiClientManager.getGoogleApiClient(), folderId);
 	}

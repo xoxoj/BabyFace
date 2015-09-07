@@ -11,15 +11,19 @@ import com.google.android.gms.drive.Drive;
 import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.auth.AuthManager;
+import org.faudroids.babyface.faces.FaceScanner;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -31,6 +35,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
+	@Inject private FaceScanner faceSanner;
 
 
 	@Override
@@ -63,10 +68,20 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 		// first time setup
 		driveManager.assertAppRootFolderExists()
-				.compose(new DefaultTransformer<Void>())
-				.subscribe(new Action1<Void>() {
+				.flatMap(new Func1<Void, Observable<List<FaceScanner.ImportableFace>>>() {
 					@Override
-					public void call(Void aVoid) {
+					public Observable<List<FaceScanner.ImportableFace>> call(Void aVoid) {
+						return faceSanner.scanGoogleDriveForFaces();
+					}
+				})
+				.compose(new DefaultTransformer<List<FaceScanner.ImportableFace>>())
+				.subscribe(new Action1<List<FaceScanner.ImportableFace>>() {
+					@Override
+					public void call(List<FaceScanner.ImportableFace> faces) {
+						Timber.d("found " + faces.size() + " faces to import");
+						for (FaceScanner.ImportableFace face : faces) {
+							Timber.d("face : " + face.getFaceName() + " with " + face.getImageCount() + " images");
+						}
 						startMainActivity();
 					}
 				});
