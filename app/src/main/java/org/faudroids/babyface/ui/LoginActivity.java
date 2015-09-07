@@ -12,6 +12,7 @@ import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.auth.AuthManager;
 import org.faudroids.babyface.google.ConnectionListener;
+import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 42;
 
 	@Inject private AuthManager authManager;
+	@Inject private GoogleDriveManager driveManager;
 
 
 	@Override
@@ -58,7 +60,16 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	@Override
 	public void onConnected(Bundle bundle) {
 		authManager.signIn(googleApiClientManager.getGoogleApiClient());
-		startMainActivity();
+
+		// first time setup
+		driveManager.assertAppRootFolderExists()
+				.compose(new DefaultTransformer<Void>())
+				.subscribe(new Action1<Void>() {
+					@Override
+					public void call(Void aVoid) {
+						startMainActivity();
+					}
+				});
 	}
 
 

@@ -2,6 +2,7 @@ package org.faudroids.babyface.server.photo;
 
 
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.ChildReference;
 import com.google.api.services.drive.model.File;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -53,19 +54,18 @@ public class PhotoDownloadCommand {
 			return Lists.newArrayList(new DownloadTask(drive, targetDirectory, photoFilesToDownload.get(0), downloadedPhotos).call());
 		}
 
+		// find app root folder
+		List<ChildReference> files = drive.children().list("root").setQ("title='BabyFace'").execute().getItems();
+		if (files.isEmpty()) throw new IllegalStateException("failed to find app root dir");
+		ChildReference appRootDir = files.get(0);
+
 		// find face folder
-		List<File> folders = drive.files().list().execute().getItems();
-		File faceFolder = null;
-		for (File folder : folders) {
-			if (folder.getTitle().equals(faceId)) {
-				faceFolder = folder;
-				break;
-			}
-		}
-		if (faceFolder == null) throw new IllegalStateException("failed to find face folder " + faceId);
+		List<ChildReference> facesFolders = drive.children().list(appRootDir.getId()).setQ("title='" + faceId + "'").execute().getItems();
+		if (facesFolders.isEmpty()) throw new IllegalStateException("failed to find face dir '" + faceId + "'");
+		ChildReference faceDir = facesFolders.get(0);
 
 		// get all files to download
-		photoFilesToDownload.addAll(drive.files().list().setQ("\"" + faceFolder.getId() + "\" in parents").setMaxResults(100).execute().getItems());
+		photoFilesToDownload.addAll(drive.files().list().setQ("'" + faceDir.getId() + "' in parents and trashed = false").setMaxResults(300).execute().getItems());
 		Log.i("downloading " + photoFilesToDownload.size() + " photos");
 
 		// setup threads + tasks

@@ -1,5 +1,7 @@
 package org.faudroids.babyface.google;
 
+import android.content.Context;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
@@ -8,12 +10,15 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
+import org.faudroids.babyface.R;
+import org.faudroids.babyface.utils.Pref;
 import org.roboguice.shaded.goole.common.base.Optional;
 
 import java.io.IOException;
@@ -32,11 +37,17 @@ import timber.log.Timber;
  */
 public class GoogleDriveManager {
 
+	private static final String PREFS_NAME = "org.faudroids.babyface";
+
 	private final GoogleApiClientManager googleApiClientManager;
+	private final String appRootFolderName;
+	private final Pref<String> appRootFolderIdPref;
 
 	@Inject
-	public GoogleDriveManager(GoogleApiClientManager googleApiClientManager) {
+	public GoogleDriveManager(Context context, GoogleApiClientManager googleApiClientManager) {
 		this.googleApiClientManager = googleApiClientManager;
+		this.appRootFolderName = context.getString(R.string.app_name);
+		this.appRootFolderIdPref = Pref.newStringPref(context, PREFS_NAME, "rootFolderId", null);
 	}
 
 
@@ -44,10 +55,7 @@ public class GoogleDriveManager {
 		return Observable.defer(new Func0<Observable<DriveId>>() {
 			@Override
 			public Observable<DriveId> call() {
-				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
-				DriveFolder appFolder = Drive.DriveApi.getRootFolder(client);
-				MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(folderName).build();
-				DriveFolder folder = appFolder.createFolder(client, changeSet).await().getDriveFolder();
+				DriveFolder folder = createNewFolder(getAppRootFolder(), folderName);
 				return Observable.just(folder.getDriveId());
 			}
 		});
@@ -61,7 +69,7 @@ public class GoogleDriveManager {
 				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 
 				// find folder drive id
-				DriveFolder appFolder = Drive.DriveApi.getRootFolder(client);
+				DriveFolder appFolder = getAppRootFolder();
 				MetadataBuffer queryResult = appFolder.queryChildren(
 						client,
 						new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, folderName)).build())
@@ -111,7 +119,7 @@ public class GoogleDriveManager {
 				// find target folder
 				DriveFolder targetFolder;
 				if (folderId.isPresent()) targetFolder = Drive.DriveApi.getFolder(apiClient, folderId.get());
-				else targetFolder = Drive.DriveApi.getRootFolder(apiClient);
+				else targetFolder = getAppRootFolder();
 
 				// create drive file
 				MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
@@ -181,7 +189,7 @@ public class GoogleDriveManager {
 				.defer(new Func0<Observable<Optional<DriveId>>>() {
 					@Override
 					public Observable<Optional<DriveId>> call() {
-						DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getRootFolder(googleApiClient)
+						DriveApi.MetadataBufferResult queryResult = getAppRootFolder()
 								.queryChildren(
 										googleApiClientManager.getGoogleApiClient(),
 										new Query.Builder()
@@ -229,6 +237,71 @@ public class GoogleDriveManager {
 				return Observable.just(null);
 			}
 		});
+	}
+
+
+	/**
+	 * Creates the root folder for this app in Google Drive (/<app name>).
+	 */
+	public Observable<Void> assertAppRootFolderExists() {
+		return Observable.defer(new Func0<Observable<Void>>() {
+			@Override
+			public Observable<Void> call() {
+				// query for app (!) root folder
+				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+				DriveApi.MetadataBufferResult queryResult = Drive.DriveApi
+						.getRootFolder(client)
+						.queryChildren(client, new Query.Builder()
+								.addFilter(Filters.eq(SearchableField.TITLE, appRootFolderName))
+								.build())
+						.await();
+
+				DriveId appRootId;
+
+				// search for folder that is not trashed
+				Metadata folderMetaData = null;
+				for (Metadata metaData : queryResult.getMetadataBuffer()) {
+					if (!metaData.isTrashed() && !metaData.isExplicitlyTrashed()) {
+						Timber.d(metaData.isTrashed() + " " + metaData.isExplicitlyTrashed());
+						Timber.d(metaData.getTitle() + " " + metaData.getCreatedDate());
+						folderMetaData = metaData;
+						break;
+					}
+				}
+
+				if (folderMetaData == null) {
+					// create new folder
+					Timber.d("root folder not found, creating new one");
+					appRootId = createNewFolder(Drive.DriveApi.getRootFolder(client), appRootFolderName).getDriveId();
+
+				} else {
+					// get id
+					Timber.d("found existing app root folder");
+					Timber.d("see " + folderMetaData.getWebViewLink());
+					appRootId = folderMetaData.getDriveId();
+				}
+
+				// store id
+				appRootFolderIdPref.set(appRootId.encodeToString());
+				return Observable.just(null);
+			}
+		});
+	}
+
+
+	/**
+	 * @return the root folder for this app. All application data should be stored there
+	 */
+	private DriveFolder getAppRootFolder() {
+		DriveId folderId = DriveId.decodeFromString(appRootFolderIdPref.get());
+		return Drive.DriveApi.getFolder(googleApiClientManager.getGoogleApiClient(), folderId);
+	}
+
+
+	private DriveFolder createNewFolder(DriveFolder parentFolder, String folderName) {
+		GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+		MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(folderName).build();
+		return parentFolder.createFolder(client, changeSet).await().getDriveFolder();
 	}
 
 
