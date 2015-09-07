@@ -79,7 +79,7 @@ public class VideoConversionService extends RoboService {
 				.setContentIntent(createConversionActivityIntent(null));
 		notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
 
-		videoService.createVideo(new FaceMetaData(face.getId()))
+		videoService.createVideo(new FaceMetaData(face.getName()))
 				.compose(new DefaultTransformer<VideoConversionStatus>())
 				.subscribe(new Action1<VideoConversionStatus>() {
 					@Override

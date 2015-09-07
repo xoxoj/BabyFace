@@ -43,7 +43,7 @@ public class VideoResource {
 	@POST
 	public Status createVideo(@Auth User user, FaceInfo faceInfo) throws Exception {
 		Drive drive = driveApiFactory.createDriveApi(user.getToken());
-		VideoConversionStatus status = videoManager.createVideo(drive, faceInfo.getFaceId());
+		VideoConversionStatus status = videoManager.createVideo(drive, faceInfo.getFaceName());
 		return new Status(status);
 	}
 
@@ -84,15 +84,15 @@ public class VideoResource {
 
 	public static class FaceInfo {
 
-		private final String faceId;
+		private final String faceName;
 
 		@JsonCreator
-		public FaceInfo(@JsonProperty("faceId") String faceId) {
-			this.faceId = faceId;
+		public FaceInfo(@JsonProperty("faceName") String faceName) {
+			this.faceName = faceName;
 		}
 
-		public String getFaceId() {
-			return faceId;
+		public String getFaceName() {
+			return faceName;
 		}
 
 	}

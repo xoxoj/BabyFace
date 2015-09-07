@@ -23,21 +23,19 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 
 	public static final String EXTRA_FACE = "EXTRA_FACE";
 
-	private static final int NOTIFICATION_ID = 43;
-
 	@Inject private ReminderManager reminderManager;
 	@Inject private NotificationManager notificationManager;
 
 	@Override
 	protected void handleReceive(Context context, Intent intent) {
 		Face face = intent.getParcelableExtra(EXTRA_FACE);
-		Timber.d("triggered reminder for face " + face.getId());
+		Timber.d("triggered reminder for face " + face.getName());
 		reminderManager.onReminderTriggered(face);
-		final int notificationId = face.getId().hashCode();
+		final int notificationId = faceToNotificationId(face);
 
 		// build the photo taking intent
 		Intent photoIntent = new Intent(context, CapturePhotoActivity.class);
-		photoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, face.getId());
+		photoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_NAME, face.getName());
 		photoIntent.putExtra(CapturePhotoActivity.EXTRA_NOTIFICATION_ID, notificationId);
 		photoIntent.putExtra(CapturePhotoActivity.EXTRA_UPLOAD_PHOTO, true);
 		PendingIntent photoPendingIntent = PendingIntent.getActivity(context, 0, photoIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -53,7 +51,12 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 				.addAction(new NotificationCompat.Action.Builder(R.drawable.ic_photo_camera_white_24dp, context.getString(R.string.take_photo), photoPendingIntent).build())
 				.build();
 
-		notificationManager.notify(face.getId().hashCode(), notification);
+		notificationManager.notify(faceToNotificationId(face), notification);
+	}
+
+
+	private int faceToNotificationId(Face face) {
+		return face.getName().hashCode();
 	}
 
 }

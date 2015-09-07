@@ -10,30 +10,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.roboguice.shaded.goole.common.base.Objects;
 
-import java.util.UUID;
-
 /**
  * Information about one face (person).
  */
 public class Face implements Parcelable {
 
-	private final String id;
 	private final String name;
 	private final long reminderPeriodInSeconds;
 
 	@JsonCreator
 	public Face(
-			@JsonProperty("id") String id,
 			@JsonProperty("name") String name,
 			@JsonProperty("reminderPeriodInSeconds") long reminderPeriodInSeconds) {
 
-		this.id = id;
 		this.name = name;
 		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
-	}
-
-	public String getId() {
-		return id;
 	}
 
 	public String getName() {
@@ -46,12 +37,12 @@ public class Face implements Parcelable {
 
 	@JsonIgnore
 	public String getPhotoFolderName() {
-		return id;
+		return name;
 	}
 
 	@Override
 	public String toString() {
-		return "[id = " + id + ", name = " + name + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
+		return "[name = " + name + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds + "]";
 	}
 
 	@Override
@@ -60,17 +51,15 @@ public class Face implements Parcelable {
 		if (o == null || getClass() != o.getClass()) return false;
 		Face face = (Face) o;
 		return Objects.equal(reminderPeriodInSeconds, face.reminderPeriodInSeconds) &&
-				Objects.equal(id, face.id) &&
 				Objects.equal(name, face.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(id, name, reminderPeriodInSeconds);
+		return Objects.hashCode(name, reminderPeriodInSeconds);
 	}
 
 	protected Face(Parcel in) {
-		id = in.readString();
 		name = in.readString();
 		reminderPeriodInSeconds = in.readLong();
 	}
@@ -82,7 +71,6 @@ public class Face implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeString(id);
 		dest.writeString(name);
 		dest.writeLong(reminderPeriodInSeconds);
 	}
@@ -102,13 +90,8 @@ public class Face implements Parcelable {
 
 	public static class Builder {
 
-		private final String id;
 		private String name;
 		private long reminderPeriodInSeconds;
-
-		public Builder() {
-			this.id = UUID.randomUUID().toString();
-		}
 
 		public Builder setName(String name) {
 			this.name = name;
@@ -120,10 +103,6 @@ public class Face implements Parcelable {
 			return this;
 		}
 
-		public String getId() {
-			return id;
-		}
-
 		public String getName() {
 			return name;
 		}
@@ -133,7 +112,7 @@ public class Face implements Parcelable {
 		}
 
 		public Face build() {
-			return new Face(id, name, reminderPeriodInSeconds);
+			return new Face(name, reminderPeriodInSeconds);
 		}
 
 	}

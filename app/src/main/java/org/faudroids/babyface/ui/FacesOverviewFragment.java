@@ -98,7 +98,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 
 			case REQUEST_TAKE_PHOTO:
 				if (resultCode != Activity.RESULT_OK) return;
-				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
+				photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace), profileView);
 				break;
 
 			case REQUEST_SHOW_SETTINGS:
@@ -147,7 +147,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 							// fill face details
 							final Face face = faces.get(i);
 							nameView.setText(face.getName());
-							photoUtils.loadImage(photoManager.getRecentPhoto(face.getId()), imageView);
+							photoUtils.loadImage(photoManager.getRecentPhoto(face), imageView);
 							imageView.setOnClickListener(new View.OnClickListener() {
 								@Override
 								public void onClick(View v) {
@@ -184,13 +184,13 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 	private void setupSelectedFace(final Face face) {
 		this.selectedFace = face;
 		nameView.setText(face.getName());
-		photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace.getId()), profileView);
+		photoUtils.loadImage(photoManager.getRecentPhoto(selectedFace), profileView);
 
 		takePhotoView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Intent capturePhotoIntent = new Intent(getActivity(), CapturePhotoActivity.class);
-				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, selectedFace.getId());
+				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_NAME, selectedFace.getName());
 				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_UPLOAD_PHOTO, true);
 				startActivityForResult(capturePhotoIntent, REQUEST_TAKE_PHOTO);
 			}

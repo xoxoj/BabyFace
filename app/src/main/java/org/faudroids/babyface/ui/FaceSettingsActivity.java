@@ -71,7 +71,7 @@ public class FaceSettingsActivity extends AbstractActivity {
 											@Override
 											public void call(Throwable throwable) {
 												// TODO error handling
-												Timber.e(throwable, "failed to delete face with id " + face.getId());
+												Timber.e(throwable, "failed to delete face with name " + face.getName());
 											}
 										});
 							}

@@ -8,14 +8,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class FaceMetaData {
 
-	private final String faceId;
+	private final String faceName;
 
 	@JsonCreator
-	public FaceMetaData(@JsonProperty("faceId") String faceId) {
-		this.faceId = faceId;
+	public FaceMetaData(@JsonProperty("faceName") String faceName) {
+		this.faceName = faceName;
 	}
 
-	public String getFaceId() {
-		return faceId;
+	public String getFaceName() {
+		return faceName;
 	}
 }

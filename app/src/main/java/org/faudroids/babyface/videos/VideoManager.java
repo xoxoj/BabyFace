@@ -110,7 +110,7 @@ public class VideoManager {
 
 	private File getFaceDir(Face face) {
 		File rootDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), context.getString(R.string.app_name));
-		return new File(rootDir, face.getId());
+		return new File(rootDir, face.getPhotoFolderName());
 	}
 
 }

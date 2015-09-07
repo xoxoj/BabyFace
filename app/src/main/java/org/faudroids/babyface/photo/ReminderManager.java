@@ -46,7 +46,7 @@ public class ReminderManager {
 
 
 	public void addReminder(Face face) {
-		Timber.d("adding reminder for " + face.getId());
+		Timber.d("adding reminder for " + face.getName());
 		long firstReminderTimestamp = System.currentTimeMillis() + face.getReminderPeriodInSeconds() * 1000;
 		long interval = face.getReminderPeriodInSeconds() * 1000;
 		int reminderId = addReminderToPrefs(face, firstReminderTimestamp);
@@ -60,7 +60,7 @@ public class ReminderManager {
 
 
 	public void removeReminder(Face face) {
-		Timber.d("removing reminder for " + face.getId());
+		Timber.d("removing reminder for " + face.getName());
 		int reminderId = removeReminderFromPrefs(face);
 		alarmManager.cancel(createPendingIntent(face, reminderId));
 	}
@@ -162,7 +162,7 @@ public class ReminderManager {
 
 
 	private String toKey(Face face, String property) {
-		return toKey(face.getId(), property);
+		return toKey(face.getName(), property);
 	}
 
 

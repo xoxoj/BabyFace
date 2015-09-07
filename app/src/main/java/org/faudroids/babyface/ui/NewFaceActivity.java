@@ -252,7 +252,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					@Override
 					public void onClick(View v) {
 						Intent capturePhotoIntent = new Intent(NewFaceActivity.this, CapturePhotoActivity.class);
-						capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_ID, faceBuilder.getId());
+						capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_NAME, faceBuilder.getName());
 						startActivityForResult(capturePhotoIntent, REQUEST_CAPTURE_IMAGE);
 					}
 				});
@@ -263,16 +263,16 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			public void onDataUpdated(Intent data) {
 
 				// toggle preview of photo
-				if (photoManager.getRecentPhoto(faceBuilder.getId()).isPresent()) {
+				if (photoManager.getRecentPhoto(faceBuilder.getName()).isPresent()) {
 					cameraView.setVisibility(View.GONE);
 					photoContainer.setVisibility(View.VISIBLE);
-					photoUtils.loadImage(photoManager.getRecentPhoto(faceBuilder.getId()), photoView, R.dimen.profile_image_size_extra_large);
+					photoUtils.loadImage(photoManager.getRecentPhoto(faceBuilder.getName()), photoView, R.dimen.profile_image_size_extra_large);
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoContainer.setVisibility(View.GONE);
 				}
 
-				inputListener.onInputChanged(photoManager.getRecentPhoto(faceBuilder.getId()).isPresent());
+				inputListener.onInputChanged(photoManager.getRecentPhoto(faceBuilder.getName()).isPresent());
 			}
 
 		};

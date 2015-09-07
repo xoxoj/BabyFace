@@ -46,8 +46,8 @@ import timber.log.Timber;
  * The general workflow is as follows:
  *
  * 1. Take photo and store in temp internal file
- * 2. Copy temp photo file to /faceId/uploads (indicates which photos have to be uploaded) if user accepts photo
- * 3. Upload to google drive + on success move photo to /faceId locally
+ * 2. Copy temp photo file to /faceName/uploads (indicates which photos have to be uploaded) if user accepts photo
+ * 3. Upload to google drive + on success move photo to /faceName locally
  *
  */
 public class PhotoManager {
@@ -71,16 +71,16 @@ public class PhotoManager {
 	}
 
 
-	public PhotoCreationResult createPhotoIntent(String faceId) throws IOException {
+	public PhotoCreationResult createPhotoIntent(String faceName) throws IOException {
 		File tmpPhotoFile = getTmpPhotoFile();
 		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tmpPhotoFile));
-		return new PhotoCreationResult(takePictureIntent, faceId, tmpPhotoFile);
+		return new PhotoCreationResult(takePictureIntent, faceName, tmpPhotoFile);
 	}
 
 
 	public void onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
-		final String faceId = photoCreationResult.faceId;
+		final String faceName = photoCreationResult.faceName;
 		final File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
 
 		// process image (resize + finding faces)
@@ -89,8 +89,8 @@ public class PhotoManager {
 		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 
 		// copy image to internal storage
-		final String photoFileName = faceId + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
-		File internalImageFile = new File(getUploadsDir(faceId), photoFileName);
+		final String photoFileName = faceName + "_" + PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
+		File internalImageFile = new File(getUploadsDir(faceName), photoFileName);
 		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
 		// delete public file
@@ -134,8 +134,8 @@ public class PhotoManager {
 				.flatMap(new Func1<File, Observable<PhotoUploadContainer>>() {
 					@Override
 					public Observable<PhotoUploadContainer> call(final File photoFile) {
-						final String faceId = photoFile.getParentFile().getParentFile().getName();
-						return googleDriveManager.query(faceId, false)
+						final String faceName = photoFile.getParentFile().getParentFile().getName();
+						return googleDriveManager.query(faceName, false)
 								.flatMap(new Func1<Optional<DriveId>, Observable<PhotoUploadContainer>>() {
 									@Override
 									public Observable<PhotoUploadContainer> call(Optional<DriveId> driveIdOptional) {
@@ -143,7 +143,7 @@ public class PhotoManager {
 
 										// create folder
 										return googleDriveManager
-												.createNewFolder(faceId)
+												.createNewFolder(faceName)
 												.map(new Func1<DriveId, PhotoUploadContainer>() {
 													@Override
 													public PhotoUploadContainer call(DriveId driveId) {
@@ -192,10 +192,15 @@ public class PhotoManager {
 	}
 
 
-	public Optional<File> getRecentPhoto(String faceId) {
-		File uploadsDir = getUploadsDir(faceId);
+	public Optional<File> getRecentPhoto(Face face) {
+		return getRecentPhoto(face.getName());
+	}
+
+
+	public Optional<File> getRecentPhoto(String faceName) {
+		File uploadsDir = getUploadsDir(faceName);
 		List<File> files = Lists.newArrayList(uploadsDir.listFiles());
-		File faceDir = getFaceDir(faceId);
+		File faceDir = getFaceDir(faceName);
 		for (File photoFile : faceDir.listFiles()) {
 			if (!photoFile.isDirectory()) files.add(photoFile);
 		}
@@ -219,8 +224,8 @@ public class PhotoManager {
 	/**
 	 * Returns the internal (!) root directory for one face.
 	 */
-	private File getFaceDir(String faceId) {
-		File faceDir = new File(context.getFilesDir(), faceId);
+	private File getFaceDir(String faceName) {
+		File faceDir = new File(context.getFilesDir(), faceName);
 		if (!faceDir.exists() && !faceDir.mkdirs()) {
 			Timber.e("failed to create dir " + faceDir.getAbsolutePath());
 		}
@@ -231,8 +236,8 @@ public class PhotoManager {
 	/**
 	 * Returns the internal (!) uploads directory for one face.
 	 */
-	private File getUploadsDir(String faceId) {
-		File uploadsDir = new File(getFaceDir(faceId), INTERNAL_UPLOADS_DIR);
+	private File getUploadsDir(String faceName) {
+		File uploadsDir = new File(getFaceDir(faceName), INTERNAL_UPLOADS_DIR);
 		if (!uploadsDir.exists() && !uploadsDir.mkdirs()) {
 			Timber.e("failed to create dir " + uploadsDir.getAbsolutePath());
 		}
@@ -265,12 +270,12 @@ public class PhotoManager {
 	public static class PhotoCreationResult implements Parcelable {
 
 		private final Intent photoCaptureIntent;
-		private final String faceId;
+		private final String faceName;
 		private final File tmpPhotoFile;
 
-		private PhotoCreationResult(Intent photoCaptureIntent, String faceId, File tmpPhotoFile) {
+		private PhotoCreationResult(Intent photoCaptureIntent, String faceName, File tmpPhotoFile) {
 			this.photoCaptureIntent = photoCaptureIntent;
-			this.faceId = faceId;
+			this.faceName = faceName;
 			this.tmpPhotoFile = tmpPhotoFile;
 		}
 
@@ -278,8 +283,8 @@ public class PhotoManager {
 			return photoCaptureIntent;
 		}
 
-		public String getFaceId() {
-			return faceId;
+		public String getFaceName() {
+			return faceName;
 		}
 
 		private File getTmpPhotoFile() {
@@ -288,7 +293,7 @@ public class PhotoManager {
 
 		protected PhotoCreationResult(Parcel in) {
 			photoCaptureIntent = (Intent) in.readValue(Intent.class.getClassLoader());
-			faceId = in.readString();
+			faceName = in.readString();
 			tmpPhotoFile = (File) in.readSerializable();
 		}
 
@@ -300,7 +305,7 @@ public class PhotoManager {
 		@Override
 		public void writeToParcel(Parcel dest, int flags) {
 			dest.writeValue(photoCaptureIntent);
-			dest.writeString(faceId);
+			dest.writeString(faceName);
 			dest.writeSerializable(tmpPhotoFile);
 		}
 

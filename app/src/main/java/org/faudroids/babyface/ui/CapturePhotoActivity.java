@@ -20,7 +20,7 @@ import timber.log.Timber;
 public class CapturePhotoActivity extends AbstractActivity {
 
 	public static final String
-			EXTRA_FACE_ID = "EXTRA_FACE_ID",
+			EXTRA_FACE_NAME = "EXTRA_FACE_NAME",
 			EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID",
 			EXTRA_UPLOAD_PHOTO = "EXTRA_UPLOAD_PHOTO";
 
@@ -31,14 +31,14 @@ public class CapturePhotoActivity extends AbstractActivity {
 	@Inject private PhotoManager photoManager;
 	@Inject private NotificationManager notificationManager;
 
-	private String faceId;
+	private String faceName;
 	private PhotoManager.PhotoCreationResult photoCreationResult;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		final Intent intent = getIntent();
-		faceId = intent.getStringExtra(EXTRA_FACE_ID);
+		faceName = intent.getStringExtra(EXTRA_FACE_NAME);
 
 		if (savedInstanceState != null) {
 			photoCreationResult = savedInstanceState.getParcelable(STATE_PHOTO);
@@ -58,7 +58,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 	private void startPhotoCapture() {
 		try {
-			photoCreationResult = photoManager.createPhotoIntent(faceId);
+			photoCreationResult = photoManager.createPhotoIntent(faceName);
 			startActivityForResult(photoCreationResult.getPhotoCaptureIntent(), REQUEST_CAPTURE_PHOTO);
 
 		} catch (IOException e) {

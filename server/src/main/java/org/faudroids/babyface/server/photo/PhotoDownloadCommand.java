@@ -29,16 +29,16 @@ public class PhotoDownloadCommand {
 	private static final int DOWNLOAD_THREAD_COUNT = 10;
 
 	private final Drive drive;
-	private final String faceId;
+	private final String faceName;
 	private final java.io.File targetDirectory;
 	private final List<File> photoFilesToDownload = new ArrayList<>();
 
 	final AtomicInteger downloadedPhotos = new AtomicInteger(0);
 	final ExecutorService threadPool = Executors.newFixedThreadPool(DOWNLOAD_THREAD_COUNT);
 
-	private PhotoDownloadCommand(Drive drive, String faceId, java.io.File targetDirectory, Optional<File> photoFile) {
+	private PhotoDownloadCommand(Drive drive, String faceName, java.io.File targetDirectory, Optional<File> photoFile) {
 		this.drive = drive;
-		this.faceId = faceId;
+		this.faceName = faceName;
 		this.targetDirectory = targetDirectory;
 		if (photoFile.isPresent()) photoFilesToDownload.add(photoFile.get());
 	}
@@ -60,8 +60,8 @@ public class PhotoDownloadCommand {
 		ChildReference appRootDir = files.get(0);
 
 		// find face folder
-		List<ChildReference> facesFolders = drive.children().list(appRootDir.getId()).setQ("title='" + faceId + "'").execute().getItems();
-		if (facesFolders.isEmpty()) throw new IllegalStateException("failed to find face dir '" + faceId + "'");
+		List<ChildReference> facesFolders = drive.children().list(appRootDir.getId()).setQ("title='" + faceName + "'").execute().getItems();
+		if (facesFolders.isEmpty()) throw new IllegalStateException("failed to find face dir '" + faceName + "'");
 		ChildReference faceDir = facesFolders.get(0);
 
 		// get all files to download
@@ -110,13 +110,13 @@ public class PhotoDownloadCommand {
 	public static class Builder {
 
 		private final Drive drive;
-		private final String faceId;
+		private final String faceName;
 		private final java.io.File targetDirectory;
 		private Optional<File> photoFileToDownload = Optional.absent();
 
-		public Builder(Drive drive, String faceId, java.io.File targetDirectory) {
+		public Builder(Drive drive, String faceName, java.io.File targetDirectory) {
 			this.drive = drive;
-			this.faceId = faceId;
+			this.faceName = faceName;
 			this.targetDirectory = targetDirectory;
 		}
 
@@ -126,7 +126,7 @@ public class PhotoDownloadCommand {
 		}
 
 		public PhotoDownloadCommand build() {
-			return new PhotoDownloadCommand(drive, faceId, targetDirectory, photoFileToDownload);
+			return new PhotoDownloadCommand(drive, faceName, targetDirectory, photoFileToDownload);
 		}
 
 	}
