@@ -23,7 +23,7 @@ public class ImgMat {
      * @param rows Image rows
      * @param cols Image columns
      */
-    ImgMat(int rows, int cols) {
+    public ImgMat(int rows, int cols) {
         this.cols = cols;
         this.rows = rows;
 
@@ -49,7 +49,7 @@ public class ImgMat {
      * @param cols Image columns
      * @param values Pixel values
      */
-    ImgMat(int rows, int cols, int[] values) {
+    public ImgMat(int rows, int cols, int[] values) {
         this.rows = rows;
         this.cols = cols;
 
@@ -79,7 +79,7 @@ public class ImgMat {
      */
     public static ImgMat fromBitmap(Bitmap input) {
         int[] pixelValues = new int[input.getHeight() * input.getWidth()];
-        input.getPixels(pixelValues, 0, 1, 0, 0, input.getWidth(), input.getHeight());
+        input.getPixels(pixelValues, 0, input.getWidth(), 0, 0, input.getWidth(), input.getHeight());
 
         return new ImgMat(input.getHeight(), input.getWidth(), pixelValues);
     }
@@ -89,7 +89,7 @@ public class ImgMat {
      * Exports an {@link ImgMat} object to {@link Bitmap} image
      * @return {@link Bitmap} image
      */
-    Bitmap toBitmap() {
+    public Bitmap toBitmap() {
         int index = 0;
 
         int[] pixelValues = new int[this.rows * this.cols];
@@ -115,7 +115,7 @@ public class ImgMat {
      * @param col x-coordinate
      * @return double array holding alpha, red, green and blue channel values
      */
-    double[] at(int row, int col) {
+    public double[] at(int row, int col) {
         return new double[]{ this.alpha[row][col],
                              this.red[row][col],
                              this.green[row][col],
@@ -129,7 +129,7 @@ public class ImgMat {
      * @param col x-coordinate
      * @param values double array holding the new alpha, red, green and blue channel values
      */
-    void at(int row, int col, double[] values) {
+    public void at(int row, int col, double[] values) {
         this.alpha[row][col] = values[0];
         this.red[row][col] = values[1];
         this.green[row][col] = values[2];
@@ -141,7 +141,7 @@ public class ImgMat {
      * Returns the red channel
      * @return double[][] array containing the red channel values
      */
-    double[][] red() {
+    public double[][] red() {
         return this.red;
     }
 
@@ -150,7 +150,7 @@ public class ImgMat {
      * Returns the green channel
      * @return double[][] array containing the green channel values
      */
-    double[][] green() {
+    public double[][] green() {
         return this.green;
     }
 
@@ -159,7 +159,7 @@ public class ImgMat {
      * Returns the blue channel
      * @return double[][] array containing the blue channel values
      */
-    double[][] blue() {
+    public double[][] blue() {
         return this.blue;
     }
 
@@ -168,7 +168,7 @@ public class ImgMat {
      * Returns the alpha channel
      * @return double[][] array containing the alpha channel values
      */
-    double[][] alpha() {
+    public double[][] alpha() {
         return this.alpha;
     }
 }
