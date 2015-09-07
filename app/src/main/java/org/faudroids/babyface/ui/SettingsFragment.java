@@ -9,10 +9,8 @@ import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.plus.Plus;
-
 import org.faudroids.babyface.R;
+import org.faudroids.babyface.auth.AuthManager;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 
 import javax.inject.Inject;
@@ -28,6 +26,7 @@ public class SettingsFragment extends AbstractFragment {
 	@InjectView(R.id.creditsTextView) private TextView credits;
 	@InjectView(R.id.logoutTextView) private TextView logout;
 
+	@Inject private AuthManager authManager;
 	@Inject private GoogleApiClientManager googleApiClientManager;
 
 
@@ -48,12 +47,9 @@ public class SettingsFragment extends AbstractFragment {
 
 		logout.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
-				Plus.AccountApi.clearDefaultAccount(client);
-				client.disconnect();
-				client.connect();
+				authManager.signOut(googleApiClientManager.getGoogleApiClient());
 				getActivity().finish();
-				startActivity(new Intent(getActivity(), MainDrawerActivity.class));
+				startActivity(new Intent(getActivity(), LoginActivity.class));
 			}
 		});
 	}

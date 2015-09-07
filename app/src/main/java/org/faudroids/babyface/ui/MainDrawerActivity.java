@@ -5,7 +5,6 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,12 +12,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.plus.Plus;
-import com.google.android.gms.plus.model.people.Person;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
@@ -30,24 +23,20 @@ import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
-import org.faudroids.babyface.google.ConnectionListener;
-import org.faudroids.babyface.utils.DefaultTransformer;
+import org.faudroids.babyface.auth.Account;
+import org.faudroids.babyface.auth.AuthManager;
+
+import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func0;
-import timber.log.Timber;
 
 
 @ContentView(R.layout.activity_main)
-public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDrawerItemClickListener, ConnectionListener {
+public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDrawerItemClickListener {
 
 	private static final String
 			STATE_FRAGMENT = "FRAGMENT",
 			STATE_FRAGMENT_ID = "FRAGMENT_ID";
-
-    private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 43;
 
 	private static final int
 			ID_SHOW_FACES = 0,
@@ -57,6 +46,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 	private Drawer drawer;
 	private AccountHeader accountHeader;
+	@Inject private AuthManager authManager;
 
 	private int visibleFragmentId = ID_SHOW_FACES;
 	private Fragment visibleFragment;
@@ -96,13 +86,24 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		});
 
 		// setup account in nav drawer
+		Account account = authManager.getAccount();
 		accountHeader = new AccountHeaderBuilder()
 				.withActivity(this)
 				.withProfileImagesClickable(false)
 				.withSelectionListEnabledForSingleProfile(false)
 				.withSavedInstance(savedInstanceState)
 				.withHeaderBackground(R.drawable.drawer_background)
+				.addProfiles(
+						new ProfileDrawerItem()
+								.withName(account.getName())
+								.withEmail(account.getEmail())
+								.withIcon(Uri.parse(account.getImageUrl()))
+				)
 				.build();
+
+		// show first fragment
+		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
+		else showFragment(visibleFragment, true);
 
 		// setup actual nav drawer
 		drawer = new DrawerBuilder()
@@ -183,19 +184,6 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 	}
 
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        googleApiClientManager.registerListener(this);
-    }
-
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        googleApiClientManager.unregisterListener(this);
-    }
-
 
 	@Override
 	public void onBackPressed() {
@@ -216,90 +204,5 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 		this.backPressedListener = null;
 	}
 
-
-    @Override
-    public void onConnected(Bundle bundle) {
-		// setup account header
-		Person person = Plus.PeopleApi.getCurrentPerson(googleApiClientManager.getGoogleApiClient());
-		accountHeader.clear();
-		accountHeader.addProfiles(
-				new ProfileDrawerItem().withName(person.getName().getGivenName() + " " + person.getName().getFamilyName())
-						.withEmail(Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()))
-						.withIcon(Uri.parse(person.getImage().getUrl()).buildUpon().clearQuery().build().toString())
-		);
-
-		// show first fragment
-		if (visibleFragment == null) showFragment(new FacesOverviewFragment(), false);
-		else showFragment(visibleFragment, true);
-
-		// TODO
-		// printGoogleAuthToken();
-    }
-
-
-    @Override
-    public void onConnectionSuspended(int i) { }
-
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        // missing play services etc.
-        if (!connectionResult.hasResolution()) {
-            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), MainDrawerActivity.this, 0).show();
-            return;
-        }
-
-        // try resolving error
-        try {
-            connectionResult.startResolutionForResult(MainDrawerActivity.this, REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION);
-        } catch (IntentSender.SendIntentException e) {
-            Timber.e(e, "failed to resolve connection error");
-        }
-    }
-
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION:
-                googleApiClientManager.getGoogleApiClient().connect();
-                break;
-        }
-    }
-
-
-	private void printGoogleAuthToken() {
-		Observable
-				.defer(new Func0<Observable<String>>() {
-					@Override
-					public Observable<String> call() {
-						try {
-							String scope = "oauth2:" + Drive.SCOPE_APPFOLDER.toString();
-							Timber.d("scope is " + scope);
-							String token = GoogleAuthUtil.getToken(
-									MainDrawerActivity.this,
-									Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()),
-									scope);
-							return Observable.just(token);
-						} catch (Exception e) {
-							return Observable.error(e);
-						}
-					}
-				})
-				.compose(new DefaultTransformer<String>())
-				.subscribe(new Action1<String>() {
-					@Override
-					public void call(String token) {
-						Timber.d("google auth token: " + token);
-					}
-				}, new Action1<Throwable>() {
-					@Override
-					public void call(Throwable throwable) {
-						Timber.e(throwable, "failed to get token");
-					}
-				});
-
-
-	}
 
 }

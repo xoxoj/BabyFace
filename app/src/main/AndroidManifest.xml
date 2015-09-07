@@ -20,7 +20,7 @@
         android:name=".app.BabyFaceApp"
         >
         <activity
-            android:name=".ui.MainDrawerActivity"
+            android:name=".ui.LoginActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>
@@ -28,6 +28,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.MainDrawerActivity"
+            android:screenOrientation="portrait"
+            />
         <activity
             android:name=".ui.NewFaceActivity"
             android:screenOrientation="portrait"
