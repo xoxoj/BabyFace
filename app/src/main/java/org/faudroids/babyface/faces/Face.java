@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.faudroids.babyface.photo.ReminderPeriod;
 import org.roboguice.shaded.goole.common.base.Objects;
 
 /**
@@ -17,17 +18,17 @@ public class Face implements Parcelable {
 
 	private final String name;
 
-	private long reminderPeriodInSeconds;
+	private ReminderPeriod reminderPeriod;
 	private int reminderId;			// id used by android alarm framework
 	private long lastReminderTrigger; // when alarm for this face was last triggered
 
 	@JsonCreator
 	public Face(
 			@JsonProperty("name") String name,
-			@JsonProperty("reminderPeriodInSeconds") long reminderPeriodInSeconds) {
+			@JsonProperty("reminderPeriod") ReminderPeriod reminderPeriod) {
 
 		this.name = name;
-		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
+		this.reminderPeriod = reminderPeriod;
 	}
 
 	public String getName() {
@@ -40,12 +41,12 @@ public class Face implements Parcelable {
 	}
 
 
-	public long getReminderPeriodInSeconds() {
-		return reminderPeriodInSeconds;
+	public ReminderPeriod getReminderPeriod() {
+		return reminderPeriod;
 	}
 
-	public void setReminderPeriodInSeconds(long reminderPeriodInSeconds) {
-		this.reminderPeriodInSeconds = reminderPeriodInSeconds;
+	public void setReminderPeriod(ReminderPeriod reminderPeriod) {
+		this.reminderPeriod = reminderPeriod;
 	}
 
 	public int getReminderId() {
@@ -66,7 +67,7 @@ public class Face implements Parcelable {
 
 	@Override
 	public String toString() {
-		return "[name = " + name + ", reminderPeriodInSeconds = " + reminderPeriodInSeconds
+		return "[name = " + name + ", reminderPeriod = " + reminderPeriod
 				+ ", reminderId = " + reminderId + ", lastReminderTrigger = " + lastReminderTrigger + "]";
 	}
 
@@ -75,7 +76,7 @@ public class Face implements Parcelable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Face face = (Face) o;
-		return Objects.equal(reminderPeriodInSeconds, face.reminderPeriodInSeconds) &&
+		return Objects.equal(reminderPeriod, face.reminderPeriod) &&
 				Objects.equal(name, face.name) &&
 				Objects.equal(reminderId, face.reminderId) &&
 				Objects.equal(lastReminderTrigger, face.lastReminderTrigger);
@@ -83,12 +84,12 @@ public class Face implements Parcelable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(name, reminderPeriodInSeconds, reminderId, lastReminderTrigger);
+		return Objects.hashCode(name, reminderPeriod, reminderId, lastReminderTrigger);
 	}
 
 	protected Face(Parcel in) {
 		name = in.readString();
-		reminderPeriodInSeconds = in.readLong();
+		reminderPeriod = in.readParcelable(ReminderPeriod.class.getClassLoader());
 		reminderId = in.readInt();
 		lastReminderTrigger = in.readLong();
 	}
@@ -101,7 +102,7 @@ public class Face implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(name);
-		dest.writeLong(reminderPeriodInSeconds);
+		dest.writeParcelable(reminderPeriod, 0);
 		dest.writeInt(reminderId);
 		dest.writeLong(lastReminderTrigger);
 	}
@@ -122,15 +123,10 @@ public class Face implements Parcelable {
 	public static class Builder {
 
 		private String name;
-		private long reminderPeriodInSeconds;
+		private ReminderPeriod reminderPeriod;
 
 		public Builder setName(String name) {
 			this.name = name;
-			return this;
-		}
-
-		public Builder setReminderPeriodInSeconds(long reminderPeriodInSeconds) {
-			this.reminderPeriodInSeconds = reminderPeriodInSeconds;
 			return this;
 		}
 
@@ -138,12 +134,17 @@ public class Face implements Parcelable {
 			return name;
 		}
 
-		public long getReminderPeriodInSeconds() {
-			return reminderPeriodInSeconds;
+		public Builder setReminderPeriod(ReminderPeriod reminderPeriod) {
+			this.reminderPeriod = reminderPeriod;
+			return this;
+		}
+
+		public ReminderPeriod getReminderPeriod() {
+			return reminderPeriod;
 		}
 
 		public Face build() {
-			return new Face(name, reminderPeriodInSeconds);
+			return new Face(name, reminderPeriod);
 		}
 
 	}

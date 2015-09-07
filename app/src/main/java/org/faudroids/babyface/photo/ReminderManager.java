@@ -39,8 +39,8 @@ public class ReminderManager {
 		Timber.d("adding reminder for " + face.getName());
 
 		// get first trigger timestamp
-		long firstReminderTimestamp = System.currentTimeMillis() + face.getReminderPeriodInSeconds() * 1000;
-		long interval = face.getReminderPeriodInSeconds() * 1000;
+		long firstReminderTimestamp = System.currentTimeMillis() + face.getReminderPeriod().toSeconds() * 1000;
+		long interval = face.getReminderPeriod().toSeconds() * 1000;
 		int reminderId = reminderCounter.get();
 		reminderCounter.set(reminderId + 1);
 
@@ -84,7 +84,7 @@ public class ReminderManager {
 		for (Face face : faces) {
 			int reminderId = face.getReminderId();
 			long lastTrigger = face.getLastReminderTrigger();
-			long interval = face.getReminderPeriodInSeconds() * 1000;
+			long interval = face.getReminderPeriod().toSeconds() * 1000;
 
 			// only if reminder has not triggered before (!) add interval
 			if (lastTrigger <= System.currentTimeMillis()) {

@@ -288,9 +288,8 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			@Override
 			protected void doOnComplete() {
 				ReminderPeriod period = viewHandler.getReminderPeriod();
-				long updatePeriod = period.getAmount() * period.getUnitInSeconds();
-				Timber.d("setting reminder period to " + updatePeriod);
-				faceBuilder.setReminderPeriodInSeconds(updatePeriod);
+				Timber.d("setting reminder period to " + period);
+				faceBuilder.setReminderPeriod(period);
 				setProgress(Progress.STATUS_4);
 			}
 

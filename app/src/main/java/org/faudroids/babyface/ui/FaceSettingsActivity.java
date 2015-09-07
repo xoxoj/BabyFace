@@ -46,7 +46,7 @@ public class FaceSettingsActivity extends AbstractActivity {
 		super.onCreate(savedInstanceState);
 		final Face face = getIntent().getParcelableExtra(EXTRA_FACE);
 		nameTextView.setText(face.getName());
-		reminderTextView.setText(prettyPrintDuration(face.getReminderPeriodInSeconds()));
+		reminderTextView.setText(prettyPrintDuration(face.getReminderPeriod().toSeconds()));
 		deleteButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
