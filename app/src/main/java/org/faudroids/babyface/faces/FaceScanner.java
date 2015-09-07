@@ -16,7 +16,9 @@ import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -29,12 +31,14 @@ import timber.log.Timber;
  */
 public class FaceScanner {
 
+	private final FacesManager facesManager;
 	private final GoogleApiClientManager googleApiClientManager;
 	private final GoogleDriveManager driveManager;
 	private final PhotoManager photoManager;
 
 	@Inject
-	FaceScanner(GoogleApiClientManager googleApiClientManager, GoogleDriveManager driveManager, PhotoManager photoManager) {
+	FaceScanner(FacesManager facesManager, GoogleApiClientManager googleApiClientManager, GoogleDriveManager driveManager, PhotoManager photoManager) {
+		this.facesManager = facesManager;
 		this.googleApiClientManager = googleApiClientManager;
 		this.driveManager = driveManager;
 		this.photoManager = photoManager;
@@ -48,6 +52,11 @@ public class FaceScanner {
 				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 				List<ImportableFace> result = Lists.newArrayList();
 
+				// get exiting faces
+				List<Face> existingFaces = facesManager.getFaces();
+				Set<String> existingFaceFolders = new HashSet<>();
+				for (Face existingFace : existingFaces) existingFaceFolders.add(existingFace.getPhotoFolderName());
+
 				// search for folders in app root folder
 				DriveFolder rootFolder = driveManager.getAppRootFolder();
 				MetadataBuffer queryResult = rootFolder
@@ -58,6 +67,9 @@ public class FaceScanner {
 				// search for images in those folders
 				Timber.d("found " + queryResult.getCount() + " potential face dirs");
 				for (Metadata folderMetadata : queryResult) {
+					// if face is already "imported" then skip it
+					if (existingFaceFolders.contains(folderMetadata.getTitle())) continue;
+
 					int imageCount = getImageCountInFaceDir(folderMetadata.getDriveId());
 					if (imageCount > 0) {
 						result.add(new ImportableFace(folderMetadata.getTitle(), imageCount));

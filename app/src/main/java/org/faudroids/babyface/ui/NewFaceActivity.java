@@ -86,7 +86,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 		final Face face = faceBuilder.build();
 		showProgressBar();
 		continueButton.setEnabled(false);
-		facesManager.addFace(face)
+		facesManager.addFaceAndInitPhotos(face)
 				.compose(new DefaultTransformer<Void>())
 				.subscribe(new Action1<Void>() {
 					@Override

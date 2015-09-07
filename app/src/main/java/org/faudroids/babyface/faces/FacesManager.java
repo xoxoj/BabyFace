@@ -43,11 +43,29 @@ public class FacesManager {
 	}
 
 
-	public Observable<Void> addFace(final Face face) {
+	/**
+	 * Stores the face and inits it's photo directory
+	 */
+	public Observable<Void> addFaceAndInitPhotos(final Face face) {
+		return photoManager
+				.addPhotoDir(face)
+				.flatMap(new Func1<Void, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(Void aVoid) {
+						addFace(face);
+						return Observable.just(null);
+					}
+				});
+	}
+
+
+	/**
+	 * Stores the face without any further initialization.
+	 */
+	public void addFace(final Face face) {
 		List<Face> faces = loadFaces();
 		faces.add(face);
 		storeFaces(faces);
-		return photoManager.addPhotoDir(face);
 	}
 
 

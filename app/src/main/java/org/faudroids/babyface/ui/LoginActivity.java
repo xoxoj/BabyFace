@@ -1,5 +1,7 @@
 package org.faudroids.babyface.ui;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -10,10 +12,15 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.plus.Plus;
 
+import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
+import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FaceScanner;
+import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
+import org.faudroids.babyface.photo.ReminderPeriod;
+import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.util.List;
@@ -35,7 +42,8 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
-	@Inject private FaceScanner faceSanner;
+	@Inject private FaceScanner faceScanner;
+	@Inject private FacesManager facesManager;
 
 
 	@Override
@@ -71,18 +79,44 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 				.flatMap(new Func1<Void, Observable<List<FaceScanner.ImportableFace>>>() {
 					@Override
 					public Observable<List<FaceScanner.ImportableFace>> call(Void aVoid) {
-						return faceSanner.scanGoogleDriveForFaces();
+						return faceScanner.scanGoogleDriveForFaces();
 					}
 				})
 				.compose(new DefaultTransformer<List<FaceScanner.ImportableFace>>())
 				.subscribe(new Action1<List<FaceScanner.ImportableFace>>() {
 					@Override
-					public void call(List<FaceScanner.ImportableFace> faces) {
+					public void call(final List<FaceScanner.ImportableFace> faces) {
 						Timber.d("found " + faces.size() + " faces to import");
 						for (FaceScanner.ImportableFace face : faces) {
-							Timber.d("face : " + face.getFaceName() + " with " + face.getImageCount() + " images");
+							Timber.d(face.getFaceName() + " with " + face.getImageCount() + " images");
 						}
-						startMainActivity();
+
+						if (faces.isEmpty()) {
+							startMainActivity();
+							return;
+						}
+
+						// ask user whether those faces should be "imported"
+						new AlertDialog.Builder(LoginActivity.this)
+								.setTitle(R.string.import_title)
+								.setMessage(getString(R.string.import_message, faces.size()))
+								.setPositiveButton(R.string.import_confirm, new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										for (FaceScanner.ImportableFace face : faces) {
+											facesManager.addFace(new Face(face.getFaceName(), new ReminderPeriod(ReminderUnit.MONTH, 0)));
+										}
+										startMainActivity();
+									}
+								})
+								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										startMainActivity();
+									}
+								})
+								.show();
+
 					}
 				});
 	}
