@@ -12,6 +12,7 @@ import android.widget.TextView;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
+import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
@@ -46,7 +47,7 @@ public class FaceSettingsActivity extends AbstractActivity {
 		super.onCreate(savedInstanceState);
 		final Face face = getIntent().getParcelableExtra(EXTRA_FACE);
 		nameTextView.setText(face.getName());
-		reminderTextView.setText(prettyPrintDuration(face.getReminderPeriod().toSeconds()));
+		reminderTextView.setText(prettyPrintDuration(face.getReminderPeriod()));
 		deleteButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -89,23 +90,32 @@ public class FaceSettingsActivity extends AbstractActivity {
 	}
 
 
-	private String prettyPrintDuration(long durationInSeconds) {
-		if (durationInSeconds / ReminderUnit.MONTH > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderUnit.MONTH, R.plurals.months);
-		} else if (durationInSeconds / ReminderUnit.WEEK> 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderUnit.WEEK, R.plurals.weeks);
-		} else if (durationInSeconds / ReminderUnit.DAY > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderUnit.DAY, R.plurals.days);
-		} else if (durationInSeconds / ReminderUnit.HOUR > 0) {
-			return prettyPrintDuration(durationInSeconds, ReminderUnit.HOUR, R.plurals.hours);
+	private String prettyPrintDuration(ReminderPeriod period) {
+		final long unit = period.getUnitInSeconds();
+		final int amount = period.getAmount();
+
+		if (amount == 0) {
+			return getString(R.string.never);
+
+		} else if (unit == ReminderUnit.MONTH) {
+			return prettyPrintDuration(amount, R.plurals.months);
+
+		} else if (unit == ReminderUnit.WEEK) {
+			return prettyPrintDuration(amount, R.plurals.weeks);
+
+		} else if (unit == ReminderUnit.DAY) {
+			return prettyPrintDuration(amount, R.plurals.days);
+
+		} else if (unit == ReminderUnit.HOUR) {
+			return prettyPrintDuration(amount, R.plurals.hours);
 		}
-		Timber.e("failed to pretty print duration " + durationInSeconds + " seconds");
+
+		Timber.e("failed to pretty print period " + period);
 		return "unknown";
 	}
 
 
-	private String prettyPrintDuration(long durationInSeconds, int durationUnit, @PluralsRes int pluralsRes) {
-		int amount = (int) (durationInSeconds / durationUnit);
+	private String prettyPrintDuration(int amount, @PluralsRes int pluralsRes) {
 		return amount + " " + getResources().getQuantityString(pluralsRes, amount);
 	}
 

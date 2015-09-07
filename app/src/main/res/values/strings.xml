@@ -66,6 +66,8 @@
     <string name="import_message">Hurrah, we have found photos of %1$d faces which you were using on a different device. Do you want to import those now?</string>
     <string name="import_confirm">Import</string>
 
+    <string name="never">never</string>
+
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>
