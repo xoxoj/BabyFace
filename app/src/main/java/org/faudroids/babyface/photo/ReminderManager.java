@@ -38,6 +38,12 @@ public class ReminderManager {
 	public void addReminder(Face face) {
 		Timber.d("adding reminder for " + face.getName());
 
+		// check for "no reminder"
+		if (face.getReminderPeriod().getAmount() == 0) {
+			Timber.d("aborting, no reminder set");
+			return;
+		}
+
 		// get first trigger timestamp
 		long firstReminderTimestamp = System.currentTimeMillis() + face.getReminderPeriod().toSeconds() * 1000;
 		long interval = face.getReminderPeriod().toSeconds() * 1000;

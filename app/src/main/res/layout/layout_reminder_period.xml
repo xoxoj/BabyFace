@@ -21,7 +21,7 @@
 
             <TextView
                 style="@style/TextIntroReminder"
-                android:text="Every day"
+                android:text="Never"
                 />
 
             <ImageView style="@style/ImageIntroReminder"/>
@@ -34,7 +34,7 @@
 
             <TextView
                 style="@style/TextIntroReminder"
-                android:text="Every week"
+                android:text="Every day"
                 />
 
             <ImageView style="@style/ImageIntroReminder"/>
@@ -47,7 +47,7 @@
 
             <TextView
                 style="@style/TextIntroReminder"
-                android:text="Every month"
+                android:text="Every week"
                 />
 
             <ImageView style="@style/ImageIntroReminder"/>
@@ -55,6 +55,19 @@
 
         <TableRow
             android:id="@+id/row_4"
+            style="@style/RowReminder"
+            >
+
+            <TextView
+                style="@style/TextIntroReminder"
+                android:text="Every month"
+                />
+
+            <ImageView style="@style/ImageIntroReminder"/>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/row_5"
             style="@style/RowReminder"
             >
 

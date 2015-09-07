@@ -16,7 +16,7 @@ import org.faudroids.babyface.photo.ReminderUnit;
 public class ReminderPeriodViewHandler {
 
 	private final Context context;
-	private final ViewGroup[] regularRowView = new ViewGroup[4];
+	private final ViewGroup[] regularRowView = new ViewGroup[5];
 	private final ViewGroup[] customRowViews = new ViewGroup[4];
 	private final View regularView, customView;
 	private final EditText amountEditText;
@@ -30,6 +30,7 @@ public class ReminderPeriodViewHandler {
 		regularRowView[1] = (ViewGroup) view.findViewById(R.id.row_2);
 		regularRowView[2] = (ViewGroup) view.findViewById(R.id.row_3);
 		regularRowView[3] = (ViewGroup) view.findViewById(R.id.row_4);
+		regularRowView[4] = (ViewGroup) view.findViewById(R.id.row_5);
 
 		customView = view.findViewById(R.id.layout_custom);
 		amountEditText = (EditText) view.findViewById(R.id.edit_amount);
@@ -45,7 +46,7 @@ public class ReminderPeriodViewHandler {
 				@Override
 				public void onClick(View v) {
 					// switch to custom view
-					if (clickedIdx == 3) {
+					if (clickedIdx == 4) {
 						customView.setVisibility(View.VISIBLE);
 						regularView.setVisibility(View.GONE);
 						toggleSelected(customRowViews, 1);
@@ -56,14 +57,15 @@ public class ReminderPeriodViewHandler {
 					toggleSelected(regularRowView, clickedIdx);
 				}
 			});
+		}
+		for (int idx = 0; idx < customRowViews.length; ++idx) {
+			final int clickedIdx = idx;
 			customRowViews[idx].setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					toggleSelected(customRowViews, clickedIdx);
-
 				}
 			});
-
 		}
 	}
 
@@ -72,15 +74,19 @@ public class ReminderPeriodViewHandler {
 		long reminderUnit = Long.MAX_VALUE;
 		int amount = 1;
 
-		if (customView.getVisibility() == View.GONE) {
+		if (customView.getVisibility() != View.VISIBLE) {
 			switch (selectedIdx) {
-				case 0: // one day
+				case 0: // never
+					reminderUnit = ReminderUnit.HOUR;
+					amount = 0;
+					break;
+				case 1: // one day
 					reminderUnit = ReminderUnit.DAY;
 					break;
-				case 1: // one week
+				case 2: // one week
 					reminderUnit = ReminderUnit.WEEK;
 					break;
-				case 2: // one month
+				case 3: // one month
 					reminderUnit = ReminderUnit.MONTH;
 					break;
 			}
@@ -106,11 +112,11 @@ public class ReminderPeriodViewHandler {
 
 
 	public void setReminderPeriod(ReminderPeriod period) {
-		boolean isCustom = (period.getUnitInSeconds() == ReminderUnit.HOUR) || (period.getAmount() != 1);
+		boolean isCustom = (period.getUnitInSeconds() == ReminderUnit.HOUR) || (period.getAmount() != 1 && period.getAmount() != 0);
 
 		// show / hide appropriate container view
-		customView.setVisibility(isCustom ? View.VISIBLE : View.INVISIBLE);
-		regularView.setVisibility(isCustom ? View.INVISIBLE : View.VISIBLE);
+		customView.setVisibility(isCustom ? View.VISIBLE : View.GONE);
+		regularView.setVisibility(isCustom ? View.GONE : View.VISIBLE);
 
 		// set selected row
 		int rowIdx = 0;
@@ -118,7 +124,7 @@ public class ReminderPeriodViewHandler {
 		else if (period.getUnitInSeconds() == ReminderUnit.WEEK) rowIdx = 2;
 		else if (period.getUnitInSeconds() == ReminderUnit.MONTH) rowIdx = 3;
 		if (isCustom) toggleSelected(customRowViews, rowIdx);
-		toggleSelected(regularRowView, rowIdx - 1);
+		else toggleSelected(regularRowView, rowIdx);
 
 		// set amount
 		if (isCustom) amountEditText.setText(period.getAmount());
