@@ -45,7 +45,7 @@ public class GoogleDriveManager {
 			@Override
 			public Observable<DriveId> call() {
 				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
-				DriveFolder appFolder = Drive.DriveApi.getAppFolder(client);
+				DriveFolder appFolder = Drive.DriveApi.getRootFolder(client);
 				MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(folderName).build();
 				DriveFolder folder = appFolder.createFolder(client, changeSet).await().getDriveFolder();
 				return Observable.just(folder.getDriveId());
@@ -61,7 +61,7 @@ public class GoogleDriveManager {
 				GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 
 				// find folder drive id
-				DriveFolder appFolder = Drive.DriveApi.getAppFolder(client);
+				DriveFolder appFolder = Drive.DriveApi.getRootFolder(client);
 				MetadataBuffer queryResult = appFolder.queryChildren(
 						client,
 						new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, folderName)).build())
@@ -111,7 +111,7 @@ public class GoogleDriveManager {
 				// find target folder
 				DriveFolder targetFolder;
 				if (folderId.isPresent()) targetFolder = Drive.DriveApi.getFolder(apiClient, folderId.get());
-				else targetFolder = Drive.DriveApi.getAppFolder(apiClient);
+				else targetFolder = Drive.DriveApi.getRootFolder(apiClient);
 
 				// create drive file
 				MetadataChangeSet metadatachangeset = new MetadataChangeSet.Builder()
@@ -181,7 +181,7 @@ public class GoogleDriveManager {
 				.defer(new Func0<Observable<Optional<DriveId>>>() {
 					@Override
 					public Observable<Optional<DriveId>> call() {
-						DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getAppFolder(googleApiClient)
+						DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getRootFolder(googleApiClient)
 								.queryChildren(
 										googleApiClientManager.getGoogleApiClient(),
 										new Query.Builder()

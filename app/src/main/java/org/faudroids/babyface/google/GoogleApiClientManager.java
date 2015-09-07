@@ -32,7 +32,7 @@ public class GoogleApiClientManager {
 				.addApi(Drive.API)
 				.addApi(Plus.API)
 				.addScope(new Scope(Scopes.PROFILE))
-				.addScope(Drive.SCOPE_APPFOLDER)
+				.addScope(Drive.SCOPE_FILE)
 				.addConnectionCallbacks(connectionListener)
 				.addOnConnectionFailedListener(connectionListener)
 				.build();
