@@ -4,13 +4,11 @@ package org.faudroids.babyface.server.video;
 import com.google.api.services.drive.Drive;
 import com.google.common.base.Optional;
 
-import org.faudroids.babyface.server.photo.ImageProcCommand;
 import org.faudroids.babyface.server.photo.PhotoDownloadCommand;
 import org.faudroids.babyface.server.photo.PhotoResizeManager;
 import org.faudroids.babyface.server.utils.Log;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -109,17 +107,6 @@ public class VideoManager {
 				final List<File> photoFiles = downloadCommand.execute();
 				downloadProgressFuture.cancel(true);
 				status.setDownloadProgress(1);
-
-				// process photos
-				List<File> unprocessedPhotoFiles = new ArrayList<>();
-				for (File photoFile : photoFiles) {
-					boolean processSuccess = new ImageProcCommand(photoFile).execute();
-					if (!processSuccess) {
-						Log.w("failed to process image "+ photoFile.getAbsolutePath());
-						unprocessedPhotoFiles.add(photoFile);
-					}
-				}
-				photoResizeManager.resizeAndCropPhotos(unprocessedPhotoFiles);
 
 				// rename photos to img0000.jpg
 				Collections.sort(photoFiles);
