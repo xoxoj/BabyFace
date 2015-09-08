@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.functions.Func0;
 import rx.functions.Func1;
 import timber.log.Timber;
 
@@ -92,7 +93,7 @@ public class PhotoManager {
 
 		// copy image to internal storage
 		final String photoFileName = PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
-		File internalImageFile = new File(getUploadsDir(faceName), photoFileName);
+		File internalImageFile = new File(getFaceUploadsDir(faceName), photoFileName);
 		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
 
 		// delete public file
@@ -200,7 +201,7 @@ public class PhotoManager {
 
 
 	public Optional<File> getRecentPhoto(String faceName) {
-		File uploadsDir = getUploadsDir(faceName);
+		File uploadsDir = getFaceUploadsDir(faceName);
 		List<File> files = Lists.newArrayList(uploadsDir.listFiles());
 		File faceDir = getFaceDir(faceName);
 		for (File photoFile : faceDir.listFiles()) {
@@ -212,6 +213,30 @@ public class PhotoManager {
 		// sort and get last (newest) photo file
 		Collections.sort(files);
 		return Optional.of(files.get(files.size() - 1));
+	}
+
+
+	/**
+	 * @return all photos (store locally in interal storage) that belong to this one face.
+	 */
+	public Observable<List<File>> getPhotosForFace(final Face face) {
+		return Observable.defer(new Func0<Observable<List<File>>>() {
+			@Override
+			public Observable<List<File>> call() {
+				List<File> photoFiles = Lists.newArrayList();
+				for (File file : getFaceDir(face.getName()).listFiles()) {
+					if (isFaceFileName(file.getName())) {
+						photoFiles.add(file);
+					}
+				}
+				for (File file : getFaceUploadsDir(face.getName()).listFiles()) {
+					if (isFaceFileName(file.getName())) {
+						photoFiles.add(file);
+					}
+				}
+				return Observable.just(photoFiles);
+			}
+		});
 	}
 
 
@@ -243,7 +268,7 @@ public class PhotoManager {
 	/**
 	 * Returns the internal (!) uploads directory for one face.
 	 */
-	private File getUploadsDir(String faceName) {
+	private File getFaceUploadsDir(String faceName) {
 		File uploadsDir = new File(getFaceDir(faceName), INTERNAL_UPLOADS_DIR);
 		if (!uploadsDir.exists() && !uploadsDir.mkdirs()) {
 			Timber.e("failed to create dir " + uploadsDir.getAbsolutePath());
@@ -329,4 +354,5 @@ public class PhotoManager {
 			}
 		};
 	}
+
 }

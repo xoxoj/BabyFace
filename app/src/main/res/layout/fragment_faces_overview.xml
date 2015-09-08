@@ -163,6 +163,23 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/layout_show_photos"
+                style="@style/LayoutAction"
+                >
+
+                <ImageView
+                    android:src="@drawable/ic_photo"
+                    style="@style/ImageAction"
+                    />
+
+                <TextView
+                    android:text="Show photos"
+                    style="@style/TextAction"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/layout_settings"
                 style="@style/LayoutAction"
                 >

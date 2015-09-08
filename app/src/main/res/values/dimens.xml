@@ -14,4 +14,6 @@
     <dimen name="reminder_vertical_padding">8dp</dimen>
 
     <dimen name="photo_frame_size">16dp</dimen>
+
+    <dimen name="photo_thumbnail_height">250dp</dimen>
 </resources>

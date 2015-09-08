@@ -50,6 +50,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
     @InjectView(R.id.img_profile) private ImageView profileView;
 	@InjectView(R.id.txt_name) private TextView nameView;
 	@InjectView(R.id.layout_take_photo) private View takePhotoView;
+	@InjectView(R.id.layout_show_photos) private View showPhotosView;
 	@InjectView(R.id.layout_create_movie) private View createMovieView;
 	@InjectView(R.id.layout_settings) private View settingsView;
 	private Face selectedFace;
@@ -182,6 +183,15 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_FACE_NAME, selectedFace.getName());
 				capturePhotoIntent.putExtra(CapturePhotoActivity.EXTRA_UPLOAD_PHOTO, true);
 				startActivityForResult(capturePhotoIntent, REQUEST_TAKE_PHOTO);
+			}
+		});
+
+		showPhotosView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent showPhotosIntent = new Intent(getActivity(), ShowPhotosActivity.class);
+				showPhotosIntent.putExtra(ShowPhotosActivity.EXTRA_FACE, face);
+				startActivity(showPhotosIntent);
 			}
 		});
 
