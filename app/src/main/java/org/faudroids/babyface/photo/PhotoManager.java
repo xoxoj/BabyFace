@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.util.Pair;
 
 import com.google.android.gms.drive.DriveId;
 
@@ -26,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -237,6 +239,43 @@ public class PhotoManager {
 				return Observable.just(photoFiles);
 			}
 		});
+	}
+
+
+	/**
+	 * Downloads photos belong to one particalur faces and stores them locally ("import").
+	 *
+	 * @param face
+	 * @param photos list of photo file names mapped to their drive id
+	 */
+	public Observable<Void> downloadPhotos(final Face face, final List<Pair<String,DriveId>> photos) {
+		return Observable.from(photos)
+				.flatMap(new Func1<Pair<String, DriveId>, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(final Pair<String, DriveId> titleDriveIdPair) {
+						return googleDriveManager.readFile(titleDriveIdPair.second)
+								.flatMap(new Func1<InputStream, Observable<Void>>() {
+									@Override
+									public Observable<Void> call(InputStream driveStream) {
+										try {
+											final File localPhotoFile = new File(getFaceDir(face.getName()),titleDriveIdPair.first);
+											ioUtils.copyStream(driveStream, new FileOutputStream(localPhotoFile));
+											return Observable.just(null);
+										} catch (IOException e) {
+											Timber.e(e, "failed to download file " + titleDriveIdPair.first + " from drive");
+											return Observable.error(e);
+										}
+									}
+								});
+					}
+				})
+				.toList()
+				.map(new Func1<List<Void>, Void>() {
+					@Override
+					public Void call(List<Void> voids) {
+						return null;
+					}
+				});
 	}
 
 

@@ -1,5 +1,7 @@
 package org.faudroids.babyface.faces;
 
+import android.util.Pair;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
@@ -14,6 +16,8 @@ import com.google.android.gms.drive.query.SearchableField;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.ReminderPeriod;
+import org.faudroids.babyface.photo.ReminderUnit;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
 import java.util.HashSet;
@@ -24,6 +28,7 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -70,9 +75,9 @@ public class FaceScanner {
 					// if face is already "imported" then skip it
 					if (existingFaceFolders.contains(folderMetadata.getTitle())) continue;
 
-					int imageCount = getImageCountInFaceDir(folderMetadata.getDriveId());
-					if (imageCount > 0) {
-						result.add(new ImportableFace(folderMetadata.getTitle(), imageCount));
+					List<Pair<String, DriveId>> photos = getPhotoDriveIds(folderMetadata.getDriveId());
+					if (!photos.isEmpty()) {
+						result.add(new ImportableFace(folderMetadata.getTitle(), photos));
 					}
 				}
 				queryResult.release();
@@ -83,39 +88,66 @@ public class FaceScanner {
 	}
 
 
-	private int getImageCountInFaceDir(DriveId faceFolderId) {
-		GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+	/**
+	 * Stores faces locally by adding a new {@link Face} object and by downloading photos from the
+	 * drive directory.
+	 */
+	public Observable<Void> importFaces(final List<ImportableFace> faces) {
+		return Observable.from(faces)
+				.flatMap(new Func1<ImportableFace, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(ImportableFace importableFace) {
+						// add face
+						final Face face = new Face(importableFace.getFaceName(), new ReminderPeriod(ReminderUnit.MONTH, 0));
+						facesManager.addFace(face);
+
+						// download images
+						return photoManager.downloadPhotos(face, importableFace.getPhotos());
+					}
+				})
+				.toList()
+				.map(new Func1<List<Void>, Void>() {
+					@Override
+					public Void call(List<Void> voids) {
+						return null;
+					}
+				});
+	}
+
+
+	private List<Pair<String, DriveId>> getPhotoDriveIds(DriveId faceFolderId) {
+		final List<Pair<String, DriveId>> result = Lists.newArrayList();
+		final GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 
 		// TODO pagination has been deprecated, but there is no info if there is a different pagination mechanism now
 		DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getFolder(client, faceFolderId).listChildren(client).await();
 		queryResult.getMetadataBuffer().getNextPageToken();
-		int imageCount = 0;
 		for (Metadata file : queryResult.getMetadataBuffer()) {
 			if (photoManager.isFaceFileName(file.getTitle())) {
-				++imageCount;
+				result.add(new Pair<>(file.getTitle(), file.getDriveId()));
 			}
 		}
 		queryResult.getMetadataBuffer().release();
-		return imageCount;
+		return result;
 	}
 
 
 	public static class ImportableFace {
 
 		private final String faceName;
-		private final int imageCount;
+		private final List<Pair<String, DriveId>> photos; // maps photo file names to their drive id
 
-		public ImportableFace(String faceName, int imageCount) {
+		public ImportableFace(String faceName, List<Pair<String, DriveId>> photos) {
 			this.faceName = faceName;
-			this.imageCount = imageCount;
+			this.photos = photos;
 		}
 
 		public String getFaceName() {
 			return faceName;
 		}
 
-		public int getImageCount() {
-			return imageCount;
+		public List<Pair<String, DriveId>> getPhotos() {
+			return photos;
 		}
 
 	}

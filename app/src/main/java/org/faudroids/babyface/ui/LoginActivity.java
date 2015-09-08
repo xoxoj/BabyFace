@@ -14,19 +14,17 @@ import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
-import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FaceScanner;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
-import org.faudroids.babyface.photo.ReminderPeriod;
-import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
+import roboguice.inject.ContentView;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
@@ -34,8 +32,9 @@ import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
- * Handles first time user login.
+ * Handles first time user login + importing faces from Google Drive.
  */
+@ContentView(R.layout.activity_login)
 public class LoginActivity extends AbstractActivity implements ConnectionListener {
 
 	private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 42;
@@ -46,6 +45,11 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	@Inject private FacesManager facesManager;
 
 
+	public LoginActivity() {
+		super(false, true);
+	}
+
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,7 +57,6 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 			startMainActivity();
 		}
 	}
-
 
 
 	@Override
@@ -88,7 +91,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 					public void call(final List<FaceScanner.ImportableFace> faces) {
 						Timber.d("found " + faces.size() + " faces to import");
 						for (FaceScanner.ImportableFace face : faces) {
-							Timber.d(face.getFaceName() + " with " + face.getImageCount() + " images");
+							Timber.d(face.getFaceName() + " with " + face.getPhotos().size() + " images");
 						}
 
 						if (faces.isEmpty()) {
@@ -103,10 +106,16 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 								.setPositiveButton(R.string.import_confirm, new DialogInterface.OnClickListener() {
 									@Override
 									public void onClick(DialogInterface dialog, int which) {
-										for (FaceScanner.ImportableFace face : faces) {
-											facesManager.addFace(new Face(face.getFaceName(), new ReminderPeriod(ReminderUnit.MONTH, 0)));
-										}
-										startMainActivity();
+										showProgressBar();
+										faceScanner.importFaces(faces)
+												.compose(new DefaultTransformer<Void>())
+												.subscribe(new Action1<Void>() {
+													@Override
+													public void call(Void aVoid) {
+														hideProgressBar();
+														startMainActivity();
+													}
+												});
 									}
 								})
 								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
