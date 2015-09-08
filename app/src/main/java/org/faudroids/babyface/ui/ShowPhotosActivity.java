@@ -62,8 +62,8 @@ public class ShowPhotosActivity extends AbstractActivity {
 					@Override
 					public void call(List<File> photoFiles) {
 						Timber.d("loaded " + photoFiles.size() + " photos");
-						photoAdapter.setPhotoFiles(photoFiles);
 						if (!photoFiles.isEmpty()) setSelectedPhotoFile(photoFiles.get(0));
+						photoAdapter.setPhotoFiles(photoFiles);
 					}
 				});
 	}
@@ -105,21 +105,26 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 	private class PhotoViewHolder extends RecyclerView.ViewHolder {
 
-		private final ImageView photoView;
+		private final ImageView photoView, photoRollView;
 
 		public PhotoViewHolder(View itemView) {
 			super(itemView);
 			this.photoView = (ImageView) itemView.findViewById(R.id.img_photo);
+			this.photoRollView = (ImageView) itemView.findViewById(R.id.img_photo_roll);
 		}
 
 		public void setPhoto(final File photoFile) {
-			Picasso.with(ShowPhotosActivity.this).load(photoFile).resizeDimen(R.dimen.photo_thumbnail_height, R.dimen.photo_thumbnail_height).centerCrop().into(photoView);
+			Picasso.with(ShowPhotosActivity.this).load(photoFile).resizeDimen(R.dimen.photo_thumbnail_width, R.dimen.photo_thumbnail_height).centerCrop().into(photoView);
 			photoView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					setSelectedPhotoFile(photoFile);
+					photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay_selected);
+					photoAdapter.notifyDataSetChanged();
 				}
 			});
+			if (photoFile.equals(selectedPhotoFile)) photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay_selected);
+			else photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay);
 		}
 
 	}

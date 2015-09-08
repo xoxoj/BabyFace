@@ -15,5 +15,6 @@
 
     <dimen name="photo_frame_size">16dp</dimen>
 
-    <dimen name="photo_thumbnail_height">250dp</dimen>
+    <dimen name="photo_thumbnail_height">110dp</dimen>
+    <dimen name="photo_thumbnail_width">140dp</dimen>
 </resources>

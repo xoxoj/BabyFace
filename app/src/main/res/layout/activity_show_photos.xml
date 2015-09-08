@@ -10,7 +10,7 @@
         android:id="@+id/list_photos"
         android:scrollbars="none"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/photo_thumbnail_height"
+        android:layout_height="150dp"
         android:layout_alignParentBottom="true"
         />
 
@@ -19,6 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/list_photos"
+        android:scaleType="centerCrop"
         />
 
 </RelativeLayout>
