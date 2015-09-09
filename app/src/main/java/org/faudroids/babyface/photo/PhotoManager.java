@@ -10,7 +10,6 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.MediaStore;
-import android.util.Pair;
 
 import com.google.android.gms.drive.DriveId;
 
@@ -219,7 +218,7 @@ public class PhotoManager {
 
 
 	/**
-	 * @return all photos (store locally in interal storage) that belong to this one face.
+	 * @return all photos (store locally in internal storage) that belong to this one face.
 	 */
 	public Observable<List<File>> getPhotosForFace(final Face face) {
 		return Observable.defer(new Func0<Observable<List<File>>>() {
@@ -248,21 +247,21 @@ public class PhotoManager {
 	 * @param face
 	 * @param photos list of photo file names mapped to their drive id
 	 */
-	public Observable<Void> downloadPhotos(final Face face, final List<Pair<String,DriveId>> photos) {
+	public Observable<Void> downloadPhotos(final Face face, final List<Photo> photos) {
 		return Observable.from(photos)
-				.flatMap(new Func1<Pair<String, DriveId>, Observable<Void>>() {
+				.flatMap(new Func1<Photo, Observable<Void>>() {
 					@Override
-					public Observable<Void> call(final Pair<String, DriveId> titleDriveIdPair) {
-						return googleDriveManager.readFile(titleDriveIdPair.second)
+					public Observable<Void> call(final Photo photo) {
+						return googleDriveManager.readFile(photo.getDriveId())
 								.flatMap(new Func1<InputStream, Observable<Void>>() {
 									@Override
 									public Observable<Void> call(InputStream driveStream) {
 										try {
-											final File localPhotoFile = new File(getFaceDir(face.getName()),titleDriveIdPair.first);
+											final File localPhotoFile = new File(getFaceDir(face.getName()), photo.getTitle());
 											ioUtils.copyStream(driveStream, new FileOutputStream(localPhotoFile));
 											return Observable.just(null);
 										} catch (IOException e) {
-											Timber.e(e, "failed to download file " + titleDriveIdPair.first + " from drive");
+											Timber.e(e, "failed to download file " + photo.getTitle() + " from drive");
 											return Observable.error(e);
 										}
 									}
@@ -390,6 +389,55 @@ public class PhotoManager {
 			@Override
 			public PhotoCreationResult[] newArray(int size) {
 				return new PhotoCreationResult[size];
+			}
+		};
+	}
+
+
+	public static class Photo implements Parcelable {
+
+		private final String title;
+		private final DriveId driveId;
+
+		public Photo(String title, DriveId driveId) {
+			this.title = title;
+			this.driveId = driveId;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public DriveId getDriveId() {
+			return driveId;
+		}
+
+		protected Photo(Parcel in) {
+			title = in.readString();
+			driveId = (DriveId) in.readValue(DriveId.class.getClassLoader());
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeString(title);
+			dest.writeValue(driveId);
+		}
+
+		@SuppressWarnings("unused")
+		public static final Parcelable.Creator<Photo> CREATOR = new Parcelable.Creator<Photo>() {
+			@Override
+			public Photo createFromParcel(Parcel in) {
+				return new Photo(in);
+			}
+
+			@Override
+			public Photo[] newArray(int size) {
+				return new Photo[size];
 			}
 		};
 	}

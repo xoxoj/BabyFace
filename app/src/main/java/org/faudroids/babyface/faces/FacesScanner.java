@@ -1,6 +1,7 @@
 package org.faudroids.babyface.faces;
 
-import android.util.Pair;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
@@ -20,6 +21,7 @@ import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,10 +33,12 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import timber.log.Timber;
 
+import static org.faudroids.babyface.photo.PhotoManager.Photo;
+
 /**
  * Scans Google Drive for face folders which
  */
-public class FaceScanner {
+public class FacesScanner {
 
 	private final FacesManager facesManager;
 	private final GoogleApiClientManager googleApiClientManager;
@@ -42,7 +46,7 @@ public class FaceScanner {
 	private final PhotoManager photoManager;
 
 	@Inject
-	FaceScanner(FacesManager facesManager, GoogleApiClientManager googleApiClientManager, GoogleDriveManager driveManager, PhotoManager photoManager) {
+	FacesScanner(FacesManager facesManager, GoogleApiClientManager googleApiClientManager, GoogleDriveManager driveManager, PhotoManager photoManager) {
 		this.facesManager = facesManager;
 		this.googleApiClientManager = googleApiClientManager;
 		this.driveManager = driveManager;
@@ -75,7 +79,7 @@ public class FaceScanner {
 					// if face is already "imported" then skip it
 					if (existingFaceFolders.contains(folderMetadata.getTitle())) continue;
 
-					List<Pair<String, DriveId>> photos = getPhotoDriveIds(folderMetadata.getDriveId());
+					List<Photo> photos = getPhotos(folderMetadata.getDriveId());
 					if (!photos.isEmpty()) {
 						result.add(new ImportableFace(folderMetadata.getTitle(), photos));
 					}
@@ -92,31 +96,31 @@ public class FaceScanner {
 	 * Stores faces locally by adding a new {@link Face} object and by downloading photos from the
 	 * drive directory.
 	 */
-	public Observable<Void> importFaces(final List<ImportableFace> faces) {
+	public Observable<List<Face>> importFaces(final List<ImportableFace> faces) {
 		return Observable.from(faces)
-				.flatMap(new Func1<ImportableFace, Observable<Void>>() {
+				.flatMap(new Func1<ImportableFace, Observable<Face>>() {
 					@Override
-					public Observable<Void> call(ImportableFace importableFace) {
+					public Observable<Face> call(ImportableFace importableFace) {
 						// add face
 						final Face face = new Face(importableFace.getFaceName(), new ReminderPeriod(ReminderUnit.MONTH, 0));
 						facesManager.addFace(face);
 
 						// download images
-						return photoManager.downloadPhotos(face, importableFace.getPhotos());
+						return photoManager.downloadPhotos(face, importableFace.getPhotos())
+								.map(new Func1<Void, Face>() {
+									@Override
+									public Face call(Void aVoid) {
+										return face;
+									}
+								});
 					}
 				})
-				.toList()
-				.map(new Func1<List<Void>, Void>() {
-					@Override
-					public Void call(List<Void> voids) {
-						return null;
-					}
-				});
+				.toList();
 	}
 
 
-	private List<Pair<String, DriveId>> getPhotoDriveIds(DriveId faceFolderId) {
-		final List<Pair<String, DriveId>> result = Lists.newArrayList();
+	private List<Photo> getPhotos(DriveId faceFolderId) {
+		final List<Photo> result = Lists.newArrayList();
 		final GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 
 		// TODO pagination has been deprecated, but there is no info if there is a different pagination mechanism now
@@ -124,7 +128,7 @@ public class FaceScanner {
 		queryResult.getMetadataBuffer().getNextPageToken();
 		for (Metadata file : queryResult.getMetadataBuffer()) {
 			if (photoManager.isFaceFileName(file.getTitle())) {
-				result.add(new Pair<>(file.getTitle(), file.getDriveId()));
+				result.add(new Photo(file.getTitle(), file.getDriveId()));
 			}
 		}
 		queryResult.getMetadataBuffer().release();
@@ -132,12 +136,12 @@ public class FaceScanner {
 	}
 
 
-	public static class ImportableFace {
+	public static class ImportableFace implements Parcelable {
 
 		private final String faceName;
-		private final List<Pair<String, DriveId>> photos; // maps photo file names to their drive id
+		private final List<Photo> photos;
 
-		public ImportableFace(String faceName, List<Pair<String, DriveId>> photos) {
+		public ImportableFace(String faceName, List<Photo> photos) {
 			this.faceName = faceName;
 			this.photos = photos;
 		}
@@ -146,10 +150,48 @@ public class FaceScanner {
 			return faceName;
 		}
 
-		public List<Pair<String, DriveId>> getPhotos() {
+		public List<Photo> getPhotos() {
 			return photos;
 		}
 
+		protected ImportableFace(Parcel in) {
+			faceName = in.readString();
+			if (in.readByte() == 0x01) {
+				photos = new ArrayList<Photo>();
+				in.readList(photos, Photo.class.getClassLoader());
+			} else {
+				photos = null;
+			}
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			dest.writeString(faceName);
+			if (photos == null) {
+				dest.writeByte((byte) (0x00));
+			} else {
+				dest.writeByte((byte) (0x01));
+				dest.writeList(photos);
+			}
+		}
+
+		@SuppressWarnings("unused")
+		public static final Parcelable.Creator<ImportableFace> CREATOR = new Parcelable.Creator<ImportableFace>() {
+			@Override
+			public ImportableFace createFromParcel(Parcel in) {
+				return new ImportableFace(in);
+			}
+
+			@Override
+			public ImportableFace[] newArray(int size) {
+				return new ImportableFace[size];
+			}
+		};
 	}
 
 }
