@@ -95,8 +95,9 @@ public class FacesScanner {
 	/**
 	 * Stores faces locally by adding a new {@link Face} object and by downloading photos from the
 	 * drive directory.
+	 * @return faces which have been successfully imported
 	 */
-	public Observable<List<Face>> importFaces(final List<ImportableFace> faces) {
+	public Observable<Face> importFaces(final List<ImportableFace> faces) {
 		return Observable.from(faces)
 				.flatMap(new Func1<ImportableFace, Observable<Face>>() {
 					@Override
@@ -114,8 +115,7 @@ public class FacesScanner {
 									}
 								});
 					}
-				})
-				.toList();
+				});
 	}
 
 

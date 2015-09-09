@@ -45,6 +45,12 @@
 }
 -keep public class roboguice.**
 
+# Parcel library
+-keep class * implements android.os.Parcelable {
+  public static final android.os.Parcelable$Creator *;
+}
+-keep class org.parceler.Parceler$$Parcels
+
 -dontwarn javax.annotation.**
 -dontwarn javax.inject.**
 -dontwarn sun.misc.Unsafe

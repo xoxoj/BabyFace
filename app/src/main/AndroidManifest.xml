@@ -29,6 +29,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.FacesImportActivity"
+            android:screenOrientation="portrait"
+            />
+        <activity
             android:name=".ui.MainDrawerActivity"
             android:screenOrientation="portrait"
             />
@@ -53,6 +57,7 @@
 
         <service android:name=".photo.PhotoUploadService" />
         <service android:name=".videos.VideoConversionService" />
+        <service android:name=".faces.FacesImportService" />
         <receiver android:name=".photo.ReminderReceiver" />
         <receiver android:name=".photo.RestartRemindersReceiver" >
             <intent-filter>

@@ -11,22 +11,21 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
-import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.ui.VideoConversionActivity;
+import org.faudroids.babyface.utils.AbstractGoogleApiClientService;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
 import javax.inject.Inject;
 
-import roboguice.service.RoboService;
 import rx.functions.Action1;
 
 /**
  * Starts the video conversion for one face and shows a progress notification.
  */
-public class VideoConversionService extends RoboService {
+public class VideoConversionService extends AbstractGoogleApiClientService {
 
 	public static final String
-			ACTION_STATUS_UPDATE = "org.faudroids.babyface.ACTION_STATUS_UDPATE",
+			ACTION_STATUS_UPDATE = VideoConversionService.class.getName() + ".ACTION_STATUS_UPDATE",
 			EXTRA_STATUS = "EXTRA_STATUS";
 
 	public static final String
@@ -35,31 +34,15 @@ public class VideoConversionService extends RoboService {
 	public static final int NOTIFICATION_ID = 42;
 
 	@Inject private VideoService videoService;
-	@Inject private GoogleApiClientManager googleApiClientManager;
-
-	private Face face;
-
 	@Inject private NotificationManager notificationManager;
 	private NotificationCompat.Builder notificationBuilder;
+
 	private final Handler handler = new Handler();
+	private Face face;
 
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
-	}
-
-
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		googleApiClientManager.connectToClient();
-	}
-
-
-	@Override
-	public void onDestroy() {
-		googleApiClientManager.disconnectFromClient();
-		super.onDestroy();
 	}
 
 

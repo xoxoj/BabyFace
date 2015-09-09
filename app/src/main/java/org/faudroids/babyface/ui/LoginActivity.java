@@ -14,12 +14,14 @@ import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
-import org.faudroids.babyface.faces.FaceScanner;
+import org.faudroids.babyface.faces.FacesImportService;
 import org.faudroids.babyface.faces.FacesManager;
+import org.faudroids.babyface.faces.FacesScanner;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -41,8 +43,9 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
-	@Inject private FaceScanner faceScanner;
 	@Inject private FacesManager facesManager;
+	@Inject private FaceImportViewHandler importViewHandler;
+	@Inject private FacesScanner scanner;
 
 
 	public LoginActivity() {
@@ -79,18 +82,18 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 		// first time setup
 		driveManager.assertAppRootFolderExists()
-				.flatMap(new Func1<Void, Observable<List<FaceScanner.ImportableFace>>>() {
+				.flatMap(new Func1<Void, Observable<List<FacesScanner.ImportableFace>>>() {
 					@Override
-					public Observable<List<FaceScanner.ImportableFace>> call(Void aVoid) {
-						return faceScanner.scanGoogleDriveForFaces();
+					public Observable<List<FacesScanner.ImportableFace>> call(Void aVoid) {
+						return scanner.scanGoogleDriveForFaces();
 					}
 				})
-				.compose(new DefaultTransformer<List<FaceScanner.ImportableFace>>())
-				.subscribe(new Action1<List<FaceScanner.ImportableFace>>() {
+				.compose(new DefaultTransformer<List<FacesScanner.ImportableFace>>())
+				.subscribe(new Action1<List<FacesScanner.ImportableFace>>() {
 					@Override
-					public void call(final List<FaceScanner.ImportableFace> faces) {
+					public void call(final List<FacesScanner.ImportableFace> faces) {
 						Timber.d("found " + faces.size() + " faces to import");
-						for (FaceScanner.ImportableFace face : faces) {
+						for (FacesScanner.ImportableFace face : faces) {
 							Timber.d(face.getFaceName() + " with " + face.getPhotos().size() + " images");
 						}
 
@@ -106,16 +109,15 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 								.setPositiveButton(R.string.import_confirm, new DialogInterface.OnClickListener() {
 									@Override
 									public void onClick(DialogInterface dialog, int which) {
-										showProgressBar();
-										faceScanner.importFaces(faces)
-												.compose(new DefaultTransformer<Void>())
-												.subscribe(new Action1<Void>() {
-													@Override
-													public void call(Void aVoid) {
-														hideProgressBar();
-														startMainActivity();
-													}
-												});
+										Intent activityIntent = new Intent(LoginActivity.this, FacesImportActivity.class);
+										activityIntent.putExtra(FacesImportActivity.EXTRA_TARGET_INTENT, new Intent(LoginActivity.this, MainDrawerActivity.class));
+										startActivity(activityIntent);
+
+										Intent serviceIntent = new Intent(LoginActivity.this, FacesImportService.class);
+										serviceIntent.putParcelableArrayListExtra(FacesImportService.EXTRA_FACES_TO_IMPORT, new ArrayList<>(faces));
+										startService(serviceIntent);
+
+										finish();
 									}
 								})
 								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
