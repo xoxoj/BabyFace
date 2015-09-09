@@ -19,6 +19,7 @@ import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
+import org.faudroids.babyface.utils.Pref;
 import org.faudroids.babyface.videos.VideoConversionService;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 	private PhotoManager.PhotoCreationResult photoCreationResult;
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
+	private Pref<Boolean> firstStart;
 
 	public FacesOverviewFragment() {
 		super(R.layout.fragment_faces_overview);
@@ -68,6 +70,15 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 		super.onViewCreated(view, savedInstanceState);
 		getActivity().setTitle(R.string.children);
 		slidingLayout.setPanelHeight(0);
+
+		// on first start (and no faces) start face setup
+		firstStart = Pref.newBooleanPref(getActivity(), "org.faudroids.babyface.ui.FacesOverviewFragment", "firstStart", true);
+		if (firstStart.get()) {
+			firstStart.set(false);
+			if (facesManager.getFaces().isEmpty()) {
+				startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
+			}
+		}
 	}
 
 
