@@ -94,7 +94,7 @@ public class VideoManager {
 			Calendar calendar = Calendar.getInstance();
 			calendar.set(
 					Integer.valueOf(matcher.group(1)),
-					Integer.valueOf(matcher.group(2)) + 1,
+					Integer.valueOf(matcher.group(2)) - 1,
 					Integer.valueOf(matcher.group(3)),
 					Integer.valueOf(matcher.group(4)),
 					Integer.valueOf(matcher.group(5)),
