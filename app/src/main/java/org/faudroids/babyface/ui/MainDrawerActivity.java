@@ -111,7 +111,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				.withToolbar(toolbar)
 				.withAccountHeader(accountHeader)
 				.addDrawerItems(
-						new PrimaryDrawerItem().withName(R.string.faces).withIconTintingEnabled(true).withIcon(R.drawable.ic_faces).withIdentifier(ID_SHOW_FACES),
+						new PrimaryDrawerItem().withName(R.string.children).withIconTintingEnabled(true).withIcon(R.drawable.ic_faces).withIdentifier(ID_SHOW_FACES),
 						new PrimaryDrawerItem().withName(R.string.videos).withIconTintingEnabled(true).withIcon(R.drawable.ic_movie).withIdentifier(ID_SHOW_VIDEOS)
 				)
 				.addStickyDrawerItems(

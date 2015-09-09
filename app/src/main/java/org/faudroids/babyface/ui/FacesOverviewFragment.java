@@ -66,7 +66,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		getActivity().setTitle(R.string.faces);
+		getActivity().setTitle(R.string.children);
 		slidingLayout.setPanelHeight(0);
 	}
 
