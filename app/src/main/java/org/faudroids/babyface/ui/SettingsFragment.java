@@ -8,6 +8,7 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
@@ -21,6 +22,7 @@ import timber.log.Timber;
 
 public class SettingsFragment extends AbstractFragment {
 
+	@InjectView(R.id.txt_start_import) private TextView startImport;
 	@InjectView(R.id.versionTextView) private TextView version;
 	@InjectView(R.id.authorTextView) private TextView authors;
 	@InjectView(R.id.creditsTextView) private TextView credits;
@@ -28,6 +30,7 @@ public class SettingsFragment extends AbstractFragment {
 
 	@Inject private AuthManager authManager;
 	@Inject private GoogleApiClientManager googleApiClientManager;
+	@Inject private FacesImportViewHandler importViewHandler;
 
 
 	public SettingsFragment() {
@@ -38,6 +41,28 @@ public class SettingsFragment extends AbstractFragment {
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 		getActivity().setTitle(R.string.settings);
+
+		startImport.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				importViewHandler.showImportDialog((AbstractActivity) getActivity(), new FacesImportViewHandler.ImportListener() {
+					@Override
+					public void onSuccess(FacesImportViewHandler.ImportStatus status) {
+						switch (status) {
+							case NOTHING_TO_IMPORT:
+								Toast.makeText(getActivity(), R.string.nothing_to_import, Toast.LENGTH_SHORT).show();
+								break;
+						}
+						// nothing to do
+					}
+
+					@Override
+					public void onError(Throwable throwable) {
+						// TODO error handling
+					}
+				}, null);
+			}
+		});
 
 		version.setText(getVersion());
 

@@ -1,7 +1,5 @@
 package org.faudroids.babyface.ui;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -14,15 +12,10 @@ import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
-import org.faudroids.babyface.faces.FacesImportService;
 import org.faudroids.babyface.faces.FacesManager;
-import org.faudroids.babyface.faces.FacesScanner;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -30,7 +23,6 @@ import roboguice.inject.ContentView;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -44,8 +36,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
 	@Inject private FacesManager facesManager;
-	@Inject private FaceImportViewHandler importViewHandler;
-	@Inject private FacesScanner scanner;
+	@Inject private FacesImportViewHandler importViewHandler;
 
 
 	public LoginActivity() {
@@ -82,52 +73,36 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 		// first time setup
 		driveManager.assertAppRootFolderExists()
-				.flatMap(new Func1<Void, Observable<List<FacesScanner.ImportableFace>>>() {
+				.compose(new DefaultTransformer<Void>())
+				.subscribe(new Action1<Void>() {
 					@Override
-					public Observable<List<FacesScanner.ImportableFace>> call(Void aVoid) {
-						return scanner.scanGoogleDriveForFaces();
-					}
-				})
-				.compose(new DefaultTransformer<List<FacesScanner.ImportableFace>>())
-				.subscribe(new Action1<List<FacesScanner.ImportableFace>>() {
-					@Override
-					public void call(final List<FacesScanner.ImportableFace> faces) {
-						Timber.d("found " + faces.size() + " faces to import");
-						for (FacesScanner.ImportableFace face : faces) {
-							Timber.d(face.getFaceName() + " with " + face.getPhotos().size() + " images");
-						}
-
-						if (faces.isEmpty()) {
-							startMainActivity();
-							return;
-						}
-
-						// ask user whether those faces should be "imported"
-						new AlertDialog.Builder(LoginActivity.this)
-								.setTitle(R.string.import_title)
-								.setMessage(getString(R.string.import_message, faces.size()))
-								.setPositiveButton(R.string.import_confirm, new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										Intent activityIntent = new Intent(LoginActivity.this, FacesImportActivity.class);
-										activityIntent.putExtra(FacesImportActivity.EXTRA_TARGET_INTENT, new Intent(LoginActivity.this, MainDrawerActivity.class));
-										startActivity(activityIntent);
-
-										Intent serviceIntent = new Intent(LoginActivity.this, FacesImportService.class);
-										serviceIntent.putParcelableArrayListExtra(FacesImportService.EXTRA_FACES_TO_IMPORT, new ArrayList<>(faces));
-										startService(serviceIntent);
-
+					public void call(Void aVoid) {
+						importViewHandler.showImportDialog(LoginActivity.this, new FacesImportViewHandler.ImportListener() {
+							@Override
+							public void onSuccess(FacesImportViewHandler.ImportStatus status) {
+								switch (status) {
+									case IMPORT_STARTED:
 										finish();
-									}
-								})
-								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										startMainActivity();
-									}
-								})
-								.show();
+										break;
 
+									case IMPORT_ABORTED:
+									case NOTHING_TO_IMPORT:
+										startMainActivity();
+										break;
+								}
+							}
+
+							@Override
+							public void onError(Throwable throwable) {
+								// TODO error handling
+							}
+						}, new Intent(LoginActivity.this, MainDrawerActivity.class));
+					}
+				}, new Action1<Throwable>() {
+					@Override
+					public void call(Throwable throwable) {
+						Timber.e(throwable, "failed to create root dir");
+						// TODO error handling
 					}
 				});
 	}

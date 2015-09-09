@@ -68,6 +68,8 @@
     <string name="import_confirm">Import</string>
 
     <string name="never">never</string>
+    <string name="import_from_drive">Import from Google Drive</string>
+    <string name="nothing_to_import">Nothing to import</string>
 
     <plurals name="hours">
         <item quantity="one">hour</item>

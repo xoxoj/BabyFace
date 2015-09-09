@@ -26,7 +26,7 @@ public class FacesImportActivity extends AbstractActivity {
 
 	public static final String
 			EXTRA_STATUS = "EXTRA_STATUS",
-			EXTRA_TARGET_INTENT = "EXTRA_TARGET_INTENT";
+			EXTRA_TARGET_INTENT = "EXTRA_TARGET_INTENT"; // which activity to launch once import is complete. Can be null!
 
 	private final StatusReceiver statusReceiver = new StatusReceiver();
 
@@ -44,7 +44,7 @@ public class FacesImportActivity extends AbstractActivity {
 		doneButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				startActivity(targetIntent);
+				if (targetIntent != null) startActivity(targetIntent);
 				finish();
 			}
 		});
