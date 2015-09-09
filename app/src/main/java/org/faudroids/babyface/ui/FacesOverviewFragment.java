@@ -224,7 +224,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
             @Override
             public void onClick(View v) {
 				Intent settingsIntent = new Intent(getActivity(), FaceSettingsActivity.class);
-				settingsIntent.putExtra(FaceSettingsActivity.EXTRA_FACE, selectedFace);
+				settingsIntent.putExtra(FaceSettingsActivity.EXTRA_FACE_NAME, selectedFace.getName());
 				startActivityForResult(settingsIntent, REQUEST_SHOW_SETTINGS);
 				getActivity().overridePendingTransition(R.anim.slide_in_from_bottom, R.anim.slide_out_to_top);
 			}

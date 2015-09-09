@@ -77,7 +77,7 @@ public class ReminderPeriodViewHandler {
 		if (customView.getVisibility() != View.VISIBLE) {
 			switch (selectedIdx) {
 				case 0: // never
-					reminderUnit = ReminderUnit.HOUR;
+					reminderUnit = ReminderUnit.MONTH;
 					amount = 0;
 					break;
 				case 1: // one day
@@ -123,11 +123,13 @@ public class ReminderPeriodViewHandler {
 		if (period.getUnitInSeconds() == ReminderUnit.DAY) rowIdx = 1;
 		else if (period.getUnitInSeconds() == ReminderUnit.WEEK) rowIdx = 2;
 		else if (period.getUnitInSeconds() == ReminderUnit.MONTH) rowIdx = 3;
+		if (period.getAmount() == 0) rowIdx = 0;
 		if (isCustom) toggleSelected(customRowViews, rowIdx);
 		else toggleSelected(regularRowView, rowIdx);
 
+
 		// set amount
-		if (isCustom) amountEditText.setText(period.getAmount());
+		if (isCustom) amountEditText.setText(String.valueOf(period.getAmount()));
 	}
 
 

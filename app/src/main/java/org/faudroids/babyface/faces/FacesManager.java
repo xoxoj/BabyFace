@@ -43,6 +43,15 @@ public class FacesManager {
 	}
 
 
+	public Face findFaceByName(String name) {
+		List<Face> faces = getFaces();
+		for (Face face : faces) {
+			if (face.getName().equals(name)) return face;
+		}
+		throw new IllegalArgumentException("no face for name " + name);
+	}
+
+
 	/**
 	 * Stores the face and inits it's photo directory
 	 */
