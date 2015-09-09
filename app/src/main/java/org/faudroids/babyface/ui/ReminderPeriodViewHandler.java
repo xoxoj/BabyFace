@@ -1,6 +1,8 @@
 package org.faudroids.babyface.ui;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -67,6 +69,26 @@ public class ReminderPeriodViewHandler {
 				}
 			});
 		}
+
+		// check that amount only contains valid input
+		amountEditText.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				String text = amountEditText.getText().toString();
+
+				// remove any '.'
+				if (text.contains(".")) {
+					text = text.split("\\.")[0];
+					amountEditText.setText(text);
+				}
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) { }
+		});
 	}
 
 
