@@ -47,7 +47,7 @@ public class VideoManager {
 
 	private static final int
 			IMAGE_LENGTH_IN_SECONDS = 1,
-			FRAMERATE = 25;
+			FRAMERATE = 1;
 
 	private final Context context;
 	private final PhotoManager photoManager;
