@@ -214,7 +214,6 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 				getActivity().startService(serviceIntent);
 
 				Intent activityIntent = new Intent(getActivity(), VideoConversionActivity.class);
-				activityIntent.putExtra(VideoConversionActivity.EXTRA_FACE, face);
 				startActivity(activityIntent);
 			}
 

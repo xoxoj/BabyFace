@@ -4,7 +4,6 @@ package org.faudroids.babyface.videos;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,9 +14,12 @@ import org.faudroids.babyface.ui.VideoConversionActivity;
 import org.faudroids.babyface.utils.AbstractGoogleApiClientService;
 import org.faudroids.babyface.utils.DefaultTransformer;
 
+import java.io.File;
+
 import javax.inject.Inject;
 
 import rx.functions.Action1;
+import timber.log.Timber;
 
 /**
  * Starts the video conversion for one face and shows a progress notification.
@@ -25,19 +27,17 @@ import rx.functions.Action1;
 public class VideoConversionService extends AbstractGoogleApiClientService {
 
 	public static final String
-			ACTION_STATUS_UPDATE = VideoConversionService.class.getName() + ".ACTION_STATUS_UPDATE",
-			EXTRA_STATUS = "EXTRA_STATUS";
+			ACTION_CONVERSION_COMPLETE = VideoConversionService.class.getName() + ".ACTION_CONVERSION_COMPLETE",
+			EXTRA_VIDEO_FILE = "EXTRA_VIDEO_FILE";
 
 	public static final String
 			EXTRA_FACE = "EXTRA_FACE";
 
 	public static final int NOTIFICATION_ID = 42;
 
-	@Inject private VideoService videoService;
+	@Inject private VideoManager videoManager;
 	@Inject private NotificationManager notificationManager;
 	private NotificationCompat.Builder notificationBuilder;
-
-	private final Handler handler = new Handler();
 	private Face face;
 
 	@Override
@@ -49,7 +49,6 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent == null) return START_STICKY;
-
 		this.face = intent.getParcelableExtra(EXTRA_FACE);
 
 		// show progress notification
@@ -62,12 +61,19 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 				.setContentIntent(createConversionActivityIntent(null));
 		notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
 
-		videoService.createVideo(new FaceMetaData(face.getName()))
-				.compose(new DefaultTransformer<VideoConversionStatus>())
-				.subscribe(new Action1<VideoConversionStatus>() {
+		// start conversion
+		videoManager.createVideo(face)
+				.compose(new DefaultTransformer<File>())
+				.subscribe(new Action1<File>() {
 					@Override
-					public void call(VideoConversionStatus status) {
-						updateStatus(status);
+					public void call(File videoFile) {
+						Timber.d("create video at " + videoFile.getAbsolutePath());
+						sendConversionCompleteUpdate(videoFile);
+					}
+				}, new Action1<Throwable>() {
+					@Override
+					public void call(Throwable throwable) {
+						// TODO error handling
 					}
 				});
 
@@ -75,58 +81,29 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 	}
 
 
-	private void updateStatus(final VideoConversionStatus status) {
-		// setup status update
-		Intent updateIntent = new Intent(ACTION_STATUS_UPDATE);
-		updateIntent.putExtra(EXTRA_STATUS, status);
+	private void sendConversionCompleteUpdate(File videoFile) {
+		// send local broadcast with video file
+		Intent updateIntent = new Intent(ACTION_CONVERSION_COMPLETE);
+		updateIntent.putExtra(EXTRA_VIDEO_FILE, videoFile);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(updateIntent);
 
-		// send status to activity in case it was not running and did not receive last status
-		notificationBuilder.setContentIntent(createConversionActivityIntent(status));
+		// update notification in case target activity did not receive broadcast
+		notificationBuilder.setContentIntent(createConversionActivityIntent(videoFile));
 
-		// stop service if necessary
-		if (status.isComplete()) {
-			notificationBuilder
-					.setProgress(0, 0, false)
-					.setOngoing(false)
-					.setAutoCancel(true)
-					.setContentInfo("Tap for details");
-			if (!status.getIsConversionSuccessful()) {
-				notificationBuilder.setContentTitle("Error");
-			} else {
-				notificationBuilder.setContentTitle("Success");
-			}
-			notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-			stopSelf();
-			return;
-		}
-
-		// update notification progress
-		int progress = (int) (status.getProgress() * 100);
+		// stop service
 		notificationBuilder
-				.setProgress(100, progress, false)
-				.setContentText(progress + " % complete");
-		notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-		handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				videoService.getStatus(status.getVideoId())
-						.compose(new DefaultTransformer<VideoConversionStatus>())
-						.subscribe(new Action1<VideoConversionStatus>() {
-							@Override
-							public void call(VideoConversionStatus status) {
-								updateStatus(status);
-							}
-						});
-			}
-		}, 1000);
+				.setProgress(0, 0, false)
+				.setOngoing(false)
+				.setAutoCancel(true)
+				.setContentInfo("Tap for details")
+				.setContentTitle("Success");
+		stopSelf();
 	}
 
 
-	private PendingIntent createConversionActivityIntent(VideoConversionStatus status) {
+	private PendingIntent createConversionActivityIntent(File videoFile) {
 		Intent intent = new Intent(this, VideoConversionActivity.class);
-		intent.putExtra(VideoConversionActivity.EXTRA_FACE, face);
-		if (status != null) intent.putExtra(VideoConversionActivity.EXTRA_STATUS, status);
+		if (videoFile != null) intent.putExtra(VideoConversionActivity.EXTRA_VIDEO_FILE, videoFile);
 		return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 

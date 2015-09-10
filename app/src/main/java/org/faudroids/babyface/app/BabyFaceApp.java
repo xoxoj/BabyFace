@@ -7,7 +7,6 @@ import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 
 import org.faudroids.babyface.BuildConfig;
-import org.faudroids.babyface.videos.VideosModule;
 
 import io.fabric.sdk.android.Fabric;
 import roboguice.RoboGuice;
@@ -23,8 +22,7 @@ public class BabyFaceApp extends Application {
 		RoboGuice.getOrCreateBaseApplicationInjector(
 				this,
 				RoboGuice.DEFAULT_STAGE,
-				RoboGuice.newDefaultRoboModule(this),
-				new VideosModule());
+				RoboGuice.newDefaultRoboModule(this));
 
 		// setup logging
 		if (BuildConfig.DEBUG) {

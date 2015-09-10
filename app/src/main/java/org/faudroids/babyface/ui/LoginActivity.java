@@ -16,6 +16,7 @@ import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.google.ConnectionListener;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.faudroids.babyface.videos.VideoManager;
 
 import javax.inject.Inject;
 
@@ -23,6 +24,7 @@ import roboguice.inject.ContentView;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import timber.log.Timber;
 
 /**
@@ -37,6 +39,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	@Inject private GoogleDriveManager driveManager;
 	@Inject private FacesManager facesManager;
 	@Inject private FacesImportViewHandler importViewHandler;
+	@Inject private VideoManager videoManager;
 
 
 	public LoginActivity() {
@@ -73,6 +76,12 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 		// first time setup
 		driveManager.assertAppRootFolderExists()
+				.flatMap(new Func1<Void, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(Void aVoid) {
+						return videoManager.setupFFmpeg();
+					}
+				})
 				.compose(new DefaultTransformer<Void>())
 				.subscribe(new Action1<Void>() {
 					@Override
