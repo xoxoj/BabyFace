@@ -91,9 +91,17 @@ public class VideoConversionActivity extends AbstractActivity {
 		this.conversionStatus = conversionStatus;
 
 		if (conversionStatus.isComplete()) {
-			showVideoButton.setVisibility(View.VISIBLE);
-			progressView.setVisibility(View.GONE);
+			// cancel notification (still running if user did not leave activity)
 			notificationManager.cancel(VideoConversionService.NOTIFICATION_ID);
+
+			// update UI
+			if (!conversionStatus.isError()) {
+				progressView.setVisibility(View.GONE);
+				showVideoButton.setVisibility(View.VISIBLE);
+			} else {
+				progressView.setText("Sorry, but there was an error converting the video");
+			}
+
 		} else {
 			progressView.setText((int) (conversionStatus.getProgress() * 100) + " % complete");
 		}
