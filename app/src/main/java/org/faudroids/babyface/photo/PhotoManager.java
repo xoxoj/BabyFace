@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import timber.log.Timber;
 
@@ -220,24 +219,19 @@ public class PhotoManager {
 	/**
 	 * @return all photos (store locally in internal storage) that belong to this one face.
 	 */
-	public Observable<List<File>> getPhotosForFace(final Face face) {
-		return Observable.defer(new Func0<Observable<List<File>>>() {
-			@Override
-			public Observable<List<File>> call() {
-				List<File> photoFiles = Lists.newArrayList();
-				for (File file : getFaceDir(face.getName()).listFiles()) {
-					if (isFaceFileName(file.getName())) {
-						photoFiles.add(file);
-					}
-				}
-				for (File file : getFaceUploadsDir(face.getName()).listFiles()) {
-					if (isFaceFileName(file.getName())) {
-						photoFiles.add(file);
-					}
-				}
-				return Observable.just(photoFiles);
+	public List<File> getPhotosForFace(final Face face) {
+		List<File> photoFiles = Lists.newArrayList();
+		for (File file : getFaceDir(face.getName()).listFiles()) {
+			if (isFaceFileName(file.getName())) {
+				photoFiles.add(file);
 			}
-		});
+		}
+		for (File file : getFaceUploadsDir(face.getName()).listFiles()) {
+			if (isFaceFileName(file.getName())) {
+				photoFiles.add(file);
+			}
+		}
+		return photoFiles;
 	}
 
 

@@ -1,6 +1,7 @@
 package org.faudroids.babyface.utils;
 
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +54,39 @@ public class IOUtils {
 			}
 		}
 		if (!file.delete()) Timber.e("failed to delete " + file.getAbsolutePath());
+	}
+
+
+	/**
+	 * Close that closeable!
+	 */
+	public void close(Closeable closeable) {
+		try {
+			if (closeable != null) closeable.close();
+		} catch (IOException e) {
+			Timber.e(e, "failed to close stream");
+		}
+	}
+
+
+	/**
+	 * Returns the directory formatted as a tree.
+	 */
+	public String tree(File file) {
+		StringBuilder builder = new StringBuilder();
+		tree(builder, file, "");
+		return builder.toString();
+	}
+
+
+	private void tree(StringBuilder builder, File file, String prefix) {
+		builder.append(prefix).append(file.getName()).append('\n');
+		if (file.isDirectory()) {
+			prefix = "   " + prefix;
+			for (File child : file.listFiles()) {
+				tree(builder, child, prefix);
+			}
+		}
 	}
 
 }

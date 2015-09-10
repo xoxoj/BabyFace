@@ -14,7 +14,6 @@ import com.squareup.picasso.Picasso;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.photo.PhotoManager;
-import org.faudroids.babyface.utils.DefaultTransformer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
-import rx.functions.Action1;
 import timber.log.Timber;
 
 /**
@@ -54,18 +52,11 @@ public class ShowPhotosActivity extends AbstractActivity {
 		photosList.setAdapter(photoAdapter);
 		// photosList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
 
-		// download photos
-		photoManager
-				.getPhotosForFace(face)
-				.compose(new DefaultTransformer<List<File>>())
-				.subscribe(new Action1<List<File>>() {
-					@Override
-					public void call(List<File> photoFiles) {
-						Timber.d("loaded " + photoFiles.size() + " photos");
-						if (!photoFiles.isEmpty()) setSelectedPhotoFile(photoFiles.get(0));
-						photoAdapter.setPhotoFiles(photoFiles);
-					}
-				});
+		// get photos
+		List<File> photoFiles = photoManager.getPhotosForFace(face);
+		Timber.d("loaded " + photoFiles.size() + " photos");
+		if (!photoFiles.isEmpty()) setSelectedPhotoFile(photoFiles.get(0));
+		photoAdapter.setPhotoFiles(photoFiles);
 	}
 
 

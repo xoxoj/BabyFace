@@ -15,9 +15,9 @@ import android.widget.TextView;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.videos.VideoConversionService;
+import org.faudroids.babyface.videos.VideoConversionStatus;
 import org.faudroids.babyface.videos.VideoManager;
-
-import java.io.File;
+import org.parceler.Parcels;
 
 import javax.inject.Inject;
 
@@ -30,7 +30,7 @@ import roboguice.inject.InjectView;
 @ContentView(R.layout.activity_video_conversion)
 public class VideoConversionActivity extends AbstractActivity {
 
-	public static final String EXTRA_VIDEO_FILE = "EXTRA_VIDEO_FILE";
+	public static final String EXTRA_STATUS = "EXTRA_STATUS";
 
 	@InjectView(R.id.txt_progress) private TextView progressView;
 	@InjectView(R.id.btn_show_video) private Button showVideoButton;
@@ -39,7 +39,7 @@ public class VideoConversionActivity extends AbstractActivity {
 	@Inject private NotificationManager notificationManager;
 
 	private final StatusReceiver statusReceiver = new StatusReceiver();
-	private File videoFile = null;
+	private VideoConversionStatus conversionStatus;
 
 	public VideoConversionActivity() {
 		super(false, true);
@@ -50,13 +50,13 @@ public class VideoConversionActivity extends AbstractActivity {
 		super.onCreate(savedInstanceState);
 
 		// check if started with finished video
-		videoFile = (File) getIntent().getSerializableExtra(EXTRA_VIDEO_FILE);
-		if (videoFile != null) onConversionComplete(videoFile);
+		conversionStatus = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_STATUS));
+		if (conversionStatus != null) onStatusUpdate(conversionStatus);
 
 		showVideoButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Uri videoUri = Uri.parse("file:///" + videoFile.getAbsolutePath());
+				Uri videoUri = Uri.parse("file:///" + conversionStatus.getVideoFile().getAbsolutePath());
 				Intent intent = new Intent(Intent.ACTION_VIEW);
 				intent.setDataAndType(videoUri, "video/mp4");
 				startActivity(intent);
@@ -69,14 +69,14 @@ public class VideoConversionActivity extends AbstractActivity {
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
-		onConversionComplete((File) intent.getSerializableExtra(EXTRA_VIDEO_FILE));
+		onStatusUpdate((VideoConversionStatus) Parcels.unwrap(intent.getParcelableExtra(EXTRA_STATUS)));
 	}
 
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		LocalBroadcastManager.getInstance(this).registerReceiver(statusReceiver, new IntentFilter(VideoConversionService.ACTION_CONVERSION_COMPLETE));
+		LocalBroadcastManager.getInstance(this).registerReceiver(statusReceiver, new IntentFilter(VideoConversionService.ACTION_STATUS_UPDATE));
 	}
 
 
@@ -87,11 +87,16 @@ public class VideoConversionActivity extends AbstractActivity {
 	}
 
 
-	private void onConversionComplete(File videoFile) {
-		this.videoFile = videoFile;
-		showVideoButton.setVisibility(View.VISIBLE);
-		progressView.setVisibility(View.GONE);
-		notificationManager.cancel(VideoConversionService.NOTIFICATION_ID);
+	private void onStatusUpdate(VideoConversionStatus conversionStatus) {
+		this.conversionStatus = conversionStatus;
+
+		if (conversionStatus.isComplete()) {
+			showVideoButton.setVisibility(View.VISIBLE);
+			progressView.setVisibility(View.GONE);
+			notificationManager.cancel(VideoConversionService.NOTIFICATION_ID);
+		} else {
+			progressView.setText((int) (conversionStatus.getProgress() * 100) + " % complete");
+		}
 	}
 
 
@@ -99,7 +104,7 @@ public class VideoConversionActivity extends AbstractActivity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			onConversionComplete((File) intent.getSerializableExtra(VideoConversionService.EXTRA_VIDEO_FILE));
+			onStatusUpdate((VideoConversionStatus) Parcels.unwrap(intent.getParcelableExtra(EXTRA_STATUS)));
 		}
 
 	}

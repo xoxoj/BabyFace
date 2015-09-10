@@ -15,7 +15,12 @@ import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.Pref;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,7 +36,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
-import rx.functions.Func1;
+import rx.functions.Func0;
 import timber.log.Timber;
 
 public class VideoManager {
@@ -95,20 +100,26 @@ public class VideoManager {
 	}
 
 
-	public Observable<File> createVideo(final Face face) {
-		return photoManager.getPhotosForFace(face)
-				.flatMap(new Func1<List<File>, Observable<File>>() {
+	public VideoConversion createVideo(final Face face) {
+		final List<File> photoFiles = photoManager.getPhotosForFace(face);
+		final File progressFile = new File(getTmpVideoDir(), "progress");
+		final Observable<File> conversionObservable = Observable
+				.defer(new Func0<Observable<File>>() {
 					@Override
-					public Observable<File> call(List<File> photoFiles) {
+					public Observable<File> call() {
 						// rename photos to img0000.jpg
 						Collections.sort(photoFiles);
 						int idx = 0;
 						for (File oldFile : photoFiles) {
 							++idx;
 							File newFile = new File(getTmpVideoDir(), "img" + String.format("%03d", idx) + ".jpg");
-							boolean success = oldFile.renameTo(newFile);
-							if (!success) Timber.e("failed to rename file " + oldFile.getName() + " to " + newFile.getName());
-							else Timber.d("written file " + newFile.getAbsolutePath());
+							try {
+								if (!newFile.createNewFile()) Timber.e("failed to create file " + newFile.getAbsolutePath());
+								ioUtils.copyStream(new FileInputStream(oldFile), new FileOutputStream(newFile));
+							} catch(IOException e) {
+								Timber.d(e, "failed to copy file");
+								return Observable.error(e);
+							}
 						}
 
 						// create conversion command
@@ -117,7 +128,8 @@ public class VideoManager {
 						final File videoFile = new File(getExternalFaceVideoDir(face), videoFileName);
 
 						final String command = String.format(
-								"-framerate 1/%d -i %s -c:v libx264 -r %d -pix_fmt yuv420p %s",
+								"-progress %s -framerate 1/%d -i %s -c:v libx264 -r %d -pix_fmt yuv420p %s",
+								progressFile.getAbsolutePath(),
 								IMAGE_LENGTH_IN_SECONDS,
 								photoFileNameTemplate,
 								FRAMERATE,
@@ -176,6 +188,37 @@ public class VideoManager {
 						ioUtils.delete(getTmpVideoDir());
 					}
 				});
+		return new VideoConversion(progressFile, photoFiles.size(), conversionObservable);
+	}
+
+
+	/**
+	 * @return the current video conversion progress in % (0 to 1)
+	 */
+	public float getVideoConversionProgress(VideoConversion conversion) {
+		if (!conversion.getProgressFile().exists()) return 0;
+
+		// amount of frames in this video
+		int totalFrames = conversion.getImageCount() * FRAMERATE * IMAGE_LENGTH_IN_SECONDS;
+
+		// read progress file
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(conversion.getProgressFile()));
+			long currentFrame = 0;
+			String line;
+			while ((line = reader.readLine()) != null) {
+				currentFrame = Integer.valueOf(line.substring(6)); // reads first line "frame=<number>"
+				for (int i = 0; i < 8; ++i) reader.readLine(); // reads the 9 additional progress lines
+			}
+			return ((float) currentFrame) / totalFrames;
+
+		} catch (IOException e) {
+			Timber.e("failed to read progress", e);
+			return 0;
+		} finally {
+			ioUtils.close(reader);
+		}
 	}
 
 
@@ -218,6 +261,33 @@ public class VideoManager {
 
 	private File getTmpVideoDir() {
 		return ioUtils.assertDir(new File(context.getFilesDir(), TMP_VIDEO_DIR));
+	}
+
+
+	public static class VideoConversion {
+
+		private final File progressFile;
+		private final int imageCount;
+		private final Observable<File> conversionObservable;
+
+		VideoConversion(File progressFile, int imageCount, Observable<File> conversionObservable) {
+			this.progressFile = progressFile;
+			this.imageCount = imageCount;
+			this.conversionObservable = conversionObservable;
+		}
+
+		File getProgressFile() {
+			return progressFile;
+		}
+
+		int getImageCount() {
+			return imageCount;
+		}
+
+		public Observable<File> toObservable() {
+			return conversionObservable;
+		}
+
 	}
 
 }
