@@ -62,8 +62,8 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 
 		// show progress notification
 		notificationBuilder = new NotificationCompat.Builder(this)
-				.setContentTitle("Creating movie")
-				.setContentText("0 % complete")
+				.setContentTitle(getString(R.string.creating_video))
+				.setContentText(getString(R.string.video_conversion_progress, 0))
 				.setSmallIcon(R.drawable.ic_notification)
 				.setProgress(100, 0, false)
 				.setOngoing(true)
@@ -111,17 +111,17 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 					.setProgress(0, 0, false)
 					.setOngoing(false)
 					.setAutoCancel(true)
-					.setContentInfo("Tap for details");
+					.setContentInfo(getString(R.string.tap_for_details));
 			stopSelf();
 
-			if (!status.isError()) notificationBuilder.setContentText("Success");
-			else notificationBuilder.setContentText("Error");
+			if (!status.isError()) notificationBuilder.setContentText(getString(R.string.success));
+			else notificationBuilder.setContentText(getString(R.string.error));
 
 		} else {
 			int progress = (int) (status.getProgress() * 100);
 			notificationBuilder
 					.setProgress(100, progress, false)
-					.setContentText(progress + " % complete");
+					.setContentText(getString(R.string.video_conversion_progress, progress));
 
 			// schedule another update
 			handler.postDelayed(new Runnable() {

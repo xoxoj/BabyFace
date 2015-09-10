@@ -25,14 +25,14 @@
 
             <TextView
                 android:id="@+id/txt_title"
-                android:text="Creating video!"
+                android:text="@string/creating_video"
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="50dp"
                 style="@style/TextIntroTitle"
                 />
 
             <TextView
-                android:text="Your baby video is being created for you, hang in tight!"
+                android:text="@string/creating_video_please_wait"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
@@ -57,7 +57,7 @@
                 android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Download + show video"
+                android:text="@string/show_video"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:textColor="@android:color/white"

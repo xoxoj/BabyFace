@@ -71,6 +71,15 @@
     <string name="import_from_drive">Import from Google Drive</string>
     <string name="nothing_to_import">Nothing to import</string>
 
+    <string name="video_conversion_progress">%1$d %% complete</string>
+    <string name="video_conversion_error">Sorry, but there was an error converting your video :(</string>
+    <string name="creating_video">Creating video</string>
+    <string name="tap_for_details">Tap for details</string>
+    <string name="success">Success</string>
+    <string name="error">Error</string>
+    <string name="creating_video_please_wait">Your video is being created for you, hang in tight!</string>
+    <string name="show_video">Show video</string>
+
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>

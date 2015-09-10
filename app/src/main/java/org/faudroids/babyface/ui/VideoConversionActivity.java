@@ -99,11 +99,12 @@ public class VideoConversionActivity extends AbstractActivity {
 				progressView.setVisibility(View.GONE);
 				showVideoButton.setVisibility(View.VISIBLE);
 			} else {
-				progressView.setText("Sorry, but there was an error converting the video");
+				progressView.setText(R.string.video_conversion_error);
 			}
 
 		} else {
-			progressView.setText((int) (conversionStatus.getProgress() * 100) + " % complete");
+			int progress = (int) (conversionStatus.getProgress() * 100);
+			progressView.setText(getString(R.string.video_conversion_progress, progress));
 		}
 	}
 
