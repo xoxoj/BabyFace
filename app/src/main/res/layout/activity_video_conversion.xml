@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary"
@@ -42,15 +43,34 @@
                 android:layout_marginBottom="30dp"
                 />
 
-            <TextView
-                android:id="@+id/txt_progress"
+            <LinearLayout
+                android:id="@+id/layout_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="24sp"
-                android:fontFamily="sans-serif-light"
+                android:orientation="horizontal"
                 android:layout_gravity="center_horizontal"
-                />
+                >
+
+                <com.lsjwzh.widget.materialloadingprogressbar.CircleProgressBar
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginRight="10dp"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_color="@color/accent"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    android:fontFamily="sans-serif-light"
+                    android:text="@string/video_conversion_progress_zero"
+                    android:layout_gravity="center_vertical"
+                    />
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/btn_show_video"
