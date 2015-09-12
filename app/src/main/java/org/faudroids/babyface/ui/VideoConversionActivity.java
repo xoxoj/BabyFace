@@ -33,6 +33,7 @@ public class VideoConversionActivity extends AbstractActivity {
 	public static final String EXTRA_STATUS = "EXTRA_STATUS";
 
 	@InjectView(R.id.layout_progress) private View progressLayout;
+	@InjectView(R.id.txt_description) private TextView descriptionTextView;
 	@InjectView(R.id.txt_progress) private TextView progressTextView;
 	@InjectView(R.id.btn_show_video) private Button showVideoButton;
 
@@ -96,11 +97,12 @@ public class VideoConversionActivity extends AbstractActivity {
 			notificationManager.cancel(VideoConversionService.NOTIFICATION_ID);
 
 			// update UI
+			progressLayout.setVisibility(View.GONE);
 			if (!conversionStatus.isError()) {
-				progressLayout.setVisibility(View.GONE);
 				showVideoButton.setVisibility(View.VISIBLE);
+				descriptionTextView.setText(R.string.creating_video_finished);
 			} else {
-				progressTextView.setText(R.string.video_conversion_error);
+				descriptionTextView.setText(R.string.video_conversion_error);
 			}
 
 		} else {

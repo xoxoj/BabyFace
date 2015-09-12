@@ -80,6 +80,7 @@
     <string name="success">Success</string>
     <string name="error">Error</string>
     <string name="creating_video_please_wait">Your video is being created for you, hang in tight!</string>
+    <string name="creating_video_finished">All done, enjoy the show!</string>
     <string name="show_video">Show video</string>
 
     <plurals name="hours">
