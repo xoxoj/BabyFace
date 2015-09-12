@@ -48,6 +48,7 @@
         &lt;a href=&quot;https://github.com/ReactiveX/RxJava&quot;&gt;RxJava&lt;/a&gt; by Reactivex&lt;br&gt;
         &lt;a href=&quot;https://github.com/ReactiveX/RxAndroid&quot;&gt;RxAndroid&lt;/a&gt; by Reactivex&lt;br&gt;
         &lt;a href=&quot;https://github.com/johncarl81/parceler&quot;&gt;Parceler&lt;/a&gt; by John Ericksen&lt;br&gt;
+        &lt;a href=&quot;https://github.com/lsjwzh/MaterialLoadingProgressBar&quot;&gt;MaterialLoadingProgressBar&lt;/a&gt; by lsjwzh&lt;br&gt;
         &lt;a href=&quot;https://github.com/google/material-design-icons&quot;&gt;Material Design Icons&lt;/a&gt; by Google Inc.&lt;br&gt;
         &lt;a href=&quot;https://source.android.com/&quot;&gt;Android Open Source Project&lt;/a&gt; by Google Inc. and the Open Handset Alliance&lt;br&gt;
         &lt;br&gt;
@@ -71,6 +72,7 @@
     <string name="import_from_drive">Import from Google Drive</string>
     <string name="nothing_to_import">Nothing to import</string>
 
+    <string name="video_conversion_progress_zero">0 % complete</string>
     <string name="video_conversion_progress">%1$d %% complete</string>
     <string name="video_conversion_error">Sorry, but there was an error converting your video :(</string>
     <string name="creating_video">Creating video</string>
