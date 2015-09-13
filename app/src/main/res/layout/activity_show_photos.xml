@@ -27,6 +27,17 @@
             android:scaleType="centerInside"
             />
 
+        <TextView
+            android:id="@+id/txt_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="12.02.2015"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:layout_margin="5dp"
+            />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

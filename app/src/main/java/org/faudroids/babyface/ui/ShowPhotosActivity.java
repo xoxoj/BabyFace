@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -20,6 +21,7 @@ import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,9 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 	public static final String EXTRA_FACE = "EXTRA_FACE";
 
+	private final DateFormat dateFormat = DateFormat.getDateInstance();
+
+	@InjectView(R.id.txt_date) private TextView dateView;
 	@InjectView(R.id.img_photo) private ImageView photoView;
 	@InjectView(R.id.btn_delete) private ImageButton deleteButton;
 	@InjectView(R.id.btn_edit) private ImageButton editButton;
@@ -115,8 +120,13 @@ public class ShowPhotosActivity extends AbstractActivity {
 	private void setSelectedPhoto(PhotoInfo photo) {
 		if (photo != null) Timber.d("selecting " + photo.getPhotoFile().getAbsolutePath());
 		selectedPhoto = photo;
-		if (photo == null) photoView.setImageResource(android.R.color.transparent);
-		else Picasso.with(this).load(photo.getPhotoFile()).into(photoView);
+		if (photo == null) {
+			photoView.setImageResource(android.R.color.transparent);
+			dateView.setText("");
+		} else {
+			Picasso.with(this).load(photo.getPhotoFile()).into(photoView);
+			dateView.setText(dateFormat.format(photo.getCreationDate()));
+		}
 	}
 
 
