@@ -49,8 +49,8 @@ public class CapturePhotoActivity extends AbstractActivity {
 			notificationManager.cancel(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0));
 		}
 
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-			// immediately forward to actual photo capturing
+		// if landscape mode start photo capturing immediately
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode()) {
 			startPhotoCapture();
 		}
 	}

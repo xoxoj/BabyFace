@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
 import org.faudroids.babyface.google.GoogleApiClientManager;
+import org.faudroids.babyface.photo.PhotoManager;
 
 import javax.inject.Inject;
 
@@ -23,6 +26,7 @@ import timber.log.Timber;
 public class SettingsFragment extends AbstractFragment {
 
 	@InjectView(R.id.txt_start_import) private TextView startImport;
+	@InjectView(R.id.check_force_photo_landscape) private CheckBox forceLandscapePhotos;
 	@InjectView(R.id.versionTextView) private TextView version;
 	@InjectView(R.id.authorTextView) private TextView authors;
 	@InjectView(R.id.creditsTextView) private TextView credits;
@@ -31,6 +35,7 @@ public class SettingsFragment extends AbstractFragment {
 	@Inject private AuthManager authManager;
 	@Inject private GoogleApiClientManager googleApiClientManager;
 	@Inject private FacesImportViewHandler importViewHandler;
+	@Inject private PhotoManager photoManager;
 
 
 	public SettingsFragment() {
@@ -61,6 +66,14 @@ public class SettingsFragment extends AbstractFragment {
 						// TODO error handling
 					}
 				}, null);
+			}
+		});
+
+		forceLandscapePhotos.setChecked(photoManager.getForcePhotoLandscapeMode());
+		forceLandscapePhotos.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				photoManager.setForcePhotoLandscapeMode(isChecked);
 			}
 		});
 

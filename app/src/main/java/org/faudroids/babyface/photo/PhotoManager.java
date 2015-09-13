@@ -24,6 +24,7 @@ import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.imgproc.Detector;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.MultiValueMap;
+import org.faudroids.babyface.utils.Pref;
 import org.roboguice.shaded.goole.common.base.Optional;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
@@ -68,6 +69,8 @@ import timber.log.Timber;
  */
 public class PhotoManager {
 
+	private static final String PREFS_NAME = "org.faudroids.babyface.photo.PhotoManager";
+
 	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 	private static final String PHOTO_FILE_NAME_REGEX = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)_(\\d\\d)-(\\d\\d)-(\\d\\d)\\.jpg";
 
@@ -80,6 +83,7 @@ public class PhotoManager {
 	private final GoogleDriveManager googleDriveManager;
 	private final GoogleApiClientManager googleApiClientManager;
 	private final IOUtils ioUtils;
+	private final Pref<Boolean> forcePhotoLandscapePref;
 
 
 	@Inject
@@ -89,6 +93,17 @@ public class PhotoManager {
 		this.googleDriveManager = googleDriveManager;
 		this.googleApiClientManager = googleApiClientManager;
 		this.ioUtils = ioUtils;
+		this.forcePhotoLandscapePref = Pref.newBooleanPref(context, PREFS_NAME, "force_photo_landscape", true);
+	}
+
+
+	public boolean getForcePhotoLandscapeMode() {
+		return forcePhotoLandscapePref.get();
+	}
+
+
+	public void setForcePhotoLandscapeMode(boolean force) {
+		forcePhotoLandscapePref.set(force);
 	}
 
 
