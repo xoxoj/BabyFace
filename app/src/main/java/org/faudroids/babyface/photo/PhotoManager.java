@@ -343,6 +343,8 @@ public class PhotoManager {
 					Integer.valueOf(matcher.group(6)));
 			result.add(new PhotoInfo(face, photoFile, calendar.getTime()));
 		}
+
+		Collections.sort(result);
 		return result;
 	}
 

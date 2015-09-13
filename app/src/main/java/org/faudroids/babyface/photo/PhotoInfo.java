@@ -9,8 +9,9 @@ import java.util.Date;
 /**
  * Describes where a photo is stored locally and which {@link org.faudroids.babyface.faces.Face}
  * is belongs to.
+ * Supports comparison via the creation date.
  */
-public class PhotoInfo {
+public class PhotoInfo implements Comparable<PhotoInfo> {
 
 	private final Face face;
 	private final File photoFile;
@@ -47,6 +48,11 @@ public class PhotoInfo {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(face, photoFile, creationDate);
+	}
+
+	@Override
+	public int compareTo(PhotoInfo another) {
+		return creationDate.compareTo(another.creationDate);
 	}
 
 }
