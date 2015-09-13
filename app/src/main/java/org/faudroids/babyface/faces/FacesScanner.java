@@ -33,7 +33,7 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import timber.log.Timber;
 
-import static org.faudroids.babyface.photo.PhotoManager.Photo;
+import static org.faudroids.babyface.photo.PhotoManager.ImportablePhoto;
 
 /**
  * Scans Google Drive for face folders which
@@ -79,7 +79,7 @@ public class FacesScanner {
 					// if face is already "imported" then skip it
 					if (existingFaceFolders.contains(folderMetadata.getTitle())) continue;
 
-					List<Photo> photos = getPhotos(folderMetadata.getDriveId());
+					List<ImportablePhoto> photos = getPhotos(folderMetadata.getDriveId());
 					if (!photos.isEmpty()) {
 						result.add(new ImportableFace(folderMetadata.getTitle(), photos));
 					}
@@ -119,8 +119,8 @@ public class FacesScanner {
 	}
 
 
-	private List<Photo> getPhotos(DriveId faceFolderId) {
-		final List<Photo> result = Lists.newArrayList();
+	private List<ImportablePhoto> getPhotos(DriveId faceFolderId) {
+		final List<ImportablePhoto> result = Lists.newArrayList();
 		final GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
 
 		// TODO pagination has been deprecated, but there is no info if there is a different pagination mechanism now
@@ -128,7 +128,7 @@ public class FacesScanner {
 		queryResult.getMetadataBuffer().getNextPageToken();
 		for (Metadata file : queryResult.getMetadataBuffer()) {
 			if (photoManager.isPhotoFileName(file.getTitle())) {
-				result.add(new Photo(file.getTitle(), file.getDriveId()));
+				result.add(new ImportablePhoto(file.getTitle(), file.getDriveId()));
 			}
 		}
 		queryResult.getMetadataBuffer().release();
@@ -139,9 +139,9 @@ public class FacesScanner {
 	public static class ImportableFace implements Parcelable {
 
 		private final String faceName;
-		private final List<Photo> photos;
+		private final List<ImportablePhoto> photos;
 
-		public ImportableFace(String faceName, List<Photo> photos) {
+		public ImportableFace(String faceName, List<ImportablePhoto> photos) {
 			this.faceName = faceName;
 			this.photos = photos;
 		}
@@ -150,15 +150,15 @@ public class FacesScanner {
 			return faceName;
 		}
 
-		public List<Photo> getPhotos() {
+		public List<ImportablePhoto> getPhotos() {
 			return photos;
 		}
 
 		protected ImportableFace(Parcel in) {
 			faceName = in.readString();
 			if (in.readByte() == 0x01) {
-				photos = new ArrayList<Photo>();
-				in.readList(photos, Photo.class.getClassLoader());
+				photos = new ArrayList<ImportablePhoto>();
+				in.readList(photos, ImportablePhoto.class.getClassLoader());
 			} else {
 				photos = null;
 			}

@@ -11,9 +11,11 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
+import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.Pref;
+import org.parceler.guava.collect.Lists;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -101,7 +103,9 @@ public class VideoManager {
 
 
 	public VideoConversion createVideo(final Face face) {
-		final List<File> photoFiles = photoManager.getPhotosForFace(face);
+		final List<PhotoInfo> photoInfos = photoManager.getPhotosForFace(face);
+		final List<File> photoFiles = Lists.newArrayList();
+		for (PhotoInfo info : photoInfos) photoFiles.add(info.getPhotoFile());
 		final File progressFile = new File(getTmpVideoDir(), "progress");
 		final Observable<File> conversionObservable = Observable
 				.defer(new Func0<Observable<File>>() {

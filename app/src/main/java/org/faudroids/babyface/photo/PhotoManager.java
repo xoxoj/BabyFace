@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
@@ -67,7 +69,7 @@ import timber.log.Timber;
 public class PhotoManager {
 
 	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-	private static final Pattern PHOTO_FILE_NAME_PATTERN = Pattern.compile("\\d\\d\\d\\d-\\d\\d-\\d\\d_\\d\\d-\\d\\d-\\d\\d\\.jpg");
+	private static final String PHOTO_FILE_NAME_REGEX = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)_(\\d\\d)-(\\d\\d)-(\\d\\d)\\.jpg";
 
 	private static final String
 			INTERNAL_UPLOADS_DIR = "uploads",
@@ -133,13 +135,13 @@ public class PhotoManager {
 	}
 
 
-	public void deletePhoto(Face face, File photoFileToDelete) {
-		File markedFile = new File(getFaceDeletedDir(face), photoFileToDelete.getName());
+	public void deletePhoto(PhotoInfo photo) {
+		File markedFile = new File(getFaceDeletedDir(photo.getFace()), photo.getPhotoFile().getName());
 		try {
-			ioUtils.copyStream(new FileInputStream(photoFileToDelete), new FileOutputStream(markedFile));
-			ioUtils.delete(photoFileToDelete);
+			ioUtils.copyStream(new FileInputStream(photo.getPhotoFile()), new FileOutputStream(markedFile));
+			ioUtils.delete(photo.getPhotoFile());
 		} catch (IOException e) {
-			Timber.e(e, "failed to delete photo" + photoFileToDelete.getAbsolutePath());
+			Timber.e(e, "failed to delete photo" + photo.getPhotoFile().getAbsolutePath());
 		}
 	}
 
@@ -313,33 +315,48 @@ public class PhotoManager {
 	/**
 	 * @return all photos (store locally in internal storage) that belong to this one face.
 	 */
-	public List<File> getPhotosForFace(final Face face) {
+	public List<PhotoInfo> getPhotosForFace(final Face face) {
 		List<File> photoFiles = Lists.newArrayList();
 		for (File file : getFaceDir(face.getName()).listFiles()) {
-			if (isPhotoFileName(file.getName())) {
-				photoFiles.add(file);
-			}
+			photoFiles.add(file);
 		}
 		for (File file : getFaceUploadsDir(face.getName()).listFiles()) {
-			if (isPhotoFileName(file.getName())) {
-				photoFiles.add(file);
-			}
+			photoFiles.add(file);
 		}
-		return photoFiles;
+
+		List<PhotoInfo> result = Lists.newArrayList();
+		Pattern fileNamePattern = Pattern.compile(PHOTO_FILE_NAME_REGEX);
+		for (File photoFile : photoFiles) {
+			String name = photoFile.getName();
+			if (!isPhotoFileName(name)) continue;
+
+			// parse file name
+			Matcher matcher = fileNamePattern.matcher(name);
+			matcher.find();
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(
+					Integer.valueOf(matcher.group(1)),
+					Integer.valueOf(matcher.group(2)) - 1,
+					Integer.valueOf(matcher.group(3)),
+					Integer.valueOf(matcher.group(4)),
+					Integer.valueOf(matcher.group(5)),
+					Integer.valueOf(matcher.group(6)));
+			result.add(new PhotoInfo(face, photoFile, calendar.getTime()));
+		}
+		return result;
 	}
 
 
 	/**
-	 * Downloads photos belong to one particalur faces and stores them locally ("import").
+	 * Downloads photos belong to one particular faces and stores them locally ("import").
 	 *
-	 * @param face
 	 * @param photos list of photo file names mapped to their drive id
 	 */
-	public Observable<Void> downloadPhotos(final Face face, final List<Photo> photos) {
+	public Observable<Void> downloadPhotos(final Face face, final List<ImportablePhoto> photos) {
 		return Observable.from(photos)
-				.flatMap(new Func1<Photo, Observable<Void>>() {
+				.flatMap(new Func1<ImportablePhoto, Observable<Void>>() {
 					@Override
-					public Observable<Void> call(final Photo photo) {
+					public Observable<Void> call(final ImportablePhoto photo) {
 						return googleDriveManager.readFile(photo.getDriveId())
 								.flatMap(new Func1<InputStream, Observable<Void>>() {
 									@Override
@@ -374,8 +391,8 @@ public class PhotoManager {
 	}
 
 
-	public boolean isPhotoFileName(String imageFileName) {
-		return PHOTO_FILE_NAME_PATTERN.matcher(imageFileName).matches();
+	public boolean isPhotoFileName(String photoFileName) {
+		return photoFileName.matches(PHOTO_FILE_NAME_REGEX);
 	}
 
 
@@ -486,12 +503,12 @@ public class PhotoManager {
 	}
 
 
-	public static class Photo implements Parcelable {
+	public static class ImportablePhoto implements Parcelable {
 
 		private final String title;
 		private final DriveId driveId;
 
-		public Photo(String title, DriveId driveId) {
+		public ImportablePhoto(String title, DriveId driveId) {
 			this.title = title;
 			this.driveId = driveId;
 		}
@@ -504,7 +521,7 @@ public class PhotoManager {
 			return driveId;
 		}
 
-		protected Photo(Parcel in) {
+		protected ImportablePhoto(Parcel in) {
 			title = in.readString();
 			driveId = (DriveId) in.readValue(DriveId.class.getClassLoader());
 		}
@@ -521,15 +538,15 @@ public class PhotoManager {
 		}
 
 		@SuppressWarnings("unused")
-		public static final Parcelable.Creator<Photo> CREATOR = new Parcelable.Creator<Photo>() {
+		public static final Parcelable.Creator<ImportablePhoto> CREATOR = new Parcelable.Creator<ImportablePhoto>() {
 			@Override
-			public Photo createFromParcel(Parcel in) {
-				return new Photo(in);
+			public ImportablePhoto createFromParcel(Parcel in) {
+				return new ImportablePhoto(in);
 			}
 
 			@Override
-			public Photo[] newArray(int size) {
-				return new Photo[size];
+			public ImportablePhoto[] newArray(int size) {
+				return new ImportablePhoto[size];
 			}
 		};
 	}

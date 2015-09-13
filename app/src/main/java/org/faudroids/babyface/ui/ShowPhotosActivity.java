@@ -17,9 +17,9 @@ import com.squareup.picasso.Picasso;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
+import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +46,7 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 	@Inject private PhotoManager photoManager;
 
-	private File selectedPhotoFile;
+	private PhotoInfo selectedPhoto;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -60,9 +60,9 @@ public class ShowPhotosActivity extends AbstractActivity {
 		// photosList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
 
 		// get photos
-		List<File> photoFiles = photoManager.getPhotosForFace(face);
-		if (!photoFiles.isEmpty()) setSelectedPhotoFile(photoFiles.get(0));
-		setupPhotos(photoFiles);
+		List<PhotoInfo> photos = photoManager.getPhotosForFace(face);
+		if (!photos.isEmpty()) setSelectedPhoto(photos.get(0));
+		setupPhotos(photos);
 
 		// setup buttons
 		editButton.setOnClickListener(new View.OnClickListener() {
@@ -80,19 +80,19 @@ public class ShowPhotosActivity extends AbstractActivity {
 						.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
-								final File photoToDelete = selectedPhotoFile;
+								final PhotoInfo photoToDelete = selectedPhoto;
 
 								// find closest photo to select
-								List<File> photoFiles = photoAdapter.getPhotoFiles();
-								int idx = photoFiles.indexOf(photoToDelete);
-								photoFiles.remove(idx);
-								if (idx >= photoFiles.size()) --idx;
-								if (idx < 0) setSelectedPhotoFile(null);
-								else setSelectedPhotoFile(photoFiles.get(idx));
-								setupPhotos(photoFiles);
+								List<PhotoInfo> photos = photoAdapter.getPhotos();
+								int idx = photos.indexOf(photoToDelete);
+								photos.remove(idx);
+								if (idx >= photos.size()) --idx;
+								if (idx < 0) setSelectedPhoto(null);
+								else setSelectedPhoto(photos.get(idx));
+								setupPhotos(photos);
 
 								// actually delete photo
-								photoManager.deletePhoto(face, photoToDelete);
+								photoManager.deletePhoto(photoToDelete);
 								photoManager.requestPhotoSync();
 							}
 						})
@@ -103,35 +103,35 @@ public class ShowPhotosActivity extends AbstractActivity {
 	}
 
 
-	private void setupPhotos(List<File> photoFiles) {
-		Timber.d("loaded " + photoFiles.size() + " photos");
-		int actionVisibility = photoFiles.isEmpty() ? View.GONE : View.VISIBLE;
+	private void setupPhotos(List<PhotoInfo> photos) {
+		Timber.d("loaded " + photos.size() + " photos");
+		int actionVisibility = photos.isEmpty() ? View.GONE : View.VISIBLE;
 		editButton.setVisibility(actionVisibility);
 		deleteButton.setVisibility(actionVisibility);
-		photoAdapter.setPhotoFiles(photoFiles);
+		photoAdapter.setPhotos(photos);
 	}
 
 
-	private void setSelectedPhotoFile(File photoFile) {
-		if (photoFile != null) Timber.d("selecting " + photoFile.getAbsolutePath());
-		selectedPhotoFile = photoFile;
-		if (photoFile == null) photoView.setImageResource(android.R.color.transparent);
-		else Picasso.with(this).load(selectedPhotoFile).into(photoView);
+	private void setSelectedPhoto(PhotoInfo photo) {
+		if (photo != null) Timber.d("selecting " + photo.getPhotoFile().getAbsolutePath());
+		selectedPhoto = photo;
+		if (photo == null) photoView.setImageResource(android.R.color.transparent);
+		else Picasso.with(this).load(photo.getPhotoFile()).into(photoView);
 	}
 
 
 	private class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
 
-		private final List<File> photoFiles = new ArrayList<>();
+		private final List<PhotoInfo> photos = new ArrayList<>();
 
-		public void setPhotoFiles(List<File> photoFiles) {
-			this.photoFiles.clear();
-			this.photoFiles.addAll(photoFiles);
+		public void setPhotos(List<PhotoInfo> photos) {
+			this.photos.clear();
+			this.photos.addAll(photos);
 			notifyDataSetChanged();
 		}
 
-		public List<File> getPhotoFiles() {
-			return new ArrayList<>(photoFiles);
+		public List<PhotoInfo> getPhotos() {
+			return new ArrayList<>(photos);
 		}
 
 		@Override
@@ -142,12 +142,12 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 		@Override
 		public void onBindViewHolder(PhotoViewHolder photoViewHolder, int position) {
-			photoViewHolder.setPhoto(photoFiles.get(position));
+			photoViewHolder.setPhoto(photos.get(position));
 		}
 
 		@Override
 		public int getItemCount() {
-			return photoFiles.size();
+			return photos.size();
 		}
 	}
 
@@ -162,17 +162,17 @@ public class ShowPhotosActivity extends AbstractActivity {
 			this.photoRollView = (ImageView) itemView.findViewById(R.id.img_photo_roll);
 		}
 
-		public void setPhoto(final File photoFile) {
-			Picasso.with(ShowPhotosActivity.this).load(photoFile).resizeDimen(R.dimen.photo_thumbnail_width, R.dimen.photo_thumbnail_height).centerCrop().into(photoView);
+		public void setPhoto(final PhotoInfo photo) {
+			Picasso.with(ShowPhotosActivity.this).load(photo.getPhotoFile()).resizeDimen(R.dimen.photo_thumbnail_width, R.dimen.photo_thumbnail_height).centerCrop().into(photoView);
 			photoView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					setSelectedPhotoFile(photoFile);
+					setSelectedPhoto(photo);
 					photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay_selected);
 					photoAdapter.notifyDataSetChanged();
 				}
 			});
-			if (photoFile.equals(selectedPhotoFile)) photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay_selected);
+			if (photo.equals(selectedPhoto)) photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay_selected);
 			else photoRollView.setImageResource(R.drawable.ic_movie_roll_overlay);
 		}
 
