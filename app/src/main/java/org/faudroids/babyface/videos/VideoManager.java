@@ -15,7 +15,7 @@ import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.Pref;
-import org.parceler.guava.collect.Lists;
+import org.roboguice.shaded.goole.common.collect.Lists;
 
 import java.io.BufferedReader;
 import java.io.File;
