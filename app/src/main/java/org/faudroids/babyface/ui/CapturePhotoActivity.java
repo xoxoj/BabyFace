@@ -1,10 +1,13 @@
 package org.faudroids.babyface.ui;
 
 
+import android.app.AlertDialog;
 import android.app.NotificationManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.View;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.photo.PhotoManager;
@@ -14,6 +17,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
+import roboguice.inject.InjectView;
 import timber.log.Timber;
 
 @ContentView(R.layout.activity_capture_photo)
@@ -28,6 +32,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 	private static final int REQUEST_CAPTURE_PHOTO = 42;
 
+	@InjectView(R.id.txt_disable_landscape) private View disableLandscapeModeView;
 	@Inject private PhotoManager photoManager;
 	@Inject private NotificationManager notificationManager;
 
@@ -52,7 +57,27 @@ public class CapturePhotoActivity extends AbstractActivity {
 		// if landscape mode start photo capturing immediately
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode()) {
 			startPhotoCapture();
+			return;
 		}
+
+		// setup option to disable forced landscape mode
+		disableLandscapeModeView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				new AlertDialog.Builder(CapturePhotoActivity.this)
+						.setTitle(R.string.disable_landscape_title)
+						.setMessage(R.string.disable_landscape_msg)
+						.setPositiveButton(R.string.turn_off, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								photoManager.setForcePhotoLandscapeMode(false);
+								startPhotoCapture();
+							}
+						})
+						.setNegativeButton(android.R.string.cancel, null)
+						.show();
+			}
+		});
 	}
 
 

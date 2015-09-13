@@ -19,7 +19,7 @@
         />
 
     <TextView
-        android:text="Please rotate your device"
+        android:text="@string/rotate_device"
         android:layout_width="wrap_content"
         android:layout_above="@id/img_device"
         style="@style/TextIntroTitle"
@@ -33,5 +33,20 @@
         >
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/txt_disable_landscape"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_showing_this"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:textColor="@android:color/white"
+        android:paddingBottom="10dp"
+        android:paddingLeft="50dp"
+        android:paddingRight="50dp"
+        android:paddingTop="50dp"
+        android:textSize="14sp"
+        />
 
 </RelativeLayout>
