@@ -11,13 +11,19 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
+import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.google.GoogleDriveManager;
 import org.faudroids.babyface.imgproc.Detector;
 import org.faudroids.babyface.utils.IOUtils;
+import org.faudroids.babyface.utils.MultiValueMap;
 import org.roboguice.shaded.goole.common.base.Optional;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
@@ -32,13 +38,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import timber.log.Timber;
 
 
@@ -57,19 +69,23 @@ public class PhotoManager {
 	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 	private static final Pattern PHOTO_FILE_NAME_PATTERN = Pattern.compile("\\d\\d\\d\\d-\\d\\d-\\d\\d_\\d\\d-\\d\\d-\\d\\d\\.jpg");
 
-	private static final String INTERNAL_UPLOADS_DIR = "uploads";
+	private static final String
+			INTERNAL_UPLOADS_DIR = "uploads",
+			INTERNAL_DELETE_DIR = "deleted";
 
 	private final Context context;
 	private final Detector faceDetector;
 	private final GoogleDriveManager googleDriveManager;
+	private final GoogleApiClientManager googleApiClientManager;
 	private final IOUtils ioUtils;
 
 
 	@Inject
-	PhotoManager(Context context, Detector faceDetector, GoogleDriveManager googleDriveManager, IOUtils ioUtils) {
+	PhotoManager(Context context, Detector faceDetector, GoogleDriveManager googleDriveManager, GoogleApiClientManager googleApiClientManager, IOUtils ioUtils) {
 		this.context = context;
 		this.faceDetector = faceDetector;
 		this.googleDriveManager = googleDriveManager;
+		this.googleApiClientManager = googleApiClientManager;
 		this.ioUtils = ioUtils;
 	}
 
@@ -117,80 +133,158 @@ public class PhotoManager {
 	}
 
 
+	public void deletePhoto(Face face, File photoFileToDelete) {
+		File markedFile = new File(getFaceDeletedDir(face), photoFileToDelete.getName());
+		try {
+			ioUtils.copyStream(new FileInputStream(photoFileToDelete), new FileOutputStream(markedFile));
+			ioUtils.delete(photoFileToDelete);
+		} catch (IOException e) {
+			Timber.e(e, "failed to delete photo" + photoFileToDelete.getAbsolutePath());
+		}
+	}
+
+
 	/**
-	 * Uploads all photos to google drive that have not been uploaded
+	 * Syncs all photos to Google Drive (+ deletes those which have been marked as deleted).
 	 */
-	public Observable<Void> uploadAllPhotos() {
-		// get all photos that have not been uploaded
-		List<File> filesToUpload = new ArrayList<>();
+	public Observable<Void> syncToGoogleDrive() {
+		final MultiValueMap<String, File> filesToUpload = new MultiValueMap<>(); // face name --> photo file
+		final MultiValueMap<String, File> filesToDelete = new MultiValueMap<>(); // face name --> photo file
+
 		for (File faceDir : context.getFilesDir().listFiles()) {
 			if (!faceDir.isDirectory()) continue;
+
+			// get all photos that have not been uploaded
 			File uploadsDir = new File(faceDir, INTERNAL_UPLOADS_DIR);
 			if (!uploadsDir.exists()) continue;
-			Collections.addAll(filesToUpload, uploadsDir.listFiles());
+			for (File photoFile : uploadsDir.listFiles()) {
+				if (!isPhotoFileName(photoFile.getName())) continue;
+				filesToUpload.put(faceDir.getName(), photoFile);
+			}
+
+			// get all photos that have not been deleted
+			File deletedDir = new File(faceDir, INTERNAL_DELETE_DIR);
+			if (!deletedDir.exists()) continue;
+			for (File photoFile : deletedDir.listFiles()) {
+				if (!isPhotoFileName(photoFile.getName())) continue;
+				filesToDelete.put(faceDir.getName(), photoFile);
+			}
+
 		}
+
 		Timber.d("uploading " + filesToUpload.size() + " photos");
+		Timber.d("deleting " + filesToDelete.size() + " photos");
 
-		// upload + move photos internally
-		return Observable.from(filesToUpload)
-				// find + create face folder if necessary
-				.flatMap(new Func1<File, Observable<PhotoUploadContainer>>() {
+		Set<String> faceNames = new HashSet<>();
+		faceNames.addAll(filesToUpload.keySet());
+		faceNames.addAll(filesToDelete.keySet());
+
+		return Observable.from(faceNames)
+				// find + create face folder
+				.flatMap(new Func1<String, Observable<SyncContainer>>() {
 					@Override
-					public Observable<PhotoUploadContainer> call(final File photoFile) {
-						final String faceName = photoFile.getParentFile().getParentFile().getName();
+					public Observable<SyncContainer> call(final String faceName) {
 						return googleDriveManager.query(faceName, false)
-								.flatMap(new Func1<Optional<DriveId>, Observable<PhotoUploadContainer>>() {
+								.flatMap(new Func1<Optional<DriveId>, Observable<SyncContainer>>() {
 									@Override
-									public Observable<PhotoUploadContainer> call(Optional<DriveId> driveIdOptional) {
-										if (driveIdOptional.isPresent()) return Observable.just(new PhotoUploadContainer(driveIdOptional.get(),  photoFile));
+									public Observable<SyncContainer> call(Optional<DriveId> folderId) {
+										if (folderId.isPresent()) return Observable.just(new SyncContainer(folderId.get(), faceName));
+										return googleDriveManager.createNewFolder(faceName).map(new Func1<DriveId, SyncContainer>() {
+											@Override
+											public SyncContainer call(DriveId driveId) {
+												return new SyncContainer(driveId, faceName);
+											}
+										});
+									}
+								});
 
-										// create folder
-										return googleDriveManager
-												.createNewFolder(faceName)
-												.map(new Func1<DriveId, PhotoUploadContainer>() {
+					}
+				})
+				// add + remove photos
+				.flatMap(new Func1<SyncContainer, Observable<Void>>() {
+					@Override
+					public Observable<Void> call(final SyncContainer syncContainer) {
+						return Observable.zip(
+								// add photos
+								Observable.from(filesToUpload.get(syncContainer.faceName))
+										.flatMap(new Func1<File, Observable<Void>>() {
+											@Override
+											public Observable<Void> call(final File fileToUpload) {
+												Timber.d("uploading " + fileToUpload.getAbsolutePath());
+												try {
+													return googleDriveManager
+															.createNewFile(Optional.of(syncContainer.folderDriveId), new FileInputStream(fileToUpload), fileToUpload.getName(), "image/jpeg", false)
+															.flatMap(new Func1<Void, Observable<Void>>() {
+																@Override
+																public Observable<Void> call(Void nothing) {
+																	// move photo to regular face dir (and remove from uploads dir)
+																	try {
+																		File newPhotoFile = new File(fileToUpload.getParentFile().getParentFile(), fileToUpload.getName());
+																		ioUtils.copyStream(new FileInputStream(fileToUpload), new FileOutputStream(newPhotoFile));
+																		ioUtils.delete(fileToUpload);
+																	} catch (IOException e) {
+																		return Observable.error(e);
+																	}
+																	return Observable.just(null);
+																}
+															});
+												} catch (FileNotFoundException e) {
+													Timber.e(e, "failed to upload file");
+													return Observable.error(e);
+												}
+											}
+										}).toList(),
+								// remove photos
+								Observable.defer(new Func0<Observable<List<Void>>>() {
+									@Override
+									public Observable<List<Void>> call() {
+										GoogleApiClient client = googleApiClientManager.getGoogleApiClient();
+										MetadataBuffer metadata = Drive.DriveApi.getFolder(client, syncContainer.folderDriveId).listChildren(client).await().getMetadataBuffer();
+
+										// find drive id for files to delete
+										Map<String, DriveId> driveFiles = new HashMap<>();
+										for (Metadata fileMetadata : metadata) {
+											driveFiles.put(fileMetadata.getTitle(), fileMetadata.getDriveId());
+										}
+										metadata.release();
+										List<DriveId> driveIdsToDelete = new ArrayList<>();
+
+										for (File photoFile : filesToDelete.get(syncContainer.faceName)) {
+											Timber.d("deleting " + photoFile.getAbsolutePath());
+											String fileName = photoFile.getName();
+											if (driveFiles.containsKey(fileName)) {
+												driveIdsToDelete.add(driveFiles.get(fileName));
+											}
+										}
+
+										// actually delete files
+										return Observable.from(driveIdsToDelete)
+												.flatMap(new Func1<DriveId, Observable<Void>>() {
 													@Override
-													public PhotoUploadContainer call(DriveId driveId) {
-														return new PhotoUploadContainer(driveId, photoFile);
+													public Observable<Void> call(DriveId driveId) {
+														return googleDriveManager.deleteFile(driveId);
+													}
+												})
+												.toList()
+												.map(new Func1<List<Void>, List<Void>>() {
+													@Override
+													public List<Void> call(List<Void> voids) {
+														for (File photoFile : filesToDelete.get(syncContainer.faceName)) {
+															ioUtils.delete(photoFile);
+														}
+														return null;
 													}
 												});
 									}
+								}),
+								new Func2<List<Void>, List<Void>, Void>() {
+									@Override
+									public Void call(List<Void> nothing, List<Void> evenMoreNothing) {
+										return null;
+									}
 								});
 					}
-				})
-				.flatMap(new Func1<PhotoUploadContainer, Observable<Void>>() {
-					@Override
-					public Observable<Void> call(final PhotoUploadContainer container) {
-						Timber.d("uploading " + container.photoFile.getAbsolutePath());
-						try {
-							return googleDriveManager
-									.createNewFile(Optional.of(container.driveId), new FileInputStream(container.photoFile), container.photoFile.getName(), "image/jpeg", false)
-									.flatMap(new Func1<Void, Observable<Void>>() {
-										@Override
-										public Observable<Void> call(Void nothing) {
-											// move photo to regular face dir (and remove from uploads dir)
-											try {
-												File newPhotoFile = new File(container.photoFile.getParentFile().getParentFile(), container.photoFile.getName());
-												ioUtils.copyStream(new FileInputStream(container.photoFile), new FileOutputStream(newPhotoFile));
-												if (!container.photoFile.delete())
-													Timber.d("failed to remove " + container.photoFile.getAbsolutePath());
-											} catch (IOException e) {
-												return Observable.error(e);
-											}
-											return Observable.just(null);
-										}
-									});
-						} catch (FileNotFoundException e) {
-							Timber.e(e, "failed to upload file");
-							return Observable.error(e);
-						}
-					}
-				})
-				.toList()
-				.map(new Func1<List<Void>, Void>() {
-					@Override
-					public Void call(List<Void> voids) {
-						return null;
-					}
+
 				});
 	}
 
@@ -222,12 +316,12 @@ public class PhotoManager {
 	public List<File> getPhotosForFace(final Face face) {
 		List<File> photoFiles = Lists.newArrayList();
 		for (File file : getFaceDir(face.getName()).listFiles()) {
-			if (isFaceFileName(file.getName())) {
+			if (isPhotoFileName(file.getName())) {
 				photoFiles.add(file);
 			}
 		}
 		for (File file : getFaceUploadsDir(face.getName()).listFiles()) {
-			if (isFaceFileName(file.getName())) {
+			if (isPhotoFileName(file.getName())) {
 				photoFiles.add(file);
 			}
 		}
@@ -275,12 +369,12 @@ public class PhotoManager {
 	/**
 	 * Starts uploading photos to Google drive if WiFi is connected
 	 */
-	public void requestPhotoUpload() {
-		context.startService(new Intent(context, PhotoUploadService.class));
+	public void requestPhotoSync() {
+		context.startService(new Intent(context, PhotoSyncService.class));
 	}
 
 
-	public boolean isFaceFileName(String imageFileName) {
+	public boolean isPhotoFileName(String imageFileName) {
 		return PHOTO_FILE_NAME_PATTERN.matcher(imageFileName).matches();
 	}
 
@@ -301,11 +395,15 @@ public class PhotoManager {
 	 * Returns the internal (!) uploads directory for one face.
 	 */
 	private File getFaceUploadsDir(String faceName) {
-		File uploadsDir = new File(getFaceDir(faceName), INTERNAL_UPLOADS_DIR);
-		if (!uploadsDir.exists() && !uploadsDir.mkdirs()) {
-			Timber.e("failed to create dir " + uploadsDir.getAbsolutePath());
-		}
-		return uploadsDir;
+		return ioUtils.assertDir(new File(getFaceDir(faceName), INTERNAL_UPLOADS_DIR));
+	}
+
+
+	/**
+	 * Returns the internal (!) directory where photos are stored that are marked for deletion.
+	 */
+	private File getFaceDeletedDir(Face face) {
+		return ioUtils.assertDir(new File(getFaceDir(face.getName()), INTERNAL_DELETE_DIR));
 	}
 
 
@@ -321,12 +419,12 @@ public class PhotoManager {
 	/**
 	 * Helper class for grouping values during rx chains.
 	 */
-	private static class PhotoUploadContainer {
-		private final DriveId driveId;
-		private final File photoFile;
-		public PhotoUploadContainer(DriveId driveId, File photoFile) {
-			this.driveId = driveId;
-			this.photoFile = photoFile;
+	private static class SyncContainer {
+		private final DriveId folderDriveId;
+		private final String faceName;
+		public SyncContainer(DriveId folderDriveId, String faceName) {
+			this.folderDriveId = folderDriveId;
+			this.faceName = faceName;
 		}
 	}
 

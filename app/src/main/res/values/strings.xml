@@ -83,6 +83,9 @@
     <string name="creating_video_finished">All done, enjoy the show!</string>
     <string name="show_video">Show video</string>
 
+    <string name="delete_photo_title">Delete photo?</string>
+    <string name="delete_photo_msg">Are you sure you want to delete this photo?</string>
+
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>

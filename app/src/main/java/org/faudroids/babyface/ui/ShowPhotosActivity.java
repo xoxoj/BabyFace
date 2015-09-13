@@ -1,13 +1,17 @@
 package org.faudroids.babyface.ui;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -34,6 +38,9 @@ public class ShowPhotosActivity extends AbstractActivity {
 	public static final String EXTRA_FACE = "EXTRA_FACE";
 
 	@InjectView(R.id.img_photo) private ImageView photoView;
+	@InjectView(R.id.btn_delete) private ImageButton deleteButton;
+	@InjectView(R.id.btn_edit) private ImageButton editButton;
+
 	private PhotoAdapter photoAdapter;
 	@InjectView(R.id.list_photos) private RecyclerView photosList;
 
@@ -54,15 +61,62 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 		// get photos
 		List<File> photoFiles = photoManager.getPhotosForFace(face);
-		Timber.d("loaded " + photoFiles.size() + " photos");
 		if (!photoFiles.isEmpty()) setSelectedPhotoFile(photoFiles.get(0));
+		setupPhotos(photoFiles);
+
+		// setup buttons
+		editButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(ShowPhotosActivity.this, "stub", Toast.LENGTH_SHORT).show();
+			}
+		});
+		deleteButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				new AlertDialog.Builder(ShowPhotosActivity.this)
+						.setTitle(R.string.delete_photo_title)
+						.setMessage(R.string.delete_photo_msg)
+						.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								final File photoToDelete = selectedPhotoFile;
+
+								// find closest photo to select
+								List<File> photoFiles = photoAdapter.getPhotoFiles();
+								int idx = photoFiles.indexOf(photoToDelete);
+								photoFiles.remove(idx);
+								if (idx >= photoFiles.size()) --idx;
+								if (idx < 0) setSelectedPhotoFile(null);
+								else setSelectedPhotoFile(photoFiles.get(idx));
+								setupPhotos(photoFiles);
+
+								// actually delete photo
+								photoManager.deletePhoto(face, photoToDelete);
+								photoManager.requestPhotoSync();
+							}
+						})
+						.setNegativeButton(android.R.string.cancel, null)
+						.show();
+			}
+		});
+	}
+
+
+	private void setupPhotos(List<File> photoFiles) {
+		Timber.d("loaded " + photoFiles.size() + " photos");
+		int actionVisibility = photoFiles.isEmpty() ? View.GONE : View.VISIBLE;
+		editButton.setVisibility(actionVisibility);
+		deleteButton.setVisibility(actionVisibility);
 		photoAdapter.setPhotoFiles(photoFiles);
 	}
 
 
 	private void setSelectedPhotoFile(File photoFile) {
+		if (photoFile != null) Timber.d("selecting " + photoFile.getAbsolutePath());
 		selectedPhotoFile = photoFile;
-		Picasso.with(this).load(selectedPhotoFile).into(photoView);
+		if (photoFile == null) photoView.setImageResource(android.R.color.transparent);
+		else Picasso.with(this).load(selectedPhotoFile).into(photoView);
 	}
 
 
@@ -74,6 +128,10 @@ public class ShowPhotosActivity extends AbstractActivity {
 			this.photoFiles.clear();
 			this.photoFiles.addAll(photoFiles);
 			notifyDataSetChanged();
+		}
+
+		public List<File> getPhotoFiles() {
+			return new ArrayList<>(photoFiles);
 		}
 
 		@Override

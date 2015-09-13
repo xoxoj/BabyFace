@@ -127,7 +127,7 @@ public class FacesScanner {
 		DriveApi.MetadataBufferResult queryResult = Drive.DriveApi.getFolder(client, faceFolderId).listChildren(client).await();
 		queryResult.getMetadataBuffer().getNextPageToken();
 		for (Metadata file : queryResult.getMetadataBuffer()) {
-			if (photoManager.isFaceFileName(file.getTitle())) {
+			if (photoManager.isPhotoFileName(file.getTitle())) {
 				result.add(new Photo(file.getTitle(), file.getDriveId()));
 			}
 		}

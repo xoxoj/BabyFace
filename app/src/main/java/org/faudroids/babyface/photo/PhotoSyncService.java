@@ -21,10 +21,9 @@ import rx.functions.Action1;
 import timber.log.Timber;
 
 /**
- * Checks for a wifi connection starts uploading all (!) photos
- * if present.
+ * Checks for a wifi connection starts syncing local photos to Google drive.
  */
-public class PhotoUploadService extends RoboService implements ConnectionListener {
+public class PhotoSyncService extends RoboService implements ConnectionListener {
 
 	@Inject private PhotoManager photoManager;
 	@Inject private GoogleApiClientManager googleApiClientManager;
@@ -42,7 +41,7 @@ public class PhotoUploadService extends RoboService implements ConnectionListene
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Timber.d("starting upload service");
-		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PhotoUploadService.class.getSimpleName());
+		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PhotoSyncService.class.getSimpleName());
 		wakeLock.acquire();
 		googleApiClientManager.registerListener(this);
 		googleApiClientManager.connectToClient();
@@ -72,7 +71,7 @@ public class PhotoUploadService extends RoboService implements ConnectionListene
 	public void onConnected(Bundle bundle) {
 		// start photo upload
 		photoManager
-				.uploadAllPhotos()
+				.syncToGoogleDrive()
 				.compose(new DefaultTransformer<Void>())
 				.subscribe(new Action1<Void>() {
 					@Override

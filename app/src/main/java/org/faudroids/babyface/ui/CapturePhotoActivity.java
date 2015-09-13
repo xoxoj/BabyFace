@@ -95,7 +95,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 					// upload image if necessary
 					if (getIntent().getBooleanExtra(EXTRA_UPLOAD_PHOTO, false)) {
-						photoManager.requestPhotoUpload();
+						photoManager.requestPhotoSync();
 					}
 				}
 				finish();

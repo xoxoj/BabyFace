@@ -107,7 +107,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				});
 
 						// start photo uploading
-						photoManager.requestPhotoUpload();
+						photoManager.requestPhotoSync();
 	}
 
 

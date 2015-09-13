@@ -59,7 +59,7 @@
             />
         <activity android:name=".ui.CapturePhotoActivity" />
 
-        <service android:name=".photo.PhotoUploadService" />
+        <service android:name=".photo.PhotoSyncService" />
         <service android:name=".videos.VideoConversionService" />
         <service android:name=".faces.FacesImportService" />
         <receiver android:name=".photo.ReminderReceiver" />
