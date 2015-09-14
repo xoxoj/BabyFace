@@ -42,10 +42,14 @@ public class Detector {
             int centerX = (int)face.getPosition().x + (int)face.getWidth()/2;
             int maxWidth = (centerX < (input.getWidth() - centerX)) ? centerX : input.getWidth()
                     - centerX;
+            int centerY = (int)face.getPosition().y + (int)face.getHeight()/2;
+            int maxHeight = (centerY < (input.getHeight() - centerY)) ? centerY : input.getHeight
+                    () - centerY;
+
             Rect roi = new Rect(centerX - maxWidth,
-                    (int) face.getPosition().y,
+                    centerY - maxHeight,
                     centerX + maxWidth,
-                    (int) face.getPosition().y + (int) face.getHeight());
+                    centerY + maxHeight);
 
             Bitmap croppedInput = this.imageProcessor.cropImage(input, roi);
 
