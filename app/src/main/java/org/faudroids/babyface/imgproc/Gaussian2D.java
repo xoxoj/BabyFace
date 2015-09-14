@@ -1,13 +1,13 @@
 package org.faudroids.babyface.imgproc;
 
 
-public class Gaussian implements Kernel2D {
+public class Gaussian2D implements Kernel2D {
     private final int size;
     private final double sigma;
 
     private final double[][] kernel;
 
-    public Gaussian(int size, double sigma) {
+    public Gaussian2D(int size, double sigma) {
         this.sigma = sigma;
         this.size = (size % 2 == 0) ? size + 1 : size;
         this.kernel = new double[this.size][this.size];

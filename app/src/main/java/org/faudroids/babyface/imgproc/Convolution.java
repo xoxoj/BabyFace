@@ -22,18 +22,45 @@ public class Convolution {
         int cols = input.cols();
 
         for(ImageChannel channel : ImageChannel.values()) {
+            double[][] channelData = input.getChannel(channel);
             //First convolve in x direction
             for (int y = 0; y < rows; ++y) {
                 for (int x = 0; x < cols; ++x) {
                     double newVal = 0.0;
 
-                    for (int i = -offset; i < offset; ++i) {
+                    for (int kernelX = -offset; kernelX <= offset; ++kernelX) {
+                        int tmpX = wrapValue(cols, x - kernelX);
+                        newVal += filterKernel[kernelX + offset] * channelData[y][tmpX];
                     }
+                    channelData[y][x] = newVal;
                 }
+            }
+
+            for (int x = 0; x < cols; ++x) {
+                for (int y = 0; y < rows; ++y) {
+                    double newVal = 0.0;
+
+                    for (int kernelY = -offset; kernelY <= offset; ++kernelY) {
+                        int tmpY = wrapValue(rows, y - kernelY);
+                        newVal += filterKernel[kernelY + offset] * channelData[tmpY][x];
+                    }
+                    channelData[y][x] = newVal;
+                }
+            }
+            switch (channel) {
+                case CHANNEL_RED:
+                    input.red(channelData);
+                    break;
+                case CHANNEL_GREEN:
+                    input.green(channelData);
+                    break;
+                case CHANNEL_BLUE:
+                    input.blue(channelData);
+                    break;
             }
         }
 
-        return null;
+        return input;
     }
 
 
