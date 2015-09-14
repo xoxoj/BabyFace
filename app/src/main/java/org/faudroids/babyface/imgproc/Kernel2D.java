@@ -1,5 +1,6 @@
 package org.faudroids.babyface.imgproc;
 
-public interface Kernel {
+public interface Kernel2D {
     double[][] create();
+    int getSize();
 }
