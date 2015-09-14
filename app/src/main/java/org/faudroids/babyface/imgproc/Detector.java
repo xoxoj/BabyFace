@@ -37,29 +37,29 @@ public class Detector {
      * @return {@link Bitmap} containing the largest face in an image
      */
     public Bitmap process(Bitmap input) {
-//        Face face = findFace(input);
-//        if(face != null) {
-//            Rect roi = new Rect((int) face.getPosition().x,
-//                    (int) face.getPosition().y,
-//                    (int) face.getPosition().x + (int) face.getWidth(),
-//                    (int) face.getPosition().y + (int) face.getHeight());
-//
-//            Bitmap croppedInput = this.imageProcessor.cropImage(input, roi);
-//
-//            Bitmap scaledInput;
-//            if (croppedInput.getWidth() > croppedInput.getHeight()) {
-//                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(1920, 0));
-//            } else {
-//                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(0, 1080));
-//            }
-//
-//            return this.imageProcessor.createPaddedBitmap(scaledInput, 1920, 1080);
-//        } else {
-//            return input;
-//        }
+        Face face = findFace(input);
+        if(face != null) {
+            int centerX = (int)face.getPosition().x + (int)face.getWidth()/2;
+            int maxWidth = (centerX < (input.getWidth() - centerX)) ? centerX : input.getWidth()
+                    - centerX;
+            Rect roi = new Rect(centerX - maxWidth,
+                    (int) face.getPosition().y,
+                    centerX + maxWidth,
+                    (int) face.getPosition().y + (int) face.getHeight());
 
-        return imageProcessor.blurImage(imageProcessor.scaleImage(input, new Size(800, 600)), 7,
-                2.5);
+            Bitmap croppedInput = this.imageProcessor.cropImage(input, roi);
+
+            Bitmap scaledInput;
+            if (croppedInput.getWidth() > croppedInput.getHeight()) {
+                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(1920, 0));
+            } else {
+                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(0, 1080));
+            }
+
+            return this.imageProcessor.createPaddedBitmap(scaledInput, 1920, 1080);
+        } else {
+            return input;
+        }
     }
 
     private Face findFace(Bitmap inputImage) {
