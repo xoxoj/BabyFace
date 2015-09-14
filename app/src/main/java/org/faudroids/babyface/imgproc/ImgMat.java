@@ -49,7 +49,11 @@ public class ImgMat {
      * @param cols Image columns
      * @param values Pixel values
      */
-    public ImgMat(int rows, int cols, int[] values) {
+    public ImgMat(int rows, int cols, int[] values) throws IllegalArgumentException {
+        if(values.length < (rows * cols)) {
+            throw new IllegalArgumentException("Missing matrix values: " + values.length + " < "
+                    + (rows*cols));
+        }
         this.rows = rows;
         this.cols = cols;
 
@@ -115,7 +119,13 @@ public class ImgMat {
      * @param col x-coordinate
      * @return double array holding alpha, red, green and blue channel values
      */
-    public double[] at(int row, int col) {
+    public double[] at(int row, int col) throws IndexOutOfBoundsException {
+        if(row >= this.rows || row < 0) {
+            throw new IndexOutOfBoundsException("Row coordinate exceeds matrix dimensions: " + row);
+        } else if(col >= this.cols || col < 0) {
+            throw new IndexOutOfBoundsException("Column coordinate exceeds matrix dimensions: " +
+                    col);
+        }
         return new double[]{ this.alpha[row][col],
                              this.red[row][col],
                              this.green[row][col],
@@ -129,11 +139,31 @@ public class ImgMat {
      * @param col x-coordinate
      * @param values double array holding the new alpha, red, green and blue channel values
      */
-    public void at(int row, int col, double[] values) {
+    public void at(int row, int col, double[] values) throws IndexOutOfBoundsException {
+        if(row >= this.rows || row < 0) {
+            throw new IndexOutOfBoundsException("Row coordinate exceeds matrix dimensions: " + row);
+        } else if(col >= this.cols || col < 0) {
+            throw new IndexOutOfBoundsException("Column coordinate exceeds matrix dimensions: " +
+                    col);
+        }
         this.alpha[row][col] = values[0];
         this.red[row][col] = values[1];
         this.green[row][col] = values[2];
         this.blue[row][col] = values[3];
+    }
+
+
+    public double[][] getChannel(ImageChannel channel) {
+        switch(channel) {
+            case CHANNEL_RED:
+                return this.red;
+            case CHANNEL_BLUE:
+                return this.blue;
+            case CHANNEL_GREEN:
+                return this.green;
+            default:
+                return null;
+        }
     }
 
 
@@ -146,12 +176,22 @@ public class ImgMat {
     }
 
 
+    public void red(double[][] newRed) {
+        this.red = newRed;
+    }
+
+
     /**
      * Returns the green channel
      * @return double[][] array containing the green channel values
      */
     public double[][] green() {
         return this.green;
+    }
+
+
+    public void green(double[][] newGreen) {
+        this.green = newGreen;
     }
 
 
@@ -164,11 +204,33 @@ public class ImgMat {
     }
 
 
+    public void blue(double[][] newBlue) {
+        this.blue = newBlue;
+    }
+
     /**
      * Returns the alpha channel
      * @return double[][] array containing the alpha channel values
      */
     public double[][] alpha() {
         return this.alpha;
+    }
+
+
+    /**
+     * Returns image rows
+     * @return image rows as int
+     */
+    public int rows() {
+        return this.rows;
+    }
+
+
+    /**
+     * Return image columns
+     * @return image columns as int
+     */
+    public int cols() {
+        return this.cols;
     }
 }
