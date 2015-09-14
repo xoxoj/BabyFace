@@ -111,10 +111,15 @@ class ImageProcessor {
     public Bitmap cropImage(Bitmap input, Rect roi) {
         int left, top, width, height;
 
-        left = (roi.left < 0) ? 0 : roi.left;
-        top = (roi.top < 0)  ? 0 : roi.top;
-        width = (left + roi.width() > input.getWidth()) ? input.getWidth() - left : roi.width();
-        height = (top + roi.height() > input.getHeight()) ? input.getHeight() - top : roi.height();
+        int borderX = (input.getWidth() - roi.centerX() < roi.centerX()) ? input.getWidth() - roi
+                .centerX() : roi.centerX();
+        int borderY = (input.getHeight() - roi.centerY() < roi.centerY()) ? input.getHeight() -
+                roi.centerY() : roi.centerY();
+
+        left = roi.centerX() - borderX;
+        width = 2 * borderX;
+        top = roi.centerY() - borderY;
+        height = 2 * borderY;
 
         return Bitmap.createBitmap(input, left, top, width, height);
     }
@@ -165,6 +170,17 @@ class ImageProcessor {
         int left = offsetX/2;
         int top = offsetY/2;
 
-        return createPaddedBitmap(input, left, top, left, top);
+        int right = ((input.getWidth() + 2*left) % 2 == 0) ? left : left + 1;
+        int bottom = ((input.getHeight() + 2*top) % 2 == 0) ? top : top + 1;
+
+        return createPaddedBitmap(input, left, top, right, bottom);
+    }
+
+
+    public Bitmap blurImage(Bitmap input,
+                            int size,
+                            double sigma) {
+        GaussianBlur gaussianBlur = new GaussianBlur(size, sigma);
+        return gaussianBlur.filter(input);
     }
 }

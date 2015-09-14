@@ -1,7 +1,7 @@
 package org.faudroids.babyface.imgproc;
 
 
-public class Gaussian implements Kernel {
+public class Gaussian implements Kernel2D {
     private final int size;
     private final double sigma;
 
@@ -35,5 +35,10 @@ public class Gaussian implements Kernel {
         }
 
         return this.kernel;
+    }
+
+    @Override
+    public int getSize() {
+        return this.size;
     }
 }
