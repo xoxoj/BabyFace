@@ -21,7 +21,6 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.google.GoogleApiClientManager;
 import org.faudroids.babyface.google.GoogleDriveManager;
-import org.faudroids.babyface.imgproc.Detector;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.MultiValueMap;
 import org.faudroids.babyface.utils.Pref;
@@ -79,7 +78,7 @@ public class PhotoManager {
 			INTERNAL_DELETE_DIR = "deleted";
 
 	private final Context context;
-	private final Detector faceDetector;
+	private final PhotoProcessor photoProcessor;
 	private final GoogleDriveManager googleDriveManager;
 	private final GoogleApiClientManager googleApiClientManager;
 	private final IOUtils ioUtils;
@@ -87,9 +86,9 @@ public class PhotoManager {
 
 
 	@Inject
-	PhotoManager(Context context, Detector faceDetector, GoogleDriveManager googleDriveManager, GoogleApiClientManager googleApiClientManager, IOUtils ioUtils) {
+	PhotoManager(Context context, PhotoProcessor photoProcessor, GoogleDriveManager googleDriveManager, GoogleApiClientManager googleApiClientManager, IOUtils ioUtils) {
 		this.context = context;
-		this.faceDetector = faceDetector;
+		this.photoProcessor = photoProcessor;
 		this.googleDriveManager = googleDriveManager;
 		this.googleApiClientManager = googleApiClientManager;
 		this.ioUtils = ioUtils;
@@ -121,7 +120,7 @@ public class PhotoManager {
 
 		// process image (resize + finding faces)
 		Bitmap originalImage = BitmapFactory.decodeFile(tmpPhotoFile.getAbsolutePath(), new BitmapFactory.Options());
-		Optional<Bitmap> processedImage = faceDetector.findFaceAndCrop(originalImage);
+		Optional<Bitmap> processedImage = photoProcessor.findFaceAndCrop(originalImage);
 		Bitmap resultImage = processedImage.isPresent() ? processedImage.get() : originalImage;
 		resultImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 

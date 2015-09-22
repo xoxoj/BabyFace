@@ -1,4 +1,4 @@
-package org.faudroids.babyface.imgproc;
+package org.faudroids.babyface.photo;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -18,7 +18,7 @@ import javax.inject.Inject;
 
 import timber.log.Timber;
 
-public class Detector {
+public class PhotoProcessor {
 
 	private static final Paint
 			DEFAULT_PAINT = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG),
@@ -38,7 +38,7 @@ public class Detector {
 	private final Context context;
 
 	@Inject
-    Detector(Context context) {
+	PhotoProcessor(Context context) {
 		this.context = context;
     }
 
