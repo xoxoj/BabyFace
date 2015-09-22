@@ -15,19 +15,13 @@ import timber.log.Timber;
 
 public class Detector {
 
-    private final FaceDetector detector;
+	private final Context context;
     private final ImageProcessor imageProcessor;
 
 	@Inject
-    Detector(Context ctx) {
-        this.detector = new FaceDetector.Builder(ctx)
-				.setTrackingEnabled(false)
-                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-				.setMode(FaceDetector.ACCURATE_MODE)
-				.build();
-		// TODO check if detector is available
-		if (!detector.isOperational()) Timber.w("face processor is not operational!");
-        this.imageProcessor = new ImageProcessor();
+    Detector(Context context, ImageProcessor imageProcessor) {
+		this.context = context;
+		this.imageProcessor = imageProcessor;
     }
 
     /**
@@ -66,9 +60,13 @@ public class Detector {
         }
     }
 
+
     private Face findFace(Bitmap inputImage) {
-        Frame imageFrame = new Frame.Builder().setBitmap(inputImage).build();
-        SparseArray<Face> faces = this.detector.detect(imageFrame);
+        final Frame imageFrame = new Frame.Builder().setBitmap(inputImage).build();
+		final FaceDetector detector = createDetector();
+
+        final SparseArray<Face> faces = detector.detect(imageFrame);
+
         Face largestFace = null;
         Size maxSize = new Size(0, 0);
 		Timber.d("found " + faces.size() + " faces in photo");
@@ -82,6 +80,31 @@ public class Detector {
             }
         }
 
+		detector.release();
         return largestFace;
     }
+
+
+	// TODO check this at some point
+	/**
+	 * @return if false this detector CANNOT be used!
+	 */
+	public boolean isOperational() {
+		final FaceDetector detector = createDetector();
+		final boolean isOperational = detector.isOperational();
+		detector.release();
+		return isOperational();
+	}
+
+
+	private FaceDetector createDetector() {
+		return new FaceDetector.Builder(context)
+				.setProminentFaceOnly(true) // there should only be one large face
+				.setTrackingEnabled(false) // no need for live updates
+				.setClassificationType(FaceDetector.NO_CLASSIFICATIONS) // no need for smiling etc.
+				.setMode(FaceDetector.ACCURATE_MODE) // position is more important than speed
+				.setLandmarkType(FaceDetector.NO_LANDMARKS) // eyes etc. position doesn't matter
+				.build();
+	}
+
 }
