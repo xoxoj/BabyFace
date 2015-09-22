@@ -121,8 +121,9 @@ public class PhotoManager {
 
 		// process image (resize + finding faces)
 		Bitmap originalImage = BitmapFactory.decodeFile(tmpPhotoFile.getAbsolutePath(), new BitmapFactory.Options());
-		Bitmap processedImage = faceDetector.process(originalImage);
-		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
+		Optional<Bitmap> processedImage = faceDetector.findFaceAndCrop(originalImage);
+		Bitmap resultImage = processedImage.isPresent() ? processedImage.get() : originalImage;
+		resultImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 
 		// copy image to internal storage
 		final String photoFileName = PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";

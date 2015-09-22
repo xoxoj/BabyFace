@@ -2,12 +2,17 @@ package org.faudroids.babyface.imgproc;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.util.SparseArray;
 
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
+
+import org.roboguice.shaded.goole.common.base.Optional;
 
 import javax.inject.Inject;
 
@@ -15,73 +20,78 @@ import timber.log.Timber;
 
 public class Detector {
 
+	private static final Paint
+			DEFAULT_PAINT = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG),
+			BLACK_PAINT = new Paint();
+
+	static {
+		BLACK_PAINT.setColor(Color.BLACK);
+	}
+
+	private static final int
+			OUTPUT_WIDTH = 1920,
+			OUTPUT_HEIGHT = 1080;
+
+	private static final float
+			FACE_OUTPUT_HEIGHT = 0.8f; // many many % of the final image height the face should cover
+
 	private final Context context;
-    private final ImageProcessor imageProcessor;
 
 	@Inject
-    Detector(Context context, ImageProcessor imageProcessor) {
+    Detector(Context context) {
 		this.context = context;
-		this.imageProcessor = imageProcessor;
     }
+
 
     /**
      * Detects the largest face in a {@link Bitmap} and returns a scaled, cropped and padded
      * {@link Bitmap} with 1920x1080 pixels
      * @param input {@link Bitmap} to process
-     * @return {@link Bitmap} containing the largest face in an image
+     * @return {@link Bitmap} containing the largest face in an image if any
      */
-    public Bitmap process(Bitmap input) {
-        Face face = findFace(input);
-        if(face != null) {
-            int centerX = (int)face.getPosition().x + (int)face.getWidth()/2;
-            int maxWidth = (centerX < (input.getWidth() - centerX)) ? centerX : input.getWidth()
-                    - centerX;
-            int centerY = (int)face.getPosition().y + (int)face.getHeight()/2;
-            int maxHeight = (centerY < (input.getHeight() - centerY)) ? centerY : input.getHeight
-                    () - centerY;
+    public Optional<Bitmap> findFaceAndCrop(Bitmap input) {
+        Optional<Face> face = findLargestFace(input);
+		if (!face.isPresent()) return Optional.absent();
 
-            Rect roi = new Rect(centerX - maxWidth,
-                    centerY - maxHeight,
-                    centerX + maxWidth,
-                    centerY + maxHeight);
+		// setup canvas and draw black background
+		final Bitmap output = Bitmap.createBitmap(OUTPUT_WIDTH, OUTPUT_HEIGHT, Bitmap.Config.RGB_565);
+		final Canvas canvas = new Canvas(output);
+		canvas.drawRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, BLACK_PAINT);
 
-            Bitmap croppedInput = this.imageProcessor.cropImage(input, roi);
+		// get target position of face
+		final float faceScale = FACE_OUTPUT_HEIGHT * OUTPUT_HEIGHT / face.get().getHeight(); // how much the face should be scaled
+		final int centerX = (int) (face.get().getPosition().x + face.get().getWidth() / 2.0f);
+		final int centerY = (int) (face.get().getPosition().y + face.get().getHeight() / 2.0f);
 
-            Bitmap scaledInput;
-            if (croppedInput.getWidth() > croppedInput.getHeight()) {
-                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(1920, 0));
-            } else {
-                scaledInput = this.imageProcessor.scaleImage(croppedInput, new Size(0, 1080));
-            }
+		// scale + translate face
+		Matrix matrix = new Matrix();
+		matrix.postScale(faceScale, faceScale);
+		matrix.postTranslate(OUTPUT_WIDTH / 2 - centerX * faceScale, OUTPUT_HEIGHT / 2 - centerY * faceScale);
+		canvas.drawBitmap(input, matrix, DEFAULT_PAINT);
 
-            return this.imageProcessor.createPaddedBitmap(scaledInput, 1920, 1080);
-        } else {
-            return input;
-        }
+		return Optional.of(output);
     }
 
 
-    private Face findFace(Bitmap inputImage) {
-        final Frame imageFrame = new Frame.Builder().setBitmap(inputImage).build();
+    private Optional<Face> findLargestFace(Bitmap inputImage) {
 		final FaceDetector detector = createDetector();
-
-        final SparseArray<Face> faces = detector.detect(imageFrame);
+        final SparseArray<Face> faces = detector.detect(new Frame.Builder().setBitmap(inputImage).build());
 
         Face largestFace = null;
-        Size maxSize = new Size(0, 0);
+		float largestSize = 0f;
 		Timber.d("found " + faces.size() + " faces in photo");
 
-        for(int i = 0; i < faces.size(); ++i) {
-            Face face = faces.valueAt(i);
-            if(face.getWidth() > maxSize.width() && face.getHeight() > maxSize.height()) {
-                largestFace = face;
-                maxSize.width((int)face.getWidth());
-                maxSize.height((int) face.getHeight());
-            }
+        for (int i = 0; i < faces.size(); ++i) {
+            final Face face = faces.valueAt(i);
+			final float faceSize = face.getHeight() * face.getWidth();
+			if (faceSize > largestSize) {
+				largestFace = face;
+				largestSize = faceSize;
+			}
         }
 
 		detector.release();
-        return largestFace;
+		return Optional.fromNullable(largestFace);
     }
 
 
@@ -93,7 +103,7 @@ public class Detector {
 		final FaceDetector detector = createDetector();
 		final boolean isOperational = detector.isOperational();
 		detector.release();
-		return isOperational();
+		return isOperational;
 	}
 
 
