@@ -7,7 +7,7 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
-        <item name="colorControlHighlight">@color/primary_transparent</item>
+        <!--<item name="colorControlHighlight">@color/primary_transparent</item>-->
         <item name="material_drawer_selected_text">@color/toolbar</item>
     </style>
 
@@ -54,7 +54,7 @@
 
     <style name="TextInput">
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:textColorHint">@color/light_text</item>
+        <item name="android:textColorHint">@android:color/white</item>
     </style>
 
     <style name="LayoutAction">
