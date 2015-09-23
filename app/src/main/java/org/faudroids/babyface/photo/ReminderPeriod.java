@@ -1,21 +1,23 @@
 package org.faudroids.babyface.photo;
 
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.parceler.Parcel;
+import org.parceler.ParcelConstructor;
 import org.roboguice.shaded.goole.common.base.Objects;
 
-public class ReminderPeriod implements Parcelable {
+
+@Parcel
+public class ReminderPeriod {
 
 	private final long unitInSeconds;
 	private final int amount;
 
 	@JsonCreator
+	@ParcelConstructor
 	public ReminderPeriod(
 			@JsonProperty("unitInSeconds") long unitInSeconds,
 			@JsonProperty("amount") int amount) {
@@ -56,32 +58,4 @@ public class ReminderPeriod implements Parcelable {
 		return "[unitInSeconds = " + unitInSeconds + ", amount = " + amount + "]";
 	}
 
-	protected ReminderPeriod(Parcel in) {
-		unitInSeconds = in.readLong();
-		amount = in.readInt();
-	}
-
-	@Override
-	public int describeContents() {
-		return 0;
-	}
-
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeLong(unitInSeconds);
-		dest.writeInt(amount);
-	}
-
-	@SuppressWarnings("unused")
-	public static final Parcelable.Creator<ReminderPeriod> CREATOR = new Parcelable.Creator<ReminderPeriod>() {
-		@Override
-		public ReminderPeriod createFromParcel(Parcel in) {
-			return new ReminderPeriod(in);
-		}
-
-		@Override
-		public ReminderPeriod[] newArray(int size) {
-			return new ReminderPeriod[size];
-		}
-	};
 }

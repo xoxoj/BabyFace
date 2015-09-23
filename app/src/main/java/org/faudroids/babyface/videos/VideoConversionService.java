@@ -58,7 +58,7 @@ public class VideoConversionService extends AbstractGoogleApiClientService {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent == null) return START_STICKY;
-		this.face = intent.getParcelableExtra(EXTRA_FACE);
+		this.face = Parcels.unwrap(intent.getParcelableExtra(EXTRA_FACE));
 
 		// show progress notification
 		notificationBuilder = new NotificationCompat.Builder(this)

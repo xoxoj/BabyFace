@@ -8,6 +8,7 @@ import android.content.Intent;
 
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.utils.Pref;
+import org.parceler.Parcels;
 
 import java.util.List;
 
@@ -112,7 +113,7 @@ public class ReminderManager {
 
 	private PendingIntent createPendingIntent(Face face, int reminderId) {
 		Intent intent = new Intent(context, ReminderReceiver.class);
-		intent.putExtra(ReminderReceiver.EXTRA_FACE, face);
+		intent.putExtra(ReminderReceiver.EXTRA_FACE, Parcels.wrap(face));
 		return PendingIntent.getBroadcast(context, reminderId, intent, 0);
 	}
 

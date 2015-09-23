@@ -11,6 +11,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.ui.CapturePhotoActivity;
+import org.parceler.Parcels;
 
 import javax.inject.Inject;
 
@@ -30,7 +31,7 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 
 	@Override
 	protected void handleReceive(Context context, Intent intent) {
-		Face face = intent.getParcelableExtra(EXTRA_FACE);
+		Face face = Parcels.unwrap(intent.getParcelableExtra(EXTRA_FACE));
 		Timber.d("triggered reminder for face " + face.getName());
 
 		// update last reminder timestamp

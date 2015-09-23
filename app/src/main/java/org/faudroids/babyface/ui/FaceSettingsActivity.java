@@ -16,6 +16,7 @@ import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.parceler.Parcels;
 
 import javax.inject.Inject;
 
@@ -57,7 +58,7 @@ public class FaceSettingsActivity extends AbstractActivity {
 			@Override
 			public void onClick(View v) {
 				Intent settingsIntent = new Intent(FaceSettingsActivity.this, ReminderSettingsActivity.class);
-				settingsIntent.putExtra(ReminderSettingsActivity.EXTRA_FACE, face);
+				settingsIntent.putExtra(ReminderSettingsActivity.EXTRA_FACE, Parcels.wrap(face));
 				startActivityForResult(settingsIntent, REQUEST_EDIT_REMINDER_SETTINGS);
 			}
 		});

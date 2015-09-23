@@ -10,6 +10,7 @@ import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.photo.ReminderPeriod;
+import org.parceler.Parcels;
 
 import javax.inject.Inject;
 
@@ -33,7 +34,7 @@ public class ReminderSettingsActivity extends AbstractActivity {
 	@Override
 	public  void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		final Face face = getIntent().getParcelableExtra(EXTRA_FACE);
+		final Face face = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_FACE));
 
 		reminderViewHandler = new ReminderPeriodViewHandler(((ViewGroup) findViewById(android.R.id.content)).getChildAt(0));
 		reminderViewHandler.setReminderPeriod(face.getReminderPeriod());

@@ -21,6 +21,7 @@ import org.faudroids.babyface.photo.PhotoManager;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.utils.Pref;
 import org.faudroids.babyface.videos.VideoConversionService;
+import org.parceler.Parcels;
 
 import java.util.List;
 
@@ -85,7 +86,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(STATE_FACE, selectedFace);
+        outState.putParcelable(STATE_FACE, Parcels.wrap(selectedFace));
     }
 
 
@@ -93,7 +94,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            selectedFace = savedInstanceState.getParcelable(STATE_FACE);
+            selectedFace = Parcels.unwrap(savedInstanceState.getParcelable(STATE_FACE));
         }
     }
 
@@ -201,7 +202,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 			@Override
 			public void onClick(View v) {
 				Intent showPhotosIntent = new Intent(getActivity(), ShowPhotosActivity.class);
-				showPhotosIntent.putExtra(ShowPhotosActivity.EXTRA_FACE, face);
+				showPhotosIntent.putExtra(ShowPhotosActivity.EXTRA_FACE, Parcels.wrap(face));
 				startActivity(showPhotosIntent);
 			}
 		});
@@ -210,7 +211,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 			@Override
 			public void onClick(View v) {
 				Intent serviceIntent = new Intent(getActivity(), VideoConversionService.class);
-				serviceIntent.putExtra(VideoConversionService.EXTRA_FACE, face);
+				serviceIntent.putExtra(VideoConversionService.EXTRA_FACE, Parcels.wrap(face));
 				getActivity().startService(serviceIntent);
 
 				Intent activityIntent = new Intent(getActivity(), VideoConversionActivity.class);

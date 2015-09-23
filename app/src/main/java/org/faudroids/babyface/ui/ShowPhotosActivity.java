@@ -19,6 +19,7 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.parceler.Parcels;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class ShowPhotosActivity extends AbstractActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		final Face face = getIntent().getParcelableExtra(EXTRA_FACE);
+		final Face face = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_FACE));
 
 		// prep photos list
 		photosList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
