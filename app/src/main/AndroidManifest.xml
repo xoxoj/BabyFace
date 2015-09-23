@@ -38,7 +38,6 @@
             />
         <activity
             android:name=".ui.NewFaceActivity"
-            android:screenOrientation="portrait"
             />
         <activity
             android:name=".ui.ShowPhotosActivity"

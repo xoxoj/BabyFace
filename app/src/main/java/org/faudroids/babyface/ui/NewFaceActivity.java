@@ -20,6 +20,7 @@ import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.parceler.Parcels;
 
 import javax.inject.Inject;
 
@@ -31,6 +32,10 @@ import timber.log.Timber;
 
 @ContentView(R.layout.activity_new_face)
 public class NewFaceActivity extends AbstractActivity implements NewFaceView.InputListener {
+
+	private static final String
+			STATE_FACE_BUILDER = "STATE_FACE_BUILDER",
+			STATE_PROGRESS = "STATE_PROGRESS";
 
 	private static final int REQUEST_CAPTURE_IMAGE = 42;
 
@@ -71,8 +76,15 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			}
 		});
 
+		// restore state (if any)
+		Progress progress = Progress.STATUS_1;
+		if (savedInstanceState != null) {
+			progress = (Progress) savedInstanceState.getSerializable(STATE_PROGRESS);
+			faceBuilder = Parcels.unwrap(savedInstanceState.getParcelable(STATE_FACE_BUILDER));
+		}
+
 		// start with first progress step
-		setProgress(Progress.STATUS_1);
+		setProgress(progress);
 	}
 
 
@@ -160,9 +172,17 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 		switch (requestCode) {
 			case REQUEST_CAPTURE_IMAGE:
 				if (resultCode != RESULT_OK) return;
-				newFaceView.onDataUpdated(data);
+				newFaceView.onDataUpdated();
 				break;
 		}
+	}
+
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(STATE_PROGRESS, currentProgress);
+		outState.putParcelable(STATE_FACE_BUILDER, Parcels.wrap(faceBuilder));
 	}
 
 
@@ -216,6 +236,9 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 						return false;
 					}
 				});
+
+				// restore state
+				if (faceBuilder.getName() != null) nameEditText.setText(faceBuilder.getName());
 				return view;
 			}
 
@@ -256,11 +279,14 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 						startActivityForResult(capturePhotoIntent, REQUEST_CAPTURE_IMAGE);
 					}
 				});
+
+				// restore state
+				onDataUpdated();
 				return view;
 			}
 
 			@Override
-			public void onDataUpdated(Intent data) {
+			public void onDataUpdated() {
 
 				// toggle preview of photo
 				if (photoManager.getRecentPhoto(faceBuilder.getName()).isPresent()) {
@@ -287,9 +313,6 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 			@Override
 			protected void doOnComplete() {
-				ReminderPeriod period = viewHandler.getReminderPeriod();
-				Timber.d("setting reminder period to " + period);
-				faceBuilder.setReminderPeriod(period);
 				setProgress(Progress.STATUS_4);
 			}
 
@@ -297,12 +320,24 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			protected View doCreateView(LayoutInflater inflater) {
 				View view = inflater.inflate(R.layout.layout_new_face_step_3, containerLayout, false);
 				viewHandler = new ReminderPeriodViewHandler(view);
+				viewHandler.setDataListener(new ReminderPeriodViewHandler.DataListener() {
+					@Override
+					public void onPeriodChanged(ReminderPeriod newPeriod) {
+						faceBuilder.setReminderPeriod(viewHandler.getReminderPeriod());
+					}
+				});
 
 				// always complete
 				inputListener.onInputChanged(true);
 
-				// set "every week" by default
-				viewHandler.setReminderPeriod(new ReminderPeriod(ReminderUnit.WEEK, 1));
+				// restore state
+				if (faceBuilder.getReminderPeriod() != null) {
+					viewHandler.setReminderPeriod(faceBuilder.getReminderPeriod());
+				} else {
+					// "every week" by default
+					viewHandler.setReminderPeriod(new ReminderPeriod(ReminderUnit.WEEK, 1));
+				}
+
 
 				return view;
 			}

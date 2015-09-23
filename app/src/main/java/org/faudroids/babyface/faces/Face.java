@@ -1,6 +1,8 @@
 package org.faudroids.babyface.faces;
 
 
+import android.support.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,7 +23,7 @@ public class Face {
 	private int reminderId;			// id used by android alarm framework
 	private long lastReminderTrigger; // when alarm for this face was last triggered
 
-	public Face() { }
+	public Face() { } // required by Parceler
 
 	@JsonCreator
 	public Face(
@@ -89,6 +91,7 @@ public class Face {
 	}
 
 
+	@Parcel
 	public static class Builder {
 
 		private String name;
@@ -99,6 +102,7 @@ public class Face {
 			return this;
 		}
 
+		@Nullable
 		public String getName() {
 			return name;
 		}
@@ -108,6 +112,7 @@ public class Face {
 			return this;
 		}
 
+		@Nullable
 		public ReminderPeriod getReminderPeriod() {
 			return reminderPeriod;
 		}

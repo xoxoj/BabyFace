@@ -11,6 +11,7 @@ import android.widget.TextView;
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
+import org.roboguice.shaded.goole.common.base.Optional;
 
 /**
  * Inits the reminder period layout and handles click events on it.
@@ -24,6 +25,7 @@ public class ReminderPeriodViewHandler {
 	private final EditText amountEditText;
 
 	private int selectedIdx;
+	private Optional<DataListener> dataListener = Optional.absent();
 
 	public ReminderPeriodViewHandler(View view) {
 		this.context = view.getContext();
@@ -57,6 +59,7 @@ public class ReminderPeriodViewHandler {
 						return;
 					}
 					toggleSelected(regularRowView, clickedIdx);
+					onDataChanged();
 				}
 			});
 		}
@@ -66,6 +69,7 @@ public class ReminderPeriodViewHandler {
 				@Override
 				public void onClick(View v) {
 					toggleSelected(customRowViews, clickedIdx);
+					onDataChanged();
 				}
 			});
 		}
@@ -163,5 +167,27 @@ public class ReminderPeriodViewHandler {
 			((TextView) rowViews[idx].getChildAt(0)).setTextColor(txtColor);
 			rowViews[idx].getChildAt(1).setVisibility(imgVisibility);
 		}
+	}
+
+
+	public void setDataListener(DataListener dataListener) {
+		this.dataListener = Optional.fromNullable(dataListener);
+	}
+
+
+	public void removeDataListener() {
+		this.dataListener = Optional.absent();
+	}
+
+
+	private void onDataChanged() {
+		if (dataListener.isPresent()) dataListener.get().onPeriodChanged(getReminderPeriod());
+	}
+
+
+	public interface DataListener {
+
+		void onPeriodChanged(ReminderPeriod newPeriod);
+
 	}
 }
