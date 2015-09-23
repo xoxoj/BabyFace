@@ -36,7 +36,7 @@
             android:layout_width="@dimen/profile_image_size_large"
             android:layout_height="@dimen/profile_image_size_large"
             android:layout_margin="@dimen/photo_frame_size"
-            android:background="@color/primary"
+            android:background="@color/gray_light"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_person"
             />
@@ -65,24 +65,7 @@
 
             <TextView
                 style="@style/TextAction"
-                android:text="Take photo"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layout_create_movie"
-            style="@style/LayoutAction"
-            >
-
-            <ImageView
-                style="@style/ImageAction"
-                android:src="@drawable/ic_movie"
-                />
-
-            <TextView
-                style="@style/TextAction"
-                android:text="Create video"
+                android:text="@string/take_photo"
                 />
 
         </LinearLayout>
@@ -99,7 +82,41 @@
 
             <TextView
                 style="@style/TextAction"
-                android:text="Show photos"
+                android:text="@string/show_photos"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_create_movie"
+            style="@style/LayoutAction"
+            >
+
+            <ImageView
+                style="@style/ImageAction"
+                android:src="@drawable/ic_movie"
+                />
+
+            <TextView
+                style="@style/TextAction"
+                android:text="@string/create_video"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_show_movies"
+            style="@style/LayoutAction"
+            >
+
+            <ImageView
+                style="@style/ImageAction"
+                android:src="@drawable/ic_movies"
+                />
+
+            <TextView
+                style="@style/TextAction"
+                android:text="@string/show_videos"
                 />
 
         </LinearLayout>
@@ -116,7 +133,7 @@
 
             <TextView
                 style="@style/TextAction"
-                android:text="Settings"
+                android:text="@string/settings"
                 />
 
         </LinearLayout>

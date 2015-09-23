@@ -15,6 +15,7 @@ import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.videos.VideoInfo;
 import org.faudroids.babyface.videos.VideoManager;
+import org.parceler.Parcels;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -24,9 +25,13 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 
-public class VideosFragment extends AbstractFragment {
+@ContentView(R.layout.activity_show_videos)
+public class ShowVideosActivity extends AbstractActivity {
+
+	public static final String EXTRA_FACE = "EXTRA_FACE";
 
 	@InjectView(R.id.txt_empty) private TextView emptyView;
 	@InjectView(R.id.list_videos) private RecyclerView videosView;
@@ -35,29 +40,30 @@ public class VideosFragment extends AbstractFragment {
 	@Inject private FacesManager facesManager;
 	@Inject private VideoManager videoManager;
 
-	public VideosFragment() {
-		super(R.layout.fragment_videos);
+	private Face face;
+
+
+	public ShowVideosActivity() {
+		super(true, false);
 	}
 
 
 	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-		getActivity().setTitle(R.string.videos);
-		videosView.setLayoutManager(new LinearLayoutManager(getActivity()));
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		face = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_FACE));
+		setTitle(face.getName() + " " + getString(R.string.videos));
+
+		videosView.setLayoutManager(new LinearLayoutManager(this));
 		videoAdapter = new VideoAdapter();
 		videosView.setAdapter(videoAdapter);
-		videosView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
-		setupFaces();
+		videosView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
+		setupVideos();
 	}
 
 
-	private void setupFaces() {
-		List<Face> faces = facesManager.getFaces();
-		List<VideoInfo> videos = new ArrayList<>();
-		for (Face face : faces) {
-			videos.addAll(videoManager.getVideosForFace(face));
-		}
+	private void setupVideos() {
+		List<VideoInfo> videos = videoManager.getVideosForFace(face);
 		Collections.sort(videos, new Comparator<VideoInfo>() {
 			@Override
 			public int compare(VideoInfo lhs, VideoInfo rhs) {
@@ -100,18 +106,16 @@ public class VideosFragment extends AbstractFragment {
 	private class VideoViewHolder extends RecyclerView.ViewHolder {
 
 		private final View itemView;
-		private final TextView nameTextView, dateTextView;
+		private final TextView dateTextView;
 
 		public VideoViewHolder(View itemView) {
 			super(itemView);
 			this.itemView = itemView;
-			this.nameTextView = (TextView) itemView.findViewById(R.id.txt_name);
 			this.dateTextView = (TextView) itemView.findViewById(R.id.txt_date);
 		}
 
 		public void setVideo(final VideoInfo video) {
-			nameTextView.setText(video.getFace().getName());
-			dateTextView.setText(DateFormat.getDateInstance().format(video.getCreationDate()));
+			dateTextView.setText(DateFormat.getDateTimeInstance().format(video.getCreationDate()));
 			itemView.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {

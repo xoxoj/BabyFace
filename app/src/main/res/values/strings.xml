@@ -113,6 +113,9 @@
     <string name="photo_import_msg_done">All done, ready to take some new photos!</string>
     <string name="photo_import_continue">Let\'s go!</string>
     <string name="photo_import_status">Importing %1$d of %2$d albums</string>
+    <string name="show_videos">Show videos</string>
+    <string name="create_video">Create video</string>
+    <string name="show_photos">Show photos</string>
 
     <plurals name="hours">
         <item quantity="one">hour</item>

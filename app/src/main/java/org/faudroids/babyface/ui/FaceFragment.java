@@ -40,6 +40,7 @@ public class FaceFragment extends AbstractFragment {
 	@InjectView(R.id.layout_take_photo) private View takePhotoView;
 	@InjectView(R.id.layout_show_photos) private View showPhotosView;
 	@InjectView(R.id.layout_create_movie) private View createMovieView;
+	@InjectView(R.id.layout_show_movies) private View showMoviesView;
 	@InjectView(R.id.layout_settings) private View settingsView;
 
 	private Face face;
@@ -114,6 +115,15 @@ public class FaceFragment extends AbstractFragment {
 				startActivity(activityIntent);
 			}
 
+		});
+
+		showMoviesView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(), ShowVideosActivity.class);
+				intent.putExtra(ShowVideosActivity.EXTRA_FACE, Parcels.wrap(face));
+				startActivity(intent);
+			}
 		});
 
 		settingsView.setOnClickListener(new View.OnClickListener() {
