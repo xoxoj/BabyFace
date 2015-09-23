@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -41,7 +40,6 @@ public class ShowPhotosActivity extends AbstractActivity {
 
 	private final DateFormat dateFormat = DateFormat.getDateInstance();
 
-	@InjectView(R.id.txt_date) private TextView dateView;
 	@InjectView(R.id.img_photo) private ImageView photoView;
 	@InjectView(R.id.btn_delete) private ImageButton deleteButton;
 	@InjectView(R.id.btn_edit) private ImageButton editButton;
@@ -52,6 +50,10 @@ public class ShowPhotosActivity extends AbstractActivity {
 	@Inject private PhotoManager photoManager;
 
 	private PhotoInfo selectedPhoto;
+
+	public ShowPhotosActivity() {
+		super(true, false);
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -122,10 +124,10 @@ public class ShowPhotosActivity extends AbstractActivity {
 		selectedPhoto = photo;
 		if (photo == null) {
 			photoView.setImageResource(android.R.color.transparent);
-			dateView.setText("");
+			setTitle("");
 		} else {
 			Picasso.with(this).load(photo.getPhotoFile()).into(photoView);
-			dateView.setText(dateFormat.format(photo.getCreationDate()));
+			setTitle(dateFormat.format(photo.getCreationDate()));
 		}
 	}
 
