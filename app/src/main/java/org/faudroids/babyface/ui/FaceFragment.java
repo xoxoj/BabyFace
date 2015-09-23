@@ -18,7 +18,9 @@ import roboguice.inject.InjectView;
 
 public class FaceFragment extends AbstractFragment {
 
-	private static final int REQUEST_TAKE_PHOTO = 43;
+	private static final int
+			REQUEST_TAKE_PHOTO = 43,
+			REQUEST_SHOW_SETTINGS = 44;
 
 	private static final String EXTRA_FACE = "FACE";
 
@@ -69,6 +71,11 @@ public class FaceFragment extends AbstractFragment {
 				if (resultCode != Activity.RESULT_OK) return;
 				photoUtils.loadImage(photoManager.getRecentPhoto(face), profileView);
 				break;
+
+			case REQUEST_SHOW_SETTINGS:
+				if (resultCode != FaceSettingsActivity.RESULT_FACE_DELETED) return;
+				((MainDrawerActivity) getActivity()).onVisibleFaceDeleted();
+				break;
 		}
 	}
 
@@ -114,7 +121,7 @@ public class FaceFragment extends AbstractFragment {
             public void onClick(View v) {
 				Intent settingsIntent = new Intent(getActivity(), FaceSettingsActivity.class);
 				settingsIntent.putExtra(FaceSettingsActivity.EXTRA_FACE_NAME, FaceFragment.this.face.getName());
-				startActivity(settingsIntent);
+				startActivityForResult(settingsIntent, REQUEST_SHOW_SETTINGS);
 				getActivity().overridePendingTransition(R.anim.slide_in_from_bottom, R.anim.slide_out_to_top);
 			}
 		});

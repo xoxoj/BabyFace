@@ -107,8 +107,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 
 		// setup actual nav drawer
-		List<IDrawerItem> drawerItems = facesToDrawerItems();
-		DrawerBuilder drawerBuilder = new DrawerBuilder()
+		drawer = new DrawerBuilder()
 				.withActivity(this)
 				.withToolbar(toolbar)
 				.withAccountHeader(accountHeader)
@@ -117,10 +116,11 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 						new PrimaryDrawerItem().withName(R.string.feedback).withIconTintingEnabled(true).withIcon(R.drawable.ic_email).withIdentifier(ID_FEEDBACK)
 				)
 				.withOnDrawerItemClickListener(this)
-				.withSavedInstance(savedInstanceState);
-		for (IDrawerItem item : drawerItems) drawerBuilder.addDrawerItems(item);
-		drawerBuilder.addDrawerItems(createAddFaceDrawerItem());
-		drawer = drawerBuilder.build();
+				.withSavedInstance(savedInstanceState)
+				.build();
+
+		List<IDrawerItem> drawerItems = facesToDrawerItems();
+		setFaceDrawerItems(drawerItems);
 
 		if (drawerItems.isEmpty()) {
 			// add first face
@@ -151,10 +151,7 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 
 				if (resultCode != RESULT_OK) return;
 				Face newFace = Parcels.unwrap(data.getParcelableExtra(NewFaceActivity.EXTRA_FACE));
-
-				drawer.removeAllItems();
-				for (IDrawerItem item : drawerItems) drawer.addItem(item);
-				drawer.addItem(createAddFaceDrawerItem());
+				setFaceDrawerItems(drawerItems);
 
 				// select new face
 				int selectedPos = 0;
@@ -167,6 +164,25 @@ public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDra
 				drawer.setSelection(selectedPos);
 				break;
 		}
+	}
+
+
+	public void onVisibleFaceDeleted() {
+		List<IDrawerItem> drawerItems = facesToDrawerItems();
+		setFaceDrawerItems(drawerItems);
+
+		if (drawerItems.isEmpty()) {
+			startActivityForResult(new Intent(this, NewFaceActivity.class), REQUEST_ADD_FACE);
+		} else {
+			drawer.setSelection(0);
+		}
+	}
+
+
+	private void setFaceDrawerItems(List<IDrawerItem> faceDrawerItems) {
+		drawer.removeAllItems();
+		for (IDrawerItem item : faceDrawerItems) drawer.addItem(item);
+		drawer.addItem(createAddFaceDrawerItem());
 	}
 
 
