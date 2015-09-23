@@ -30,7 +30,9 @@ public class FacesImportActivity extends AbstractActivity {
 
 	private final StatusReceiver statusReceiver = new StatusReceiver();
 
-	@InjectView(R.id.txt_progress) private TextView progressView;
+	@InjectView(R.id.txt_msg) private TextView msgTextView;
+	@InjectView(R.id.layout_progress) private View progressLayout;
+	@InjectView(R.id.txt_progress) private TextView progressTextView;
 	@InjectView(R.id.btn_done) private Button doneButton;
 
 	@Override
@@ -73,9 +75,10 @@ public class FacesImportActivity extends AbstractActivity {
 
 	private void onStatusUpdate(FacesImportStatus status) {
 		if (!status.isComplete()) {
-			progressView.setText("Importing " + (status.getImportedFacesCount() + 1) + " of " + status.getFacesToImportCount() + " faces");
+			progressTextView.setText("Importing " + (status.getImportedFacesCount() + 1) + " of " + status.getFacesToImportCount() + " faces");
 		} else {
-			progressView.setVisibility(View.GONE);
+			progressLayout.setVisibility(View.GONE);
+			msgTextView.setText(R.string.photo_import_msg_done);
 			doneButton.setVisibility(View.VISIBLE);
 		}
 	}

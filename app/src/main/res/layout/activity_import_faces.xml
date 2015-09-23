@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary"
@@ -24,15 +25,15 @@
             >
 
             <TextView
-                android:id="@+id/txt_title"
-                android:text="Importing photos"
+                android:text="@string/photo_import_title"
                 android:layout_marginTop="0dp"
                 android:layout_marginBottom="50dp"
                 style="@style/TextIntroTitle"
                 />
 
             <TextView
-                android:text="Importing previously created photos, can't wait to take some new ones!"
+                android:id="@+id/txt_msg"
+                android:text="@string/photo_import_msg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
@@ -42,22 +43,42 @@
                 android:layout_marginBottom="30dp"
                 />
 
-            <TextView
-                android:id="@+id/txt_progress"
+            <LinearLayout
+                android:id="@+id/layout_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="24sp"
-                android:fontFamily="sans-serif-light"
                 android:layout_gravity="center_horizontal"
-                />
+                android:orientation="horizontal"
+                android:visibility="visible"
+                >
+
+                <com.lsjwzh.widget.materialloadingprogressbar.CircleProgressBar
+                    android:layout_width="@dimen/progress_small"
+                    android:layout_height="@dimen/progress_small"
+                    android:layout_marginRight="10dp"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_color="@color/accent"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:fontFamily="sans-serif-light"
+                    android:text="Importing"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    />
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/btn_done"
                 android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Let's go!"
+                android:text="@string/photo_import_continue"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 android:textColor="@android:color/white"
@@ -66,7 +87,7 @@
 
         </LinearLayout>
 
-        </RelativeLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -91,7 +112,5 @@
             />
 
     </LinearLayout>
-
-    <include layout="@layout/progressbar" />
 
 </RelativeLayout>

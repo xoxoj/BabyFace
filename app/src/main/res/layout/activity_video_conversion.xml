@@ -18,7 +18,6 @@
         >
 
         <TextView
-            android:id="@+id/txt_title"
             style="@style/TextIntroTitle"
             android:layout_marginBottom="50dp"
             android:layout_marginTop="0dp"
@@ -47,8 +46,8 @@
             >
 
             <com.lsjwzh.widget.materialloadingprogressbar.CircleProgressBar
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/progress_small"
+                android:layout_height="@dimen/progress_small"
                 android:layout_marginRight="10dp"
                 app:mlpb_enable_circle_background="false"
                 app:mlpb_progress_color="@color/accent"

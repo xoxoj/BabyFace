@@ -17,4 +17,5 @@
 
     <dimen name="photo_thumbnail_height">110dp</dimen>
     <dimen name="photo_thumbnail_width">140dp</dimen>
+    <dimen name="progress_small">40dp</dimen>
 </resources>
