@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">BabyFace</string>
+
     <string name="add_new_baby">Add new baby</string>
 
     <string name="example_baby_name"><i>e.g. cute toddler</i></string>

@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -59,10 +62,15 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 	private PhotoManager.PhotoCreationResult photoCreationResult;
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
-	private Pref<Boolean> firstStart;
-
 	public FacesOverviewFragment() {
 		super(R.layout.fragment_faces_overview);
+	}
+
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
 	}
 
 
@@ -73,7 +81,7 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 		slidingLayout.setPanelHeight(0);
 
 		// on first start (and no faces) start face setup
-		firstStart = Pref.newBooleanPref(getActivity(), "org.faudroids.babyface.ui.FacesOverviewFragment", "firstStart", true);
+		Pref<Boolean> firstStart = Pref.newBooleanPref(getActivity(), "org.faudroids.babyface.ui.FacesOverviewFragment", "firstStart", true);
 		if (firstStart.get()) {
 			firstStart.set(false);
 			if (facesManager.getFaces().isEmpty()) {
@@ -126,6 +134,24 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 
 
 	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.menu_faces_overview, menu);
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.add_face:
+				startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
+				return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+
+	@Override
 	public boolean onBackPressed() {
 		if (!slidingLayout.getPanelState().equals(SlidingUpPanelLayout.PanelState.EXPANDED)) {
 			return false;
@@ -167,19 +193,6 @@ public class FacesOverviewFragment extends AbstractFragment implements Connectio
 			GridLayout.LayoutParams params = createLayoutParams(row, column);
 			facesLayout.addView(profileView, params);
 		}
-
-		// add "add profile" layout
-		View addProfileView = inflater.inflate(R.layout.item_profile_add, facesLayout, false);
-		int row = faces.size() / 2;
-		int column = faces.size() - (row * 2);
-		GridLayout.LayoutParams params = createLayoutParams(row, column);
-		facesLayout.addView(addProfileView, params);
-		addProfileView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				startActivityForResult(new Intent(getActivity(), NewFaceActivity.class), REQUEST_ADD_FACE);
-			}
-		});
 	}
 
 
