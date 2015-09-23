@@ -37,7 +37,7 @@ import javax.inject.Inject;
 import roboguice.inject.ContentView;
 
 
-@ContentView(R.layout.activity_main)
+@ContentView(R.layout.activity_main_drawer)
 public class MainDrawerActivity extends AbstractActivity implements Drawer.OnDrawerItemClickListener {
 
 	private static final String
