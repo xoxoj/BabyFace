@@ -1,15 +1,30 @@
 <resources>
     <string name="app_name">BabyFace</string>
 
-    <string name="add_new_baby">Add new baby</string>
+    <string name="add_new_album">Add new album</string>
 
-    <string name="example_baby_name"><i>e.g. cute toddler</i></string>
+    <string name="enter_album_name">How do you want to call your album?</string>
+    <string name="example_album_name"><i>e.g. "Our little toddler"</i></string>
+    <string name="take_first_photo">Take your first photo!</string>
+    <string name="reminder_title">How often would you like to take a photo?</string>
+    <string name="never">Never</string>
+    <string name="every_day">Every day</string>
+    <string name="every_week">Every week</string>
+    <string name="every_month">Every month</string>
+    <string name="custom">Custom …</string>
+    <string name="every">Every</string>
+    <string name="hours">Hours</string>
+    <string name="days">Days</string>
+    <string name="weeks">Weeks</string>
+    <string name="months">Months</string>
+    <string name="all_done">All done!</string>
+    <string name="added_new_face">We\'ll remind you when it\'s time to take another photo. For now just sit back and relax.</string>
 
     <string name="photo_time">Photo time</string>
     <string name="time_to_take_photo">Time to take a photo of %1$s!</string>
     <string name="take_photo">Take photo</string>
 
-    <string name="children">Children</string>
+    <string name="albums">Albums</string>
     <string name="videos">Videos</string>
     <string name="settings">Settings</string>
     <string name="feedback">Feedback</string>
@@ -66,11 +81,10 @@
     <string name="delete_title">"Delete %1$s"</string>
     <string name="delete_message">"Do you want to delete all photo and information of %1$s? This action is <b>not</b> reversible!</string>
 
-    <string name="import_title">Import faces?</string>
-    <string name="import_message">Hurrah, we have found photos of %1$d faces which you were using on a different device. Do you want to import those now?</string>
+    <string name="import_title">Import albums?</string>
+    <string name="import_message">Hurrah, we have found photos of %1$d albums which you were using on a different device! Do you want to import those now?</string>
     <string name="import_confirm">Import</string>
 
-    <string name="never">never</string>
     <string name="import_from_drive">Import from Google Drive</string>
     <string name="nothing_to_import">Nothing to import</string>
 
@@ -98,6 +112,7 @@
     <string name="photo_import_msg">Downloading previously created photos, this might take a while …</string>
     <string name="photo_import_msg_done">All done, ready to take some new photos!</string>
     <string name="photo_import_continue">Let\'s go!</string>
+    <string name="photo_import_status">Importing %1$d of %2$d albums</string>
 
     <plurals name="hours">
         <item quantity="one">hour</item>

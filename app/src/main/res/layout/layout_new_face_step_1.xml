@@ -6,7 +6,7 @@
     >
 
     <TextView
-        android:text="Enter your baby's name"
+        android:text="@string/enter_album_name"
         style="@style/TextIntroTitle"
         />
 
@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:hint="@string/example_baby_name"
+        android:hint="@string/example_album_name"
         android:singleLine="true"
         />
 

@@ -75,7 +75,7 @@ public class FacesImportActivity extends AbstractActivity {
 
 	private void onStatusUpdate(FacesImportStatus status) {
 		if (!status.isComplete()) {
-			progressTextView.setText("Importing " + (status.getImportedFacesCount() + 1) + " of " + status.getFacesToImportCount() + " faces");
+			progressTextView.setText(getString(R.string.photo_import_status, (status.getImportedFacesCount() + 1), status.getFacesToImportCount()));
 		} else {
 			progressLayout.setVisibility(View.GONE);
 			msgTextView.setText(R.string.photo_import_msg_done);

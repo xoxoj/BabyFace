@@ -63,7 +63,7 @@ public class FacesImportService extends AbstractGoogleApiClientService {
 
 		// show progress notification
 		notificationBuilder = new NotificationCompat.Builder(this)
-				.setContentTitle("Importing photos")
+				.setContentTitle(getString(R.string.photo_import_title))
 				.setSmallIcon(R.drawable.ic_notification)
 				.setProgress(100, 0, false)
 				.setOngoing(true)
@@ -114,7 +114,7 @@ public class FacesImportService extends AbstractGoogleApiClientService {
 		if (status.isComplete()) {
 			notificationBuilder.setContentText("Done");
 		} else {
-			notificationBuilder.setContentText("Importing " + (status.getImportedFacesCount() + 1) + " of " + status.getFacesToImportCount() + " faces");
+			notificationBuilder.setContentText(getString(R.string.photo_import_status, (status.getImportedFacesCount() + 1), status.getFacesToImportCount()));
 		}
 		notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
 	}

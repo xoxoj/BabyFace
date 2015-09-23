@@ -5,7 +5,7 @@
     >
     <item android:id="@+id/add_face"
           android:icon="@drawable/ic_person_add"
-          android:title="@string/add_new_baby"
+          android:title="@string/add_new_album"
           app:showAsAction="ifRoom"
           />
 
