@@ -153,9 +153,11 @@ public class ReminderPeriodViewHandler {
 		if (isCustom) toggleSelected(customRowViews, rowIdx);
 		else toggleSelected(regularRowView, rowIdx);
 
-
 		// set amount
 		if (isCustom) amountEditText.setText(String.valueOf(period.getAmount()));
+
+		// notify listener
+		onDataChanged();
 	}
 
 

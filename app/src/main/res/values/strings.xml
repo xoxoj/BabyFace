@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">BabyFace</string>
 
-    <string name="add_new_album">Add new album</string>
+    <string name="add_album">Add album</string>
 
     <string name="enter_album_name">How do you want to call your album?</string>
     <string name="example_album_name"><i>e.g. "Our little toddler"</i></string>

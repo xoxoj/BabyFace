@@ -37,6 +37,9 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 			STATE_FACE_BUILDER = "STATE_FACE_BUILDER",
 			STATE_PROGRESS = "STATE_PROGRESS";
 
+	public static final String
+			EXTRA_FACE = "EXTRA_FACE";
+
 	private static final int REQUEST_CAPTURE_IMAGE = 42;
 
 	@InjectView(R.id.layout_container) private RelativeLayout containerLayout;
@@ -106,6 +109,10 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 						hideProgressBar();
 						Timber.d("adding face success");
 						reminderManager.addReminder(face);
+						facesManager.updateFace(face); // update data set by reminder manager
+						Intent resultIntent = new Intent();
+						resultIntent.putExtra(EXTRA_FACE, Parcels.wrap(face));
+						setResult(RESULT_OK, resultIntent);
 						finish();
 					}
 				}, new Action1<Throwable>() {
@@ -118,8 +125,8 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 					}
 				});
 
-						// start photo uploading
-						photoManager.requestPhotoSync();
+		// start photo uploading
+		photoManager.requestPhotoSync();
 	}
 
 
