@@ -78,8 +78,10 @@ public class FacesImportActivity extends AbstractActivity {
 			progressTextView.setText(getString(R.string.photo_import_status, (status.getImportedFacesCount() + 1), status.getFacesToImportCount()));
 		} else {
 			progressLayout.setVisibility(View.GONE);
-			msgTextView.setText(R.string.photo_import_msg_done);
 			doneButton.setVisibility(View.VISIBLE);
+
+			if (!status.getHasError()) msgTextView.setText(R.string.photo_import_msg_done);
+			else msgTextView.setText(R.string.photo_import_msg_error);
 		}
 	}
 

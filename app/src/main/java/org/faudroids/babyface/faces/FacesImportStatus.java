@@ -12,6 +12,7 @@ public class FacesImportStatus {
 
 	private final int facesToImportCount;
 	private int importedFacesCount;
+	private boolean hasError = false;
 
 	public FacesImportStatus(int facesToImportCount) {
 		this.facesToImportCount = facesToImportCount;
@@ -30,7 +31,11 @@ public class FacesImportStatus {
 
 	@Transient
 	public boolean isComplete() {
-		return importedFacesCount == facesToImportCount;
+		return importedFacesCount == facesToImportCount || hasError;
+	}
+
+	public void setHasError(boolean hasError) {
+		this.hasError = hasError;
 	}
 
 	public void onFaceImported() {
@@ -43,6 +48,10 @@ public class FacesImportStatus {
 
 	public int getImportedFacesCount() {
 		return importedFacesCount;
+	}
+
+	public boolean getHasError() {
+		return hasError;
 	}
 
 }

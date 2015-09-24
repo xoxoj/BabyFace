@@ -58,7 +58,6 @@ public class FacesImportService extends AbstractGoogleApiClientService {
 		if (intent == null) return START_STICKY;
 
 		final List<FacesScanner.ImportableFace> importableFaces = intent.getParcelableArrayListExtra(EXTRA_FACES_TO_IMPORT);
-		final Intent activityTargetIntent = intent.getParcelableExtra(EXTRA_TARGET_INTENT);
 		final FacesImportStatus status = new FacesImportStatus(importableFaces.size());
 
 		// show progress notification
@@ -83,8 +82,9 @@ public class FacesImportService extends AbstractGoogleApiClientService {
 
 					@Override
 					public void onError(Throwable e) {
-						// TODO error handling
 						Timber.e(e, "failed to import faces");
+						status.setHasError(true);
+						updateStatus(status);
 					}
 
 					@Override
@@ -111,8 +111,10 @@ public class FacesImportService extends AbstractGoogleApiClientService {
 		// update notification progress
 		int progress = (int) status.getProgress() * 100;
 		notificationBuilder.setProgress(100, progress, false);
-		if (status.isComplete()) {
-			notificationBuilder.setContentText("Done");
+		if (status.isComplete() && !status.getHasError()) {
+			notificationBuilder.setContentText(getString(R.string.success));
+		} else if (status.isComplete() && status.getHasError()) {
+			notificationBuilder.setContentText(getString(R.string.error));
 		} else {
 			notificationBuilder.setContentText(getString(R.string.photo_import_status, (status.getImportedFacesCount() + 1), status.getFacesToImportCount()));
 		}
