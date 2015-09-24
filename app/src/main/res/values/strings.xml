@@ -126,6 +126,9 @@
     <string name="error_setup_drive_title">Failed to setup Google Drive</string>
     <string name="error_setup_drive_msg">Sorry, there was an error while setting up Google Drive, backups might not work reliably. Please try logging out and in again.</string>
 
+    <string name="error_adding_face_title">Failed create new album</string>
+    <string name="error_adding_face_msg">Sorry, there was an error creating your new album :(</string>
+
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>

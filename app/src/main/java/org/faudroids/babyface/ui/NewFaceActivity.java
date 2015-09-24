@@ -122,10 +122,14 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 				}, new Action1<Throwable>() {
 					@Override
 					public void call(Throwable throwable) {
-						// TODO error handling
 						Timber.e(throwable, "failed to add face");
 						continueButton.setEnabled(true);
 						hideProgressBar();
+						new AlertDialog.Builder(NewFaceActivity.this)
+								.setTitle(R.string.error_adding_face_title)
+								.setMessage(R.string.error_adding_face_msg)
+								.setPositiveButton(android.R.string.ok, null)
+								.show();
 					}
 				});
 
