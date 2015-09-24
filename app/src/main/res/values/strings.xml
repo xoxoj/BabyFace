@@ -120,6 +120,9 @@
     <string name="create_video">Create video</string>
     <string name="show_photos">Show photos</string>
 
+    <string name="error_delete_face_title">Failed to delete album</string>
+    <string name="error_delete_face_msg">Sorry, there  was an error deleting this album. Please try again later.</string>
+
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>

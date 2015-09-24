@@ -74,7 +74,7 @@ public class FaceSettingsActivity extends AbstractActivity {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								showProgressBar();
-								facesManager.deleteFace(face)
+								subscriptions.add(facesManager.deleteFace(face)
 										.compose(new DefaultTransformer<Void>())
 										.subscribe(new Action1<Void>() {
 											@Override
@@ -86,10 +86,15 @@ public class FaceSettingsActivity extends AbstractActivity {
 										}, new Action1<Throwable>() {
 											@Override
 											public void call(Throwable throwable) {
-												// TODO error handling
 												Timber.e(throwable, "failed to delete face with name " + face.getName());
+												hideProgressBar();
+												new AlertDialog.Builder(FaceSettingsActivity.this)
+														.setTitle(R.string.error_delete_face_title)
+														.setMessage(R.string.error_delete_face_msg)
+														.setPositiveButton(android.R.string.ok, null)
+														.show();
 											}
-										});
+										}));
 							}
 						})
 						.show();
