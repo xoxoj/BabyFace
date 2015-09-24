@@ -63,7 +63,11 @@ public class SettingsFragment extends AbstractFragment {
 
 					@Override
 					public void onError(Throwable throwable) {
-						// TODO error handling
+						new AlertDialog.Builder(getActivity())
+								.setTitle(R.string.error)
+								.setMessage(R.string.photo_import_msg_error)
+								.setPositiveButton(android.R.string.ok, null)
+								.show();
 					}
 				}, null);
 			}
