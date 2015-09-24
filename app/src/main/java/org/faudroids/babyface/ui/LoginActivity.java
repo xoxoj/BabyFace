@@ -3,6 +3,7 @@ package org.faudroids.babyface.ui;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.view.View;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +22,7 @@ import org.faudroids.babyface.videos.VideoManager;
 import javax.inject.Inject;
 
 import roboguice.inject.ContentView;
+import roboguice.inject.InjectView;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
@@ -35,12 +37,16 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 42;
 
+	@InjectView(R.id.layout_sign_in) private View loginView;
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
 	@Inject private FacesManager facesManager;
 	@Inject private FacesImportViewHandler importViewHandler;
 	@Inject private VideoManager videoManager;
 
+	private boolean loginClicked = false;
+	private boolean connectionSuccess = false;
+	private ConnectionResult connectionResult = null;
 
 	public LoginActivity() {
 		super(false, true);
@@ -53,6 +59,15 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 		if (authManager.isSignedIn()) {
 			startMainActivity();
 		}
+
+		loginView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				loginClicked = true;
+				if (connectionSuccess) login();
+				else if (connectionResult != null) resolveConnectionError(connectionResult);
+			}
+		});
 	}
 
 
@@ -72,6 +87,23 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	@Override
 	public void onConnected(Bundle bundle) {
+		if (loginClicked) login();
+		else connectionSuccess = true;
+	}
+
+
+	@Override
+	public void onConnectionSuspended(int i) { }
+
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		if (loginClicked) resolveConnectionError(connectionResult);
+		else this.connectionResult = connectionResult;
+	}
+
+
+	private void login() {
 		authManager.signIn(googleApiClientManager.getGoogleApiClient());
 
 		// first time setup
@@ -117,12 +149,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	}
 
 
-	@Override
-	public void onConnectionSuspended(int i) { }
-
-
-	@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {
+	private void resolveConnectionError(ConnectionResult connectionResult) {
 		// missing play services etc.
 		if (!connectionResult.hasResolution()) {
 			GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), LoginActivity.this, 0).show();

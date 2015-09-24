@@ -3,9 +3,102 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/primary"
     >
 
-    <include layout="@layout/progressbar"/>
+    <ImageView
+        android:id="@+id/img_teddy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/intro"
+        android:layout_centerInParent="true"
+        android:paddingTop="20dp"
+        />
+
+    <TextView
+        android:id="@+id/txt_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white"
+        android:textSize="46sp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-light"
+        android:layout_above="@id/img_teddy"
+        android:layout_marginBottom="20dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to"
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-light"
+        android:layout_above="@id/txt_title"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:scaleType="fitEnd"
+            android:src="@drawable/background_clouds"
+            />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="@android:color/white"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_sign_in"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_google_red"
+        android:layout_margin="8dp"
+        android:layout_alignParentBottom="true"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/google"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp"
+            android:padding="8dp"
+            />
+
+        <View
+            android:layout_width="1px"
+            android:layout_height="match_parent"
+            android:background="@color/google_red_dark"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in with Google"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="16sp"
+            />
+
+    </LinearLayout>
 
 </RelativeLayout>

@@ -14,4 +14,7 @@
 
     <color name="danger">#f44336</color>
     <color name="danger_dark">#D32F2F</color>
+
+    <color name="google_red">#d34836</color>
+    <color name="google_red_dark">#b33d2d</color>
 </resources>
