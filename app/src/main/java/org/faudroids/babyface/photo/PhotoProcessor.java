@@ -47,11 +47,9 @@ public class PhotoProcessor {
      * Detects the largest face in a {@link Bitmap} and returns a scaled, cropped and padded
      * {@link Bitmap} with 1920x1080 pixels
      * @param input {@link Bitmap} to process
-     * @return {@link Bitmap} containing the largest face in an image if any
      */
-    public Optional<Bitmap> findFaceAndCrop(Bitmap input) {
+    public Bitmap findFaceAndCrop(Bitmap input) {
         Optional<Face> face = findLargestFace(input);
-		if (!face.isPresent()) return Optional.absent();
 
 		// setup canvas and draw black background
 		final Bitmap output = Bitmap.createBitmap(OUTPUT_WIDTH, OUTPUT_HEIGHT, Bitmap.Config.RGB_565);
@@ -59,9 +57,18 @@ public class PhotoProcessor {
 		canvas.drawRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT, BLACK_PAINT);
 
 		// get target position of face
-		final float faceScale = FACE_OUTPUT_HEIGHT * OUTPUT_HEIGHT / face.get().getHeight(); // how much the face should be scaled
-		final int centerX = (int) (face.get().getPosition().x + face.get().getWidth() / 2.0f);
-		final int centerY = (int) (face.get().getPosition().y + face.get().getHeight() / 2.0f);
+		float faceScale;
+		int centerX, centerY;
+
+		if (face.isPresent()) {
+			faceScale = FACE_OUTPUT_HEIGHT * OUTPUT_HEIGHT / face.get().getHeight(); // how much the face should be scaled
+			centerX = (int) (face.get().getPosition().x + face.get().getWidth() / 2.0f);
+			centerY = (int) (face.get().getPosition().y + face.get().getHeight() / 2.0f);
+		} else {
+			faceScale = OUTPUT_HEIGHT / input.getHeight();
+			centerX = input.getWidth() / 2;
+			centerY = input.getHeight() / 2;
+		}
 
 		// scale + translate face
 		Matrix matrix = new Matrix();
@@ -69,7 +76,7 @@ public class PhotoProcessor {
 		matrix.postTranslate(OUTPUT_WIDTH / 2 - centerX * faceScale, OUTPUT_HEIGHT / 2 - centerY * faceScale);
 		canvas.drawBitmap(input, matrix, DEFAULT_PAINT);
 
-		return Optional.of(output);
+		return output;
     }
 
 
