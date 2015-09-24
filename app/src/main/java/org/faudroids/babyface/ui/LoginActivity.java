@@ -1,5 +1,6 @@
 package org.faudroids.babyface.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -135,7 +136,11 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 							@Override
 							public void onError(Throwable throwable) {
-								// TODO error handling
+								new AlertDialog.Builder(LoginActivity.this)
+										.setMessage(R.string.error)
+										.setTitle(R.string.photo_import_msg_error)
+										.setPositiveButton(android.R.string.ok, null)
+										.show();
 							}
 						}, new Intent(LoginActivity.this, MainDrawerActivity.class));
 					}
@@ -143,7 +148,11 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 					@Override
 					public void call(Throwable throwable) {
 						Timber.e(throwable, "failed to create root dir");
-						// TODO error handling
+						new AlertDialog.Builder(LoginActivity.this)
+								.setTitle(R.string.error_setup_drive_title)
+								.setMessage(R.string.error_delete_face_msg)
+								.setPositiveButton(android.R.string.ok, null)
+								.show();
 					}
 				});
 	}
