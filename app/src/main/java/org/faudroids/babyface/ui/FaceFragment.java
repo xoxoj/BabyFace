@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 
 import org.faudroids.babyface.R;
@@ -62,6 +65,18 @@ public class FaceFragment extends AbstractFragment {
 		super.onViewCreated(view, savedInstanceState);
 		getActivity().setTitle(face.getName());
 		setupSelectedFace(face);
+
+		// show intro anim
+		View[] fadeInViews = new View[] { takePhotoView, showPhotosView, createMovieView, showMoviesView, settingsView };
+		int delay = 200;
+		for (View fadeInView: fadeInViews) {
+			Animation anim = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_PARENT, 1, Animation.RELATIVE_TO_SELF, 0);
+			anim.setDuration(200);
+			anim.setStartOffset(delay);
+			anim.setInterpolator(new DecelerateInterpolator());
+			fadeInView.startAnimation(anim);
+			delay += 50;
+		}
 	}
 
 
