@@ -13,11 +13,8 @@ import android.view.animation.OvershootInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.plus.Plus;
 
 import org.faudroids.babyface.R;
 import org.faudroids.babyface.auth.AuthManager;
@@ -33,7 +30,6 @@ import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import timber.log.Timber;
 
@@ -44,7 +40,7 @@ import timber.log.Timber;
 public class LoginActivity extends AbstractActivity implements ConnectionListener {
 
 	private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 42;
-
+	private static final int ANIM_LENGTH = 500;
 
 	@InjectView(R.id.layout_title) private View titleView;
 	@InjectView(R.id.img_teddy) private View teddyView;
@@ -60,6 +56,9 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	private boolean connectionSuccess = false;
 	private ConnectionResult connectionResult = null;
 
+	private Animation teddyAnim;
+	private AnimationSet titleAnim, btnAnim;
+
 	public LoginActivity() {
 		super(false, true);
 	}
@@ -69,7 +68,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (authManager.isSignedIn()) {
-			startMainActivity();
+			startMainActivity(false);
 		}
 
 		// setup login click
@@ -82,30 +81,32 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 			}
 		});
 
-		// show intro animation
-		if (savedInstanceState != null) return;
-
-		Animation teddyAnim = new ScaleAnimation(0, 1, 0, 1, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+		// setup animations
+		teddyAnim = new ScaleAnimation(0, 1, 0, 1, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 		teddyAnim.setInterpolator(new OvershootInterpolator());
-		teddyAnim.setDuration(500);
+		teddyAnim.setDuration(ANIM_LENGTH);
 		teddyAnim.setStartOffset(500);
-		teddyView.startAnimation(teddyAnim);
 
-		AnimationSet titleAnim = new AnimationSet(true);
+		titleAnim = new AnimationSet(true);
 		titleAnim.addAnimation(new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_PARENT, -1, Animation.RELATIVE_TO_SELF, 0));
 		titleAnim.addAnimation(new AlphaAnimation(0, 1));
-		titleAnim.setDuration(500);
+		titleAnim.setDuration(ANIM_LENGTH);
 		titleAnim.setStartOffset(500);
 		titleAnim.setInterpolator(new DecelerateInterpolator());
-		titleView.startAnimation(titleAnim);
 
-		AnimationSet btnAnim = new AnimationSet(true);
+		btnAnim = new AnimationSet(true);
 		btnAnim.addAnimation(new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_PARENT, 1, Animation.RELATIVE_TO_SELF, 0));
 		btnAnim.addAnimation(new AlphaAnimation(0, 1));
-		btnAnim.setDuration(500);
+		btnAnim.setDuration(ANIM_LENGTH);
 		btnAnim.setStartOffset(500);
 		btnAnim.setInterpolator(new DecelerateInterpolator());
-		loginView.startAnimation(btnAnim);
+
+		// start animations (only if not resuming activity)
+		if (savedInstanceState == null) {
+			teddyView.startAnimation(teddyAnim);
+			titleView.startAnimation(titleAnim);
+			loginView.startAnimation(btnAnim);
+		}
 	}
 
 
@@ -166,7 +167,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 									case IMPORT_ABORTED:
 									case NOTHING_TO_IMPORT:
-										startMainActivity();
+										startMainActivity(true);
 										break;
 								}
 							}
@@ -221,42 +222,25 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 	}
 
 
-	private void startMainActivity() {
-		startActivity(new Intent(LoginActivity.this, MainDrawerActivity.class));
-		finish();
+	private void startMainActivity(final boolean showExitAnimation) {
+		int startDelay = showExitAnimation ? ANIM_LENGTH + 200 : 0;
+		titleView.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				startActivity(new Intent(LoginActivity.this, MainDrawerActivity.class));
+				finish();
+			}
+		}, startDelay);
+		if (!showExitAnimation) return;
+
+		Animation[] anims = new Animation[] { titleAnim, btnAnim };
+		for (Animation anim : anims) {
+			anim.reset();
+			anim.setInterpolator(new ReverseInterpolator(new DecelerateInterpolator()));
+			anim.setFillAfter(true);
+		}
+		titleView.startAnimation(titleAnim);
+		loginView.startAnimation(btnAnim);
 	}
 
-
-	private void printGoogleAuthToken() {
-		Observable
-				.defer(new Func0<Observable<String>>() {
-					@Override
-					public Observable<String> call() {
-						try {
-							String scope = "oauth2:" + Drive.SCOPE_APPFOLDER.toString();
-							Timber.d("scope is " + scope);
-							String token = GoogleAuthUtil.getToken(
-									LoginActivity.this,
-									Plus.AccountApi.getAccountName(googleApiClientManager.getGoogleApiClient()),
-									scope);
-							return Observable.just(token);
-						} catch (Exception e) {
-							return Observable.error(e);
-						}
-					}
-				})
-				.compose(new DefaultTransformer<String>())
-				.subscribe(new Action1<String>() {
-					@Override
-					public void call(String token) {
-						Timber.d("google auth token: " + token);
-					}
-				}, new Action1<Throwable>() {
-					@Override
-					public void call(Throwable throwable) {
-						Timber.e(throwable, "failed to get token");
-					}
-				});
-
-	}
 }
