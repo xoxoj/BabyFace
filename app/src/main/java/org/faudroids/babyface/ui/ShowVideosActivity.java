@@ -52,7 +52,6 @@ public class ShowVideosActivity extends AbstractActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		face = Parcels.unwrap(getIntent().getParcelableExtra(EXTRA_FACE));
-		setTitle(face.getName() + " " + getString(R.string.videos));
 
 		videosView.setLayoutManager(new LinearLayoutManager(this));
 		videoAdapter = new VideoAdapter();
@@ -64,6 +63,7 @@ public class ShowVideosActivity extends AbstractActivity {
 
 	private void setupVideos() {
 		List<VideoInfo> videos = videoManager.getVideosForFace(face);
+		setTitle(videos.size() + " " + getString(R.string.videos));
 		Collections.sort(videos, new Comparator<VideoInfo>() {
 			@Override
 			public int compare(VideoInfo lhs, VideoInfo rhs) {
