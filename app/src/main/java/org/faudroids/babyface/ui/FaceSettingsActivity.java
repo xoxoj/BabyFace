@@ -35,7 +35,6 @@ public class FaceSettingsActivity extends AbstractActivity {
 	public static final int RESULT_FACE_DELETED = 42;
 	private static final int REQUEST_EDIT_REMINDER_SETTINGS = 42;
 
-	@InjectView(R.id.txt_name) private TextView nameTextView;
 	@InjectView(R.id.layout_reminder) private View reminderLayout;
 	@InjectView(R.id.txt_reminder_period) private TextView reminderTextView;
 	@InjectView(R.id.btn_delete) private Button deleteButton;
@@ -51,7 +50,6 @@ public class FaceSettingsActivity extends AbstractActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		face = facesManager.findFaceByName(getIntent().getStringExtra(EXTRA_FACE_NAME));
-		nameTextView.setText(face.getName());
 
 		reminderTextView.setText(prettyPrintDuration(face.getReminderPeriod()));
 		reminderLayout.setOnClickListener(new View.OnClickListener() {
