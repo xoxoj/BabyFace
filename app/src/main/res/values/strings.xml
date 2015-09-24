@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">BabyFace</string>
 
+    <string name="welcome_to">Welcome to</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+
     <string name="add_album">Add album</string>
 
     <string name="enter_album_name">How do you want to call your album?</string>

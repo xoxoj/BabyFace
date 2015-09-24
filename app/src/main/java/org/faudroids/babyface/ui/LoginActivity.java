@@ -5,6 +5,13 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
@@ -38,7 +45,11 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 
 	private static final int REQUEST_RESOLVE_GOOGLE_API_CLIENT_CONNECTION = 42;
 
+
+	@InjectView(R.id.layout_title) private View titleView;
+	@InjectView(R.id.img_teddy) private View teddyView;
 	@InjectView(R.id.layout_sign_in) private View loginView;
+
 	@Inject private AuthManager authManager;
 	@Inject private GoogleDriveManager driveManager;
 	@Inject private FacesManager facesManager;
@@ -61,6 +72,7 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 			startMainActivity();
 		}
 
+		// setup login click
 		loginView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -69,6 +81,31 @@ public class LoginActivity extends AbstractActivity implements ConnectionListene
 				else if (connectionResult != null) resolveConnectionError(connectionResult);
 			}
 		});
+
+		// show intro animation
+		if (savedInstanceState != null) return;
+
+		Animation teddyAnim = new ScaleAnimation(0, 1, 0, 1, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+		teddyAnim.setInterpolator(new OvershootInterpolator());
+		teddyAnim.setDuration(500);
+		teddyAnim.setStartOffset(500);
+		teddyView.startAnimation(teddyAnim);
+
+		AnimationSet titleAnim = new AnimationSet(true);
+		titleAnim.addAnimation(new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_PARENT, -1, Animation.RELATIVE_TO_SELF, 0));
+		titleAnim.addAnimation(new AlphaAnimation(0, 1));
+		titleAnim.setDuration(500);
+		titleAnim.setStartOffset(500);
+		titleAnim.setInterpolator(new DecelerateInterpolator());
+		titleView.startAnimation(titleAnim);
+
+		AnimationSet btnAnim = new AnimationSet(true);
+		btnAnim.addAnimation(new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_PARENT, 1, Animation.RELATIVE_TO_SELF, 0));
+		btnAnim.addAnimation(new AlphaAnimation(0, 1));
+		btnAnim.setDuration(500);
+		btnAnim.setStartOffset(500);
+		btnAnim.setInterpolator(new DecelerateInterpolator());
+		loginView.startAnimation(btnAnim);
 	}
 
 
