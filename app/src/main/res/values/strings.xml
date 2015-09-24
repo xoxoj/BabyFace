@@ -20,6 +20,9 @@
     <string name="all_done">All done!</string>
     <string name="added_new_face">We\'ll remind you when it\'s time to take another photo. For now just sit back and relax.</string>
 
+    <string name="not_operational_title">Unable to process image</string>
+    <string name="not_operational_msg">The image processing component for this app has not yet been downloaded. Until it becomes available BabyFace will be unable to auto process your images. We are sorry :(</string>
+
     <string name="photo_time">Photo time</string>
     <string name="time_to_take_photo">Time to take a photo of %1$s!</string>
     <string name="take_photo">Take photo</string>

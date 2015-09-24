@@ -1,5 +1,6 @@
 package org.faudroids.babyface.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -16,10 +17,12 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.faces.FacesManager;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.PhotoProcessor;
 import org.faudroids.babyface.photo.ReminderManager;
 import org.faudroids.babyface.photo.ReminderPeriod;
 import org.faudroids.babyface.photo.ReminderUnit;
 import org.faudroids.babyface.utils.DefaultTransformer;
+import org.faudroids.babyface.utils.Pref;
 import org.parceler.Parcels;
 
 import javax.inject.Inject;
@@ -53,6 +56,7 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 	@Inject private FacesManager facesManager;
 	@Inject private PhotoManager photoManager;
+	@Inject private PhotoProcessor photoProcessor;
 	@Inject private ReminderManager reminderManager;
 	@Inject private PhotoUtils photoUtils;
 
@@ -262,8 +266,12 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 	private NewFaceView createPhotoView() {
 		return new NewFaceView(NewFaceActivity.this, containerLayout, faceBuilder, this) {
 
+			private static final String PREFS_NAME = "org.faudroids.babyface.ui.NewFaceActivity";
+			private static final String KEY_NOT_OPERATIONAL_DIALOG_DISPLAYED = "not_operational_dialog_displayed";
+
 			private View photoContainer;
 			private ImageView cameraView, photoView;
+			private Pref<Boolean> notOperationalDialogDisplayedPref = Pref.newBooleanPref(NewFaceActivity.this, PREFS_NAME, KEY_NOT_OPERATIONAL_DIALOG_DISPLAYED, false);
 
 			@Override
 			protected void doOnComplete() {
@@ -294,12 +302,21 @@ public class NewFaceActivity extends AbstractActivity implements NewFaceView.Inp
 
 			@Override
 			public void onDataUpdated() {
-
 				// toggle preview of photo
 				if (photoManager.getRecentPhoto(faceBuilder.getName()).isPresent()) {
 					cameraView.setVisibility(View.GONE);
 					photoContainer.setVisibility(View.VISIBLE);
 					photoUtils.loadImage(photoManager.getRecentPhoto(faceBuilder.getName()), photoView, R.dimen.profile_image_size_extra_large);
+
+					if (!photoProcessor.isOperational() && !notOperationalDialogDisplayedPref.get()) {
+						notOperationalDialogDisplayedPref.set(true);
+						new AlertDialog.Builder(NewFaceActivity.this)
+								.setTitle(R.string.not_operational_title)
+								.setMessage(R.string.not_operational_msg)
+								.setPositiveButton(android.R.string.ok, null)
+								.show();
+					}
+
 				} else {
 					cameraView.setVisibility(View.VISIBLE);
 					photoContainer.setVisibility(View.GONE);

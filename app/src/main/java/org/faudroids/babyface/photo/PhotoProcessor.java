@@ -95,7 +95,6 @@ public class PhotoProcessor {
     }
 
 
-	// TODO check this at some point
 	/**
 	 * @return if false this detector CANNOT be used!
 	 */

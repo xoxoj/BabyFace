@@ -120,7 +120,10 @@ public class PhotoManager {
 
 		// process image (resize + finding faces)
 		Bitmap originalImage = BitmapFactory.decodeFile(tmpPhotoFile.getAbsolutePath(), new BitmapFactory.Options());
-		Optional<Bitmap> processedImage = photoProcessor.findFaceAndCrop(originalImage);
+		Optional<Bitmap> processedImage = Optional.absent();
+		if (photoProcessor.isOperational()) {
+			photoProcessor.findFaceAndCrop(originalImage);
+		}
 		Bitmap resultImage = processedImage.isPresent() ? processedImage.get() : originalImage;
 		resultImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 

@@ -94,12 +94,6 @@ public class CapturePhotoActivity extends AbstractActivity {
 
 
 	@Override
-	public void onRestoreInstanceState(Bundle inState) {
-		super.onRestoreInstanceState(inState);
-	}
-
-
-	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		outState.putParcelable(STATE_PHOTO, photoCreationResult);
 		super.onSaveInstanceState(outState);
