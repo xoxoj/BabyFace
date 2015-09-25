@@ -65,7 +65,7 @@ public class PhotoProcessor {
 			centerX = (int) (face.get().getPosition().x + face.get().getWidth() / 2.0f);
 			centerY = (int) (face.get().getPosition().y + face.get().getHeight() / 2.0f);
 		} else {
-			faceScale = OUTPUT_HEIGHT / input.getHeight();
+			faceScale = OUTPUT_HEIGHT / (float) input.getHeight();
 			centerX = input.getWidth() / 2;
 			centerY = input.getHeight() / 2;
 		}
