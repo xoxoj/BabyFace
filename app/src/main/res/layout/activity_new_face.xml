@@ -29,7 +29,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:gravity="bottom"
-            android:scaleType="fitEnd"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
             android:src="@drawable/background_clouds"
             />
 

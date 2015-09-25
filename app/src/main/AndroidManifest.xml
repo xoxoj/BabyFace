@@ -38,6 +38,7 @@
             />
         <activity
             android:name=".ui.NewFaceActivity"
+            android:screenOrientation="portrait"
             />
         <activity
             android:name=".ui.ShowPhotosActivity"
@@ -45,6 +46,7 @@
             />
         <activity
             android:name=".ui.ShowVideosActivity"
+            android:screenOrientation="portrait"
             />
         <activity
             android:name=".ui.FaceSettingsActivity"
