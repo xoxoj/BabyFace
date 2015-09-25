@@ -37,7 +37,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 	@Inject private NotificationManager notificationManager;
 
 	private String faceName;
-	private PhotoManager.PhotoCreationResult photoCreationResult;
+	private PhotoManager.PhotoCreationResult photoCreationResult = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 		}
 
 		// if landscape mode start photo capturing immediately
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode()) {
+		if (photoCreationResult == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode()) {
 			startPhotoCapture();
 			return;
 		}
@@ -109,7 +109,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 					try {
 						photoManager.onPhotoResult(photoCreationResult);
 					} catch (IOException e) {
-						Timber.e(e, "failed to make video");
+						Timber.e(e, "failed to take photo");
 					}
 
 					// upload image if necessary
