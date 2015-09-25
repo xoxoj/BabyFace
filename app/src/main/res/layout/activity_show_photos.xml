@@ -32,34 +32,6 @@
             android:scaleType="centerInside"
             />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="10dp"
-            >
-
-            <ImageButton
-                android:id="@+id/btn_edit"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_mode_edit_white_24px"
-                android:background="@null"
-                android:layout_weight="1"
-                />
-
-            <ImageButton
-                android:id="@+id/btn_delete"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_delete_white_24px"
-                android:background="@null"
-                android:layout_weight="1"
-                />
-
-        </LinearLayout>
-
     </RelativeLayout>
 
 </RelativeLayout>

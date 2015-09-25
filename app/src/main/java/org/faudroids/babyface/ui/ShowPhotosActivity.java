@@ -7,11 +7,12 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -42,11 +43,8 @@ public class ShowPhotosActivity extends AbstractActivity {
 	private final DateFormat dateFormat = DateFormat.getDateInstance();
 
 	@InjectView(R.id.img_photo) private ImageView photoView;
-	@InjectView(R.id.btn_delete) private ImageButton deleteButton;
-	@InjectView(R.id.btn_edit) private ImageButton editButton;
-
-	private PhotoAdapter photoAdapter;
 	@InjectView(R.id.list_photos) private RecyclerView photosList;
+	private PhotoAdapter photoAdapter;
 
 	@Inject private PhotoManager photoManager;
 
@@ -71,17 +69,22 @@ public class ShowPhotosActivity extends AbstractActivity {
 		List<PhotoInfo> photos = photoManager.getPhotosForFace(face);
 		if (!photos.isEmpty()) setSelectedPhoto(photos.get(0));
 		setupPhotos(photos);
+	}
 
-		// setup buttons
-		editButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Toast.makeText(ShowPhotosActivity.this, "stub", Toast.LENGTH_SHORT).show();
-			}
-		});
-		deleteButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu_show_photos, menu);
+		return true;
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.delete:
+				if (photoAdapter.getItemCount() == 0) return true; // ignore
 				new AlertDialog.Builder(ShowPhotosActivity.this)
 						.setTitle(R.string.delete_photo_title)
 						.setMessage(R.string.delete_photo_msg)
@@ -106,16 +109,15 @@ public class ShowPhotosActivity extends AbstractActivity {
 						})
 						.setNegativeButton(android.R.string.cancel, null)
 						.show();
-			}
-		});
+				return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 
 	private void setupPhotos(List<PhotoInfo> photos) {
 		Timber.d("loaded " + photos.size() + " photos");
 		int actionVisibility = photos.isEmpty() ? View.GONE : View.VISIBLE;
-		editButton.setVisibility(actionVisibility);
-		deleteButton.setVisibility(actionVisibility);
 		photoAdapter.setPhotos(photos);
 	}
 
