@@ -3,8 +3,13 @@ package org.faudroids.babyface.photo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcel;
@@ -118,8 +123,8 @@ public class PhotoManager {
 		final String faceName = photoCreationResult.faceName;
 		final File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
 
-		// process image (resize + finding faces)
-		Bitmap originalImage = BitmapFactory.decodeFile(tmpPhotoFile.getAbsolutePath(), new BitmapFactory.Options());
+		// process image (rotate + resize + finding faces)
+		Bitmap originalImage = assertCorrectPhotoRotation(photoCreationResult);
 		Bitmap processedImage = photoProcessor.findFaceAndCrop(originalImage);
 		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
 
@@ -450,6 +455,75 @@ public class PhotoManager {
 
 
 	/**
+	 * Checks that the photo is has been properly rotated (zero degrees afterwards).
+	 */
+	private Bitmap assertCorrectPhotoRotation(PhotoCreationResult result) throws IOException {
+		final Bitmap input = BitmapFactory.decodeFile(result.getTmpPhotoFile().getAbsolutePath());
+
+		final int rotation = getRotationForPhoto(result);
+		if (rotation == 0) return input;
+
+		// rotate image
+		Matrix rotateMatrix = new Matrix();
+		rotateMatrix.postRotate(rotation);
+		if (rotation == 180) return Bitmap.createBitmap(input,  0, 0, input.getWidth(), input.getHeight(), rotateMatrix, true);
+
+		Matrix centerRotateMatrix = new Matrix();
+		centerRotateMatrix.postTranslate(-input.getWidth() / 2, -input.getHeight() / 2);
+		centerRotateMatrix.postRotate(rotation);
+		centerRotateMatrix.postTranslate(input.getHeight() / 2, input.getWidth() / 2);
+		final Bitmap output = Bitmap.createBitmap(input.getHeight(), input.getWidth(), Bitmap.Config.RGB_565);
+		Canvas canvas = new Canvas(output);
+		canvas.drawBitmap(input, centerRotateMatrix, new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG));
+		return output;
+	}
+
+
+	private int getRotationForPhoto(PhotoCreationResult result) {
+		// courtesy to http://stackoverflow.com/a/8864367
+		int rotation = -1;
+		final long fileSize = result.getTmpPhotoFile().length();
+		Cursor mediaCursor = context.getContentResolver().query(
+				MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+				new String[] { MediaStore.Images.ImageColumns.ORIENTATION, MediaStore.MediaColumns.SIZE },
+				MediaStore.MediaColumns.DATE_ADDED + ">=?",
+				new String[]{String.valueOf(result.getPhotoCaptureTime() /1000 - 1)}, MediaStore.MediaColumns.DATE_ADDED + " desc");
+
+		// try getting orientation from media provider (image should be there though, this is a known Android bug on some devices!)
+		if (mediaCursor != null && mediaCursor.getCount() !=0 ) {
+			while(mediaCursor.moveToNext()){
+				long size = mediaCursor.getLong(1);
+				//Extra check to make sure that we are getting the orientation from the proper file
+				if( size == fileSize){
+					rotation = mediaCursor.getInt(0);
+					break;
+				}
+			}
+			mediaCursor.close();
+		}
+
+		// try reading regular exif tags (not present on all devices)
+		if(rotation == -1) {
+			try {
+				ExifInterface exif = new ExifInterface(result.getTmpPhotoFile().getAbsolutePath());
+				int rotationConstant = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+				switch(rotationConstant) {
+					case ExifInterface.ORIENTATION_ROTATE_180:
+						return 180;
+					case ExifInterface.ORIENTATION_ROTATE_270:
+						return 270;
+					case ExifInterface.ORIENTATION_ROTATE_90:
+						return 90;
+				}
+			} catch (IOException e) {
+				Timber.e(e, "failed to read exif info for image " + result.getTmpPhotoFile().getAbsolutePath());
+			}
+		}
+		return 0;
+	}
+
+
+	/**
 	 * Helper class for grouping values during rx chains.
 	 */
 	private static class SyncContainer {
@@ -467,11 +541,13 @@ public class PhotoManager {
 		private final Intent photoCaptureIntent;
 		private final String faceName;
 		private final File tmpPhotoFile;
+		private final long photoCaptureTime;
 
 		private PhotoCreationResult(Intent photoCaptureIntent, String faceName, File tmpPhotoFile) {
 			this.photoCaptureIntent = photoCaptureIntent;
 			this.faceName = faceName;
 			this.tmpPhotoFile = tmpPhotoFile;
+			this.photoCaptureTime = System.currentTimeMillis();
 		}
 
 		public Intent getPhotoCaptureIntent() {
@@ -486,10 +562,15 @@ public class PhotoManager {
 			return tmpPhotoFile;
 		}
 
+		private long getPhotoCaptureTime() {
+			return photoCaptureTime;
+		}
+
 		protected PhotoCreationResult(Parcel in) {
 			photoCaptureIntent = (Intent) in.readValue(Intent.class.getClassLoader());
 			faceName = in.readString();
 			tmpPhotoFile = (File) in.readSerializable();
+			photoCaptureTime = in.readLong();
 		}
 
 		@Override
@@ -502,6 +583,7 @@ public class PhotoManager {
 			dest.writeValue(photoCaptureIntent);
 			dest.writeString(faceName);
 			dest.writeSerializable(tmpPhotoFile);
+			dest.writeLong(photoCaptureTime);
 		}
 
 		@SuppressWarnings("unused")
