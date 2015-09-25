@@ -55,7 +55,7 @@ public class CapturePhotoActivity extends AbstractActivity {
 		}
 
 		// if landscape mode start photo capturing immediately
-		if (photoCreationResult == null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode()) {
+		if (photoCreationResult == null && (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE || !photoManager.getForcePhotoLandscapeMode())) {
 			startPhotoCapture();
 			return;
 		}
