@@ -1,6 +1,8 @@
 package org.faudroids.babyface.videos;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
@@ -13,13 +15,13 @@ import org.faudroids.babyface.R;
 import org.faudroids.babyface.faces.Face;
 import org.faudroids.babyface.photo.PhotoInfo;
 import org.faudroids.babyface.photo.PhotoManager;
+import org.faudroids.babyface.photo.PhotoProcessor;
 import org.faudroids.babyface.utils.IOUtils;
 import org.faudroids.babyface.utils.Pref;
 import org.roboguice.shaded.goole.common.collect.Lists;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -53,15 +55,17 @@ public class VideoManager {
 
 	private final Context context;
 	private final PhotoManager photoManager;
+	private final PhotoProcessor photoProcessor;
 	private final IOUtils ioUtils;
 	private final Pref<Boolean> firstSetup;
 	private final FFmpeg fFmpeg;
 
 
 	@Inject
-	VideoManager(Context context, PhotoManager photoManager, IOUtils ioUtils) {
+	VideoManager(Context context, PhotoManager photoManager, PhotoProcessor photoProcessor, IOUtils ioUtils) {
 		this.context = context;
 		this.photoManager = photoManager;
+		this.photoProcessor = photoProcessor;
 		this.ioUtils = ioUtils;
 		this.firstSetup = Pref.newBooleanPref(context, VideoManager.class.getName() + ".FIRST_SETUP", "first_setup", true);
 		this.fFmpeg = FFmpeg.getInstance(context);
@@ -111,17 +115,22 @@ public class VideoManager {
 				.defer(new Func0<Observable<File>>() {
 					@Override
 					public Observable<File> call() {
-						// rename photos to img0000.jpg
+						// rename photos to img0000.jpg + process photos
 						Collections.sort(photoFiles);
 						int idx = 0;
 						for (File oldFile : photoFiles) {
 							++idx;
-							File newFile = new File(getTmpVideoDir(), "img" + String.format("%03d", idx) + ".jpg");
 							try {
+								// process image
+								Bitmap originalImage = BitmapFactory.decodeFile(oldFile.getAbsolutePath());
+								Bitmap processedImage = photoProcessor.findFaceAndCrop(originalImage);
+
+								// store image
+								final File newFile = new File(getTmpVideoDir(), "img" + String.format("%03d", idx) + ".jpg");
 								if (!newFile.createNewFile()) Timber.e("failed to create file " + newFile.getAbsolutePath());
-								ioUtils.copyStream(new FileInputStream(oldFile), new FileOutputStream(newFile));
+								processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(newFile));
 							} catch(IOException e) {
-								Timber.d(e, "failed to copy file");
+								Timber.d(e, "failed to copy + process file");
 								return Observable.error(e);
 							}
 						}

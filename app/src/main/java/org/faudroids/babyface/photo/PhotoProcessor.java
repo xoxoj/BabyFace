@@ -28,7 +28,7 @@ public class PhotoProcessor {
 		BLACK_PAINT.setColor(Color.BLACK);
 	}
 
-	private static final int
+	public static final int
 			OUTPUT_WIDTH = 1920,
 			OUTPUT_HEIGHT = 1080;
 

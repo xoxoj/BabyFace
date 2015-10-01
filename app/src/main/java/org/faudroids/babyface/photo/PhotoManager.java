@@ -78,6 +78,8 @@ public class PhotoManager {
 	private static final DateFormat PHOTO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 	private static final String PHOTO_FILE_NAME_REGEX = "(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)_(\\d\\d)-(\\d\\d)-(\\d\\d)\\.jpg";
 
+	private static final float PHOTO_SCALE = 1.5f; // how much larger the raw photos should be compared to the processed output
+
 	private static final String
 			INTERNAL_UPLOADS_DIR = "uploads",
 			INTERNAL_DELETE_DIR = "deleted";
@@ -122,16 +124,26 @@ public class PhotoManager {
 	public void onPhotoResult(PhotoCreationResult photoCreationResult) throws IOException {
 		final String faceName = photoCreationResult.faceName;
 		final File tmpPhotoFile = photoCreationResult.getTmpPhotoFile();
+		final Bitmap originalImage = assertCorrectPhotoRotation(photoCreationResult);
 
-		// process image (rotate + resize + finding faces)
-		Bitmap originalImage = assertCorrectPhotoRotation(photoCreationResult);
-		Bitmap processedImage = photoProcessor.findFaceAndCrop(originalImage);
-		processedImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(tmpPhotoFile));
+		// scale image down to reduce memory usage
+		final float xScale = originalImage.getWidth() / ((float) PhotoProcessor.OUTPUT_WIDTH);
+		final float yScale = originalImage.getHeight() / ((float) PhotoProcessor.OUTPUT_HEIGHT);
+		final float scale = Math.min(xScale, yScale);
+		Bitmap scaledImage;
+		if (scale > PHOTO_SCALE) {
+			final float scaledWidth = originalImage.getWidth() * PHOTO_SCALE / scale;
+			final float scaledHeight = originalImage.getHeight() * PHOTO_SCALE / scale;
+			scaledImage = Bitmap.createScaledBitmap(originalImage, (int) scaledWidth, (int) scaledHeight, false);
+		} else {
+			scaledImage = originalImage;
+		}
+
 
 		// copy image to internal storage
 		final String photoFileName = PHOTO_DATE_FORMAT.format(new Date()) + ".jpg";
 		File internalImageFile = new File(getFaceUploadsDir(faceName), photoFileName);
-		ioUtils.copyStream(new FileInputStream(tmpPhotoFile), new FileOutputStream(internalImageFile));
+		scaledImage.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(internalImageFile));
 
 		// delete public file
 		if (!tmpPhotoFile.delete()) Timber.w("failed to delete file " + tmpPhotoFile.getAbsolutePath());
