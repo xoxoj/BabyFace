@@ -48,6 +48,7 @@ public class ReminderReceiver extends RoboBroadcastReceiver {
 		// show notification
 		String msg = context.getString(R.string.time_to_take_photo, face.getName());
 		Notification notification = new NotificationCompat.Builder(context)
+				.setContentIntent(photoPendingIntent)
 				.setAutoCancel(true)
 				.setContentTitle(context.getString(R.string.photo_time))
 				.setContentText(msg)
