@@ -41,6 +41,7 @@
 
     <string name="take_landscape_photos">Take photos in landscape mode</string>
     <string name="version">Version</string>
+    <string name="share">Share</string>
     <string name="about">About</string>
     <string name="about_content">
         This app was developed as part of the Android Challenge: one app every month for one year
@@ -76,6 +77,9 @@
         &lt;br&gt;
         Thanks everyone!
     </string>
+
+    <string name="share_title">Share via</string>
+    <string name="share_message">Hey, check out %1$s, a simple way to create videos of how your kids are growing up https://play.google.com/store/apps/details?id=org.faudroids.babyface</string>
 
     <string name="logout">Logout</string>
     <string name="settings_quick_message">Made by a small team of night time coders in Erlangen, Germany\nThanks for your support!</string>

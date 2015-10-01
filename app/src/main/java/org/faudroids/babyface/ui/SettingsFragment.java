@@ -27,6 +27,7 @@ public class SettingsFragment extends AbstractFragment {
 
 	@InjectView(R.id.txt_start_import) private TextView startImport;
 	@InjectView(R.id.check_force_photo_landscape) private CheckBox forceLandscapePhotos;
+	@InjectView(R.id.shareTextView) private TextView share;
 	@InjectView(R.id.versionTextView) private TextView version;
 	@InjectView(R.id.authorTextView) private TextView authors;
 	@InjectView(R.id.creditsTextView) private TextView credits;
@@ -78,6 +79,19 @@ public class SettingsFragment extends AbstractFragment {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				photoManager.setForcePhotoLandscapeMode(isChecked);
+			}
+		});
+
+		share.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+				sharingIntent.setType("text/plain");
+				String appName= getString(R.string.app_name);
+				String shareBody = getString(R.string.share_message, appName);
+				sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, appName);
+				sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+				startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_title)));
 			}
 		});
 
